@@ -2,9 +2,16 @@ version = "1.0-SNAPSHOT"
 
 plugins {
     id("java")
+    application
 }
+
 group = "com.contrabass"
 
+application {
+    mainClass.set("me.jsedwards.Main")
+}
+
+// LWJGL stuff
 val lwjglVersion = "3.3.3"
 
 val lwjglNatives = Pair(
@@ -27,16 +34,25 @@ val lwjglNatives = Pair(
 
 repositories {
     mavenCentral()
+    maven("https://jitpack.io") // For jSystemThemeDetector
 }
 
 dependencies {
+    // Testing
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
+    // GUI appearance
     implementation("com.formdev:flatlaf:3.2.1")
+    implementation("com.github.Dansoftowner:jSystemThemeDetector:3.8")
 
+    // Jackson - JSON parsing
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.3")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.15.3")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.3")
+
+    // LWJGL - native file dialogs
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
-
     implementation("org.lwjgl", "lwjgl")
     implementation("org.lwjgl", "lwjgl-nfd")
     implementation("org.lwjgl", "lwjgl-tinyfd")
@@ -44,6 +60,20 @@ dependencies {
     runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-tinyfd", classifier = lwjglNatives)
 }
+
+// Custom task to build a macOS application
+//abstract class MacOSApplicationTask: DefaultTask() {
+//    @TaskAction
+//    fun build() {
+//        mkdir("build/macos")
+//        mkdir("build/macos/Minecraft Wrapper.app")
+//        mkdir("build/macos/Minecraft Wrapper.app/Contents")
+//        mkdir("build/macos/Minecraft Wrapper.app/Contents/MacOs")
+//
+//    }
+//}
+//
+//tasks.register<MacOSApplicationTask>("buildMacOS")
 
 tasks.test {
     useJUnitPlatform()

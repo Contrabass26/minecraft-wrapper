@@ -4,6 +4,8 @@ import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -40,13 +42,15 @@ public class Server extends JPanel {
         return server;
     }
 
-    public void start() {
+    public boolean start() {
         try {
             consoleWrapper = new ConsoleWrapper("java -Xmx2G -jar fabric-server-launch.jar nogui", new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log);
+            return true;
         } catch (IOException e) {
             consolePanel.log("Failed to start server: " + e.getMessage());
             e.printStackTrace();
         }
+        return false;
     }
 
     private class TopPanel extends JPanel {
@@ -64,9 +68,43 @@ public class Server extends JPanel {
             titleLabel.setFont(Main.MAIN_FONT);
             this.add(titleLabel, new GridBagConstraints(2, 1, 1, 1, 1, 1, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
             // Start button
-            JButton startButton = new JButton("Start");
-            startButton.addActionListener(e -> Server.this.start());
-            this.add(startButton, new GridBagConstraints(3, 1, 1, 1, 0, 1, GridBagConstraints.EAST, GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 0), 0, 0));
+            StartStopButton startStopButton = new StartStopButton();
+            this.add(startStopButton, new GridBagConstraints(3, 1, 1, 1, 0, 1, GridBagConstraints.EAST, GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 0), 0, 0));
+        }
+    }
+
+    private class StartStopButton extends JButton implements ActionListener {
+
+        private boolean running = false;
+
+        private StartStopButton() {
+            super("Start");
+            this.setBackground(Color.GREEN);
+            this.setForeground(Color.BLACK);
+            this.addActionListener(this);
+        }
+
+        private void updateColors() {
+            this.setBackground(running ? Color.RED : Color.GREEN);
+            this.setForeground(running ? Color.WHITE : Color.BLACK);
+            this.setText(running ? "Stop" : "Start");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            running = !running;
+            if (running) {
+                Server.this.consolePanel.clearOutput();
+                Server.this.start();
+            } else {
+                try {
+                    Server.this.consoleWrapper.write("stop\n");
+                    Server.this.consolePanel.log("stop");
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+            updateColors();
         }
     }
 
@@ -94,7 +132,8 @@ public class Server extends JPanel {
                 public void keyReleased(KeyEvent e) {
                     if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                         try {
-                            consoleWrapper.write(textField.getText() + "\n");
+                            Server.this.consoleWrapper.write(textField.getText() + "\n");
+                            ConsolePanel.this.log(textField.getText());
                             textField.setText("");
                         } catch (IOException ex) {
                             log("Failed to send command: " + ex.getMessage());
@@ -104,6 +143,11 @@ public class Server extends JPanel {
                 }
             });
             this.add(textField, new GridBagConstraints(1, 2, 2, 1, 1, 0, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(5, 0, 0, 0), 0, 0));
+        }
+
+        public void clearOutput() {
+            this.outputArea.setText("");
+            this.firstLog = true;
         }
 
         public void log(String text) {

@@ -1,5 +1,7 @@
 package me.jsedwards;
 
+import me.jsedwards.gui.menubar.MenuBarConfig;
+
 import java.io.IOException;
 import java.io.InputStream;
 

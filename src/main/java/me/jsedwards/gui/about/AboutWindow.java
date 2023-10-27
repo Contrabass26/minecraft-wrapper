@@ -1,6 +1,7 @@
-package me.jsedwards;
+package me.jsedwards.gui.about;
 
 import com.formdev.flatlaf.util.SystemInfo;
+import me.jsedwards.Main;
 
 import javax.swing.*;
 import java.awt.*;

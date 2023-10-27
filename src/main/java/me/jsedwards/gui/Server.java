@@ -1,4 +1,7 @@
-package me.jsedwards;
+package me.jsedwards.gui;
+
+import me.jsedwards.ConsoleWrapper;
+import me.jsedwards.Main;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -42,15 +45,13 @@ public class Server extends JPanel {
         return server;
     }
 
-    public boolean start() {
+    public void start() {
         try {
             consoleWrapper = new ConsoleWrapper("java -Xmx2G -jar fabric-server-launch.jar nogui", new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log);
-            return true;
         } catch (IOException e) {
             consolePanel.log("Failed to start server: " + e.getMessage());
             e.printStackTrace();
         }
-        return false;
     }
 
     private class TopPanel extends JPanel {

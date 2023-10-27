@@ -3,6 +3,7 @@ package me.jsedwards;
 import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.jthemedetecor.OsThemeDetector;
+import me.jsedwards.gui.Window;
 
 import javax.swing.*;
 import java.awt.*;

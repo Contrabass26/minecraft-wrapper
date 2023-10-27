@@ -1,4 +1,6 @@
-package me.jsedwards;
+package me.jsedwards.gui.menubar;
+
+import me.jsedwards.ResourceLoader;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;

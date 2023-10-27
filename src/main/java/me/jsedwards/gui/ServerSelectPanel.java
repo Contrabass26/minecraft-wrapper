@@ -1,4 +1,6 @@
-package me.jsedwards;
+package me.jsedwards.gui;
+
+import me.jsedwards.Main;
 
 import javax.swing.*;
 import java.awt.*;

@@ -1,4 +1,4 @@
-package me.jsedwards;
+package me.jsedwards.gui.menubar;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

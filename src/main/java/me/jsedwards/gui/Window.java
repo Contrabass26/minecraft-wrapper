@@ -1,6 +1,9 @@
-package me.jsedwards;
+package me.jsedwards.gui;
 
 import com.formdev.flatlaf.util.SystemInfo;
+import me.jsedwards.Main;
+import me.jsedwards.gui.about.AboutWindow;
+import me.jsedwards.gui.menubar.ConfiguredMenuBar;
 
 import javax.swing.*;
 import java.awt.*;

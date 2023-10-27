@@ -28,7 +28,7 @@ public class ServerSelectPanel extends JPanel {
         createButton.addActionListener(e -> {
             // Create new server
             String name = "New server";
-            Server.create(name);
+            Server.create(name, "/Users/josephedwards/Downloads/test-server");
             this.buttonsPanel.addServer(name);
         });
         createButton.setFont(Main.MAIN_FONT);

@@ -4,6 +4,10 @@ import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,11 +16,14 @@ public class Server extends JPanel {
     private static final List<Server> servers = new ArrayList<>();
 
     public final String serverName;
+    public final String serverLocation;
     private final ConsolePanel consolePanel;
+    private ConsoleWrapper consoleWrapper = null;
 
-    private Server(String serverName) {
+    private Server(String serverName, String serverLocation) {
         super();
         this.serverName = serverName;
+        this.serverLocation = serverLocation;
         // Layout
         this.setLayout(new GridBagLayout());
         // Top panel
@@ -26,11 +33,20 @@ public class Server extends JPanel {
         this.add(consolePanel, new GridBagConstraints(1, 2, 1, 1, 1, 1, GridBagConstraints.SOUTH, GridBagConstraints.BOTH, new Insets(0, 10, 10, 10), 0, 0));
     }
 
-    public static Server create(String name) {
-        Server server = new Server(name);
+    public static Server create(String name, String location) {
+        Server server = new Server(name, location);
         servers.add(server);
         Main.WINDOW.cardPanel.addServerCard(server);
         return server;
+    }
+
+    public void start() {
+        try {
+            consoleWrapper = new ConsoleWrapper("java -Xmx2G -jar fabric-server-launch.jar nogui", new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log);
+        } catch (IOException e) {
+            consolePanel.log("Failed to start server: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private class TopPanel extends JPanel {
@@ -42,7 +58,7 @@ public class Server extends JPanel {
             titleLabel.setFont(Main.MAIN_FONT);
             this.add(titleLabel, new GridBagConstraints(1, 1, 1, 1, 1, 1, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
             JButton startButton = new JButton("Start");
-            startButton.addActionListener(e -> Server.this.consolePanel.log("The time is " + System.currentTimeMillis()));
+            startButton.addActionListener(e -> Server.this.start());
             this.add(startButton, new GridBagConstraints(2, 1, 1, 1, 0, 1, GridBagConstraints.EAST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
         }
     }
@@ -66,8 +82,21 @@ public class Server extends JPanel {
             // Input field
             JTextField textField = new JTextField();
             textField.setFont(Main.MONOSPACED_FONT);
+            textField.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyReleased(KeyEvent e) {
+                    if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                        try {
+                            consoleWrapper.write(textField.getText() + "\n");
+                            textField.setText("");
+                        } catch (IOException ex) {
+                            log("Failed to send command: " + ex.getMessage());
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+            });
             this.add(textField, new GridBagConstraints(1, 2, 2, 1, 1, 0, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(5, 0, 0, 0), 0, 0));
-            // TODO: Create console instance
         }
 
         public void log(String text) {

@@ -6,7 +6,7 @@ import com.jthemedetecor.OsThemeDetector;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
+import java.io.*;
 import java.util.Objects;
 
 public final class Main {

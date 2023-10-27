@@ -9,7 +9,7 @@ import java.io.IOException;
 
 public class Window extends JFrame {
 
-    private final CardPanel cardPanel;
+    public final CardPanel cardPanel;
     private AboutWindow aboutWindow = null;
 
     public Window() {

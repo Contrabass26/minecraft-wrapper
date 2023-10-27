@@ -53,13 +53,20 @@ public class Server extends JPanel {
 
         private TopPanel() {
             super();
+            // Layout
             this.setLayout(new GridBagLayout());
+            // Back button
+            JButton backButton = new JButton("Back");
+            backButton.addActionListener(e -> Main.WINDOW.cardPanel.switchToServerSelect());
+            this.add(backButton, new GridBagConstraints(1, 1, 1, 1, 0, 1, GridBagConstraints.WEST, GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 10), 0, 0));
+            // Title label
             JLabel titleLabel = new JLabel(Server.this.serverName);
             titleLabel.setFont(Main.MAIN_FONT);
-            this.add(titleLabel, new GridBagConstraints(1, 1, 1, 1, 1, 1, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+            this.add(titleLabel, new GridBagConstraints(2, 1, 1, 1, 1, 1, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+            // Start button
             JButton startButton = new JButton("Start");
             startButton.addActionListener(e -> Server.this.start());
-            this.add(startButton, new GridBagConstraints(2, 1, 1, 1, 0, 1, GridBagConstraints.EAST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+            this.add(startButton, new GridBagConstraints(3, 1, 1, 1, 0, 1, GridBagConstraints.EAST, GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 0), 0, 0));
         }
     }
 

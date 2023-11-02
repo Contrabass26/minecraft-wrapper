@@ -2,15 +2,22 @@ package me.jsedwards.gui;
 
 import com.formdev.flatlaf.util.SystemInfo;
 import me.jsedwards.Main;
+import me.jsedwards.Settings;
 import me.jsedwards.gui.about.AboutWindow;
 import me.jsedwards.gui.menubar.ConfiguredMenuBar;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.desktop.AboutEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 
 public class Window extends JFrame {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public final CardPanel cardPanel;
     private AboutWindow aboutWindow = null;
@@ -29,8 +36,7 @@ public class Window extends JFrame {
             ConfiguredMenuBar menuBar = new ConfiguredMenuBar("main");
             this.setJMenuBar(menuBar);
         } catch (IOException e) {
-            System.err.println("Failed to load menu bar config: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Failed to load menu bar config", e);
         }
         // Transparent title bar and full window content (macOS)
         if (SystemInfo.isMacFullWindowContentSupported) {
@@ -44,7 +50,17 @@ public class Window extends JFrame {
             desktop.setAboutHandler(this::showAboutWindow);
         }
         // Other settings
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                // Save data
+                Settings.save();
+                // Exit
+                Window.this.dispose();
+                System.exit(0);
+            }
+        });
         this.setVisible(true);
     }
 

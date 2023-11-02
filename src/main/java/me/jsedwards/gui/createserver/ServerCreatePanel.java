@@ -54,6 +54,7 @@ public class ServerCreatePanel extends JPanel {
                 // Add new button to server select panel
                 Main.WINDOW.cardPanel.serverSelectPanel.addServer(server);
                 // Download server
+                // TODO: Progress bar for download
                 File destination = new File(serverLocation);
                 try {
                     modLoader.downloadFiles(destination, mcVersion);

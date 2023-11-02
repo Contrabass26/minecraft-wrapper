@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout disableAnsi="false" pattern="%highlight{[%d{HH:mm:ss}]}{INFO=blue, WARN=blue, ERROR=blue} %highlight{[%t/%level]}{INFO=green, WARN=green, ERROR=green} %highlight{(%logger)}{INFO=cyan, WARN=cyan, ERROR=cyan} %msg{nolookups}%n" />
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="trace">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

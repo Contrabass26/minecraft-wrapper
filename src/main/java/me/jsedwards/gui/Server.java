@@ -3,6 +3,8 @@ package me.jsedwards.gui;
 import me.jsedwards.ConsoleWrapper;
 import me.jsedwards.Main;
 import me.jsedwards.ModLoader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -19,6 +21,7 @@ import java.util.List;
 
 public class Server extends JPanel {
 
+    private static final Logger LOGGER = LogManager.getLogger();
     private static final List<Server> servers = new ArrayList<>();
 
     public final String serverName;
@@ -59,7 +62,7 @@ public class Server extends JPanel {
             consoleWrapper = new ConsoleWrapper("java -Xmx2G -jar fabric-server-launch.jar nogui", new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log);
         } catch (IOException e) {
             consolePanel.log("Failed to start server: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Failed to start server", e);
         }
     }
 
@@ -146,8 +149,7 @@ public class Server extends JPanel {
                             ConsolePanel.this.log(textField.getText());
                             textField.setText("");
                         } catch (IOException ex) {
-                            log("Failed to send command: " + ex.getMessage());
-                            ex.printStackTrace();
+                            LOGGER.error("Failed to send command to server", ex);
                         }
                     }
                 }
@@ -167,8 +169,7 @@ public class Server extends JPanel {
             try {
                 document.insertString(document.getLength(), appendage, null);
             } catch (BadLocationException e) {
-                System.err.println("Failed to write console output");
-                e.printStackTrace();
+                LOGGER.error("Failed to write server output", e);
             }
             scrollPane.getVerticalScrollBar().setValue(Integer.MAX_VALUE);
         }

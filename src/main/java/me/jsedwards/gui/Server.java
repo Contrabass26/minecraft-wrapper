@@ -2,6 +2,7 @@ package me.jsedwards.gui;
 
 import me.jsedwards.ConsoleWrapper;
 import me.jsedwards.Main;
+import me.jsedwards.ModLoader;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -22,13 +23,17 @@ public class Server extends JPanel {
 
     public final String serverName;
     public final String serverLocation;
+    public final ModLoader modLoader;
+    public final String mcVersion;
     private final ConsolePanel consolePanel;
     private ConsoleWrapper consoleWrapper = null;
 
-    private Server(String serverName, String serverLocation) {
+    private Server(String serverName, String serverLocation, ModLoader modLoader, String mcVersion) {
         super();
         this.serverName = serverName;
         this.serverLocation = serverLocation;
+        this.modLoader = modLoader;
+        this.mcVersion = mcVersion;
         // Layout
         this.setLayout(new GridBagLayout());
         // Top panel
@@ -38,8 +43,12 @@ public class Server extends JPanel {
         this.add(consolePanel, new GridBagConstraints(1, 2, 1, 1, 1, 1, GridBagConstraints.SOUTH, GridBagConstraints.BOTH, new Insets(0, 10, 10, 10), 0, 0));
     }
 
-    public static Server create(String name, String location) {
-        Server server = new Server(name, location);
+    public static boolean exists(String name) {
+        return servers.stream().anyMatch(s -> s.serverName.equals(name));
+    }
+
+    public static Server create(String name, String location, ModLoader modLoader, String mcVersion) {
+        Server server = new Server(name, location, modLoader, mcVersion);
         servers.add(server);
         Main.WINDOW.cardPanel.addServerCard(server);
         return server;
@@ -65,7 +74,7 @@ public class Server extends JPanel {
             backButton.addActionListener(e -> Main.WINDOW.cardPanel.switchToServerSelect());
             this.add(backButton, new GridBagConstraints(1, 1, 1, 1, 0, 1, GridBagConstraints.WEST, GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 10), 0, 0));
             // Title label
-            JLabel titleLabel = new JLabel(Server.this.serverName);
+            JLabel titleLabel = new JLabel(Server.this.serverName + " - " + Server.this.modLoader);
             titleLabel.setFont(Main.MAIN_FONT);
             this.add(titleLabel, new GridBagConstraints(2, 1, 1, 1, 1, 1, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
             // Start button

@@ -51,6 +51,9 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-core:2.15.3")
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.3")
 
+    // Apache commons lang
+    implementation("org.apache.commons:commons-lang3:3.13.0")
+
     // LWJGL - native file dialogs
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
     implementation("org.lwjgl", "lwjgl")

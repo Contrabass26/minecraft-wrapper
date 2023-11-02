@@ -29,12 +29,14 @@ public class ServerSelectPanel extends JPanel {
         JButton createButton = new JButton("Create server");
         createButton.addActionListener(e -> {
             // Create new server
-            String name = "New server";
-            Server.create(name, "/Users/josephedwards/Downloads/test-server");
-            this.buttonsPanel.addServer(name);
+            Main.WINDOW.cardPanel.switchToServerCreation();
         });
         createButton.setFont(Main.MAIN_FONT);
         this.add(createButton, new GridBagConstraints(1, 3, 3, 1, 1, 0, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(0, 10, 10, 10), 20, 20));
+    }
+
+    public void addServer(Server server) {
+        this.buttonsPanel.addServer(server);
     }
 
     private static class ButtonsPanel extends JPanel {
@@ -46,11 +48,12 @@ public class ServerSelectPanel extends JPanel {
             this.setLayout(new GridBagLayout());
         }
 
-        private void addServer(String name) {
+        private void addServer(Server server) {
             this.count++;
             SwingUtilities.invokeLater(() -> {
                 // Create new button
-                JButton button = new JButton(name);
+                JButton button = new JButton(server.serverName);
+                // TODO: Show mod loader, location etc. in button
                 button.addActionListener(e -> {
                     // Switch to correct card
                     Main.WINDOW.cardPanel.switchToServer(button.getText());

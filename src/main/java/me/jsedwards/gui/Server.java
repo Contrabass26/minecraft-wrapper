@@ -1,8 +1,11 @@
 package me.jsedwards.gui;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.jsedwards.ConsoleWrapper;
 import me.jsedwards.Main;
 import me.jsedwards.ModLoader;
+import me.jsedwards.ServerData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,11 +21,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Server extends JPanel {
 
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final List<Server> servers = new ArrayList<>();
+    private static List<Server> servers = null;
 
     public final String serverName;
     public final String serverLocation;
@@ -55,6 +59,36 @@ public class Server extends JPanel {
         servers.add(server);
         Main.WINDOW.cardPanel.addServerCard(server);
         return server;
+    }
+
+    public static void load() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            servers = objectMapper.readValue(getSaveLocation(), new TypeReference<List<ServerData>>(){}).stream().map(ServerData::convert).collect(Collectors.toList());
+        } catch (IOException e) {
+            LOGGER.warn("Failed to read server data", e);
+            servers = new ArrayList<>();
+        }
+    }
+
+    public static void save() {
+        getSaveDir().mkdirs();
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            objectMapper.writeValue(getSaveLocation(), servers.stream().map(ServerData::new).toList());
+        } catch (IOException e) {
+            LOGGER.error("Failed to write server data", e);
+        }
+    }
+
+    private static File getSaveLocation() {
+        // TODO: Generalise path
+        return new File("/Users/josephedwards/Library/Application Support/minecraft-wrapper/servers.json");
+    }
+
+    private static File getSaveDir() {
+        // TODO: Generalise path
+        return new File("/Users/josephedwards/Library/Application Support/minecraft-wrapper");
     }
 
     public void start() {

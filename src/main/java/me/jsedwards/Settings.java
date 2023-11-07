@@ -40,7 +40,7 @@ public class Settings {
 
     private static File getLocation() {
         // TODO: Generalise path
-        return new File("/Users/josephedwards/Library/Application Support/minecraft-wrapper/settings.txt");
+        return new File("/Users/josephedwards/Library/Application Support/minecraft-wrapper/settings.json");
     }
 
     private static File getLocationDir() {

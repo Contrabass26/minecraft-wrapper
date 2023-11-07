@@ -3,6 +3,7 @@ package me.jsedwards;
 import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.jthemedetecor.OsThemeDetector;
+import me.jsedwards.gui.Server;
 import me.jsedwards.gui.Window;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,6 +40,7 @@ public final class Main {
     public static void main(String[] args) {
         // Load settings
         Settings.load();
+        Server.load();
         // Mac-specific properties - must happen before any AWT classes are loaded
         if (System.getProperty("os.name").toLowerCase().contains("mac")) {
             LOGGER.info("MacOS detected - setting system properties");

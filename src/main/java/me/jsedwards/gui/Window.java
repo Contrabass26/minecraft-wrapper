@@ -56,6 +56,7 @@ public class Window extends JFrame {
             public void windowClosing(WindowEvent e) {
                 // Save data
                 Settings.save();
+                Server.save();
                 // Exit
                 Window.this.dispose();
                 System.exit(0);

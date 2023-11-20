@@ -1,7 +1,7 @@
 package me.jsedwards.gui;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
 import me.jsedwards.ConsoleWrapper;
 import me.jsedwards.Main;
 import me.jsedwards.ModLoader;
@@ -64,7 +64,9 @@ public class Server extends JPanel {
     public static void load() {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            servers = objectMapper.readValue(getSaveLocation(), new TypeReference<List<ServerData>>(){}).stream().map(ServerData::convert).collect(Collectors.toList());
+            CollectionType collectionType = objectMapper.getTypeFactory().constructCollectionType(List.class, ServerData.class);
+            List<ServerData> list = objectMapper.readValue(getSaveLocation(), collectionType);
+            servers = list.stream().map(ServerData::convert).collect(Collectors.toList());
         } catch (IOException e) {
             LOGGER.warn("Failed to read server data", e);
             servers = new ArrayList<>();

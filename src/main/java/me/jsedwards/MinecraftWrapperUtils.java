@@ -28,8 +28,16 @@ public class MinecraftWrapperUtils {
         return gson.fromJson(json, clazz);
     }
 
-    public static <T> T readJson(File stream, TypeToken<T> type) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new FileReader(stream))) {
+    public static <T> T readJson(File file, TypeToken<T> type) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String json = reader.lines().collect(STRING_COLLECTOR);
+            Gson gson = new Gson();
+            return gson.fromJson(json, type);
+        }
+    }
+
+    public static <T> T readJson(InputStream stream, TypeToken<T> type) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
             String json = reader.lines().collect(STRING_COLLECTOR);
             Gson gson = new Gson();
             return gson.fromJson(json, type);

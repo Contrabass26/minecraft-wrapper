@@ -49,9 +49,6 @@ dependencies {
     // Gson - JSON parsing
     implementation("com.google.code.gson:gson:2.10.1")
 
-    // Jsoup - web scraping
-    implementation("org.jsoup:jsoup:1.16.1")
-
     // Apache commons lang
     implementation("org.apache.commons:commons-lang3:3.13.0")
 

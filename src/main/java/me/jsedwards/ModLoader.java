@@ -1,14 +1,15 @@
 package me.jsedwards;
 
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
 
 public enum ModLoader {
 
@@ -32,26 +33,33 @@ public enum ModLoader {
         }
     };
 
-    // TODO: Get latest automatically
     private static final String FABRIC_LOADER_VERSION;
     private static final String FABRIC_INSTALLER_VERSION;
 
+    private static final Logger LOGGER = LogManager.getLogger();
+
+    private static final TypeToken<ArrayList<FabricLoaderData>> FABRIC_LOADER_DATA_LIST_TYPE = new TypeToken<>() {};
+    private static final TypeToken<ArrayList<FabricInstallerData>> FABRIC_INSTALLER_DATA_LIST_TYPE = new TypeToken<>() {};
+
     static {
-        Document contents;
         try {
-            contents = Jsoup
-                    .connect("https://fabricmc.net/use/installer/")
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
-                    .header("Accept-Language", "*")
-                    .get();
+            HttpURLConnection connection = (HttpURLConnection) new URL("https://meta.fabricmc.net/v2/versions/loader").openConnection();
+            connection.setRequestMethod("GET");
+            List<FabricLoaderData> loaders = MinecraftWrapperUtils.readJson(connection.getInputStream(), FABRIC_LOADER_DATA_LIST_TYPE);
+            FABRIC_LOADER_VERSION = loaders.get(0).version;
+            LOGGER.info("Detected latest Fabric loader version: " + FABRIC_LOADER_VERSION);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        String elementText = contents.getElementsContainingText("Installer Version").get(0).text();
-        Matcher matcher = Pattern.compile("Installer Version: ([0-9.]+) \\(Latest\\)").matcher(elementText);
-        FABRIC_INSTALLER_VERSION = matcher.group(1);
-        FABRIC_LOADER_VERSION = "0.14.24";
-        System.out.println(FABRIC_INSTALLER_VERSION);
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL("https://meta.fabricmc.net/v2/versions/installer").openConnection();
+            connection.setRequestMethod("GET");
+            List<FabricInstallerData> installers = MinecraftWrapperUtils.readJson(connection.getInputStream(), FABRIC_INSTALLER_DATA_LIST_TYPE);
+            FABRIC_INSTALLER_VERSION = installers.get(0).version;
+            LOGGER.info("Detected latest Fabric installer version: " + FABRIC_INSTALLER_VERSION);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static ModLoader get(int i) {

@@ -46,13 +46,11 @@ dependencies {
     implementation("com.formdev:flatlaf:3.2.1")
     implementation("com.github.Dansoftowner:jSystemThemeDetector:3.8")
 
-    // Jackson - JSON parsing
-//    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.3")
-//    implementation("com.fasterxml.jackson.core:jackson-core:2.15.3")
-//    implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.3")
-
     // Gson - JSON parsing
     implementation("com.google.code.gson:gson:2.10.1")
+
+    // Jsoup - web scraping
+    implementation("org.jsoup:jsoup:1.16.1")
 
     // Apache commons lang
     implementation("org.apache.commons:commons-lang3:3.13.0")
@@ -70,20 +68,6 @@ dependencies {
     runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-tinyfd", classifier = lwjglNatives)
 }
-
-// Custom task to build a macOS application
-//abstract class MacOSApplicationTask: DefaultTask() {
-//    @TaskAction
-//    fun build() {
-//        mkdir("build/macos")
-//        mkdir("build/macos/Minecraft Wrapper.app")
-//        mkdir("build/macos/Minecraft Wrapper.app/Contents")
-//        mkdir("build/macos/Minecraft Wrapper.app/Contents/MacOs")
-//
-//    }
-//}
-//
-//tasks.register<MacOSApplicationTask>("buildMacOS")
 
 tasks.test {
     useJUnitPlatform()

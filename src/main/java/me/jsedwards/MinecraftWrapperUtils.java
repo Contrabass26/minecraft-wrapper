@@ -12,18 +12,20 @@ public class MinecraftWrapperUtils {
 
     public static <T> T readJson(File file, Class<T> clazz) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String json = reader.lines().collect(STRING_COLLECTOR);
-            Gson gson = new Gson();
-            return gson.fromJson(json, clazz);
+            return readJson(reader, clazz);
         }
     }
 
     public static <T> T readJson(InputStream stream, Class<T> clazz) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
-            String json = reader.lines().collect(STRING_COLLECTOR);
-            Gson gson = new Gson();
-            return gson.fromJson(json, clazz);
+            return readJson(reader, clazz);
         }
+    }
+
+    private static <T> T readJson(BufferedReader reader, Class<T> clazz) {
+        String json = reader.lines().collect(STRING_COLLECTOR);
+        Gson gson = new Gson();
+        return gson.fromJson(json, clazz);
     }
 
     public static <T> T readJson(File stream, TypeToken<T> type) throws IOException {

@@ -40,7 +40,6 @@ public final class Main {
     public static void main(String[] args) {
         // Load settings
         Settings.load();
-        Server.load();
         // Mac-specific properties - must happen before any AWT classes are loaded
         if (System.getProperty("os.name").toLowerCase().contains("mac")) {
             LOGGER.info("MacOS detected - setting system properties");
@@ -62,6 +61,9 @@ public final class Main {
         }
         LOGGER.info("Setting dark theme: " + DARK_THEME);
         // Create main window
-        SwingUtilities.invokeLater(() -> WINDOW = new Window());
+        SwingUtilities.invokeLater(() -> {
+            Server.load();
+            WINDOW = new Window();
+        });
     }
 }

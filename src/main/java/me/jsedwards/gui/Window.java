@@ -31,6 +31,8 @@ public class Window extends JFrame {
         // Set content pane - main panel with lots of cards
         this.cardPanel = new CardPanel();
         this.setContentPane(this.cardPanel);
+        // Add servers to GUI elements
+        Server.addToGUI(this.cardPanel);
         // Menu bar - native if macOS, otherwise at the top
         try {
             ConfiguredMenuBar menuBar = new ConfiguredMenuBar("main");

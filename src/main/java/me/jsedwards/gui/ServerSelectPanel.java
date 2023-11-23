@@ -49,8 +49,9 @@ public class ServerSelectPanel extends JPanel {
         }
 
         private void addServer(Server server) {
-            this.count++;
             SwingUtilities.invokeLater(() -> {
+                // Increase count
+                this.count++;
                 // Create new button
                 JButton button = new JButton(server.serverName);
                 // TODO: Show mod loader, location etc. in button
@@ -63,7 +64,7 @@ public class ServerSelectPanel extends JPanel {
                 ButtonsPanel.this.add(button,
                         new GridBagConstraints(
                                 ButtonsPanel.this.count % BOXES_PER_ROW,
-                                Math.floorDiv(ButtonsPanel.this.count, BOXES_PER_ROW) + 2,
+                                Math.floorDiv(ButtonsPanel.this.count, BOXES_PER_ROW),
                                 1, 1, 1, 1,
                                 GridBagConstraints.NORTH,
                                 GridBagConstraints.BOTH,

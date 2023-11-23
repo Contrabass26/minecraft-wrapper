@@ -1,11 +1,7 @@
 package me.jsedwards.gui;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import me.jsedwards.ConsoleWrapper;
-import me.jsedwards.Main;
-import me.jsedwards.ModLoader;
-import me.jsedwards.ServerData;
+import com.google.gson.reflect.TypeToken;
+import me.jsedwards.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,7 +22,8 @@ import java.util.stream.Collectors;
 public class Server extends JPanel {
 
     private static final Logger LOGGER = LogManager.getLogger();
-    private static List<Server> servers = null;
+    private static final List<Server> servers = new ArrayList<>();
+    private static final TypeToken<ArrayList<ServerData>> SERVER_DATA_LIST_TYPE = new TypeToken<>() {};
 
     public final String serverName;
     public final String serverLocation;
@@ -54,32 +51,45 @@ public class Server extends JPanel {
         return servers.stream().anyMatch(s -> s.serverName.equals(name));
     }
 
+    /**
+     * Creates a new server, adds it to the CardLayout and adds a button for it. Should not be used before all GUI elements have been initialised
+     * @param name The name of the server
+     * @param location The location where the server files are stored
+     * @param modLoader The mod loader used by the server
+     * @param mcVersion The Minecraft version of the server, e.g. 1.20.1
+     * @return The new server object with the specified properties
+     */
     public static Server create(String name, String location, ModLoader modLoader, String mcVersion) {
         Server server = new Server(name, location, modLoader, mcVersion);
         servers.add(server);
-        Main.WINDOW.cardPanel.addServerCard(server);
         return server;
     }
 
+    /**
+     * Clears the volatile list of servers, then loads all saved servers from file. Should be called at the very start of the program.
+     */
     public static void load() {
-        ObjectMapper objectMapper = new ObjectMapper();
+        servers.clear();
         try {
-            CollectionType collectionType = objectMapper.getTypeFactory().constructCollectionType(List.class, ServerData.class);
-            List<ServerData> list = objectMapper.readValue(getSaveLocation(), collectionType);
-            servers = list.stream().map(ServerData::convert).collect(Collectors.toList());
+            MinecraftWrapperUtils.readJson(getSaveLocation(), SERVER_DATA_LIST_TYPE).forEach(ServerData::convert);
+            LOGGER.info("Loaded %s servers from file".formatted(servers.size()));
         } catch (IOException e) {
-            LOGGER.warn("Failed to read server data", e);
-            servers = new ArrayList<>();
+            LOGGER.error("Failed to load server data", e);
         }
+    }
+
+    public static void addToGUI(CardPanel cardPanel) {
+        servers.forEach(cardPanel.serverSelectPanel::addServer);
+        servers.forEach(cardPanel::addServerCard);
     }
 
     public static void save() {
         getSaveDir().mkdirs();
-        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            objectMapper.writeValue(getSaveLocation(), servers.stream().map(ServerData::new).toList());
+            MinecraftWrapperUtils.writeJson(getSaveLocation(), servers.stream().map(ServerData::new).collect(Collectors.toList()));
+            LOGGER.info("Saved %s servers to file".formatted(servers.size()));
         } catch (IOException e) {
-            LOGGER.error("Failed to write server data", e);
+            LOGGER.error("Failed to save server data", e);
         }
     }
 

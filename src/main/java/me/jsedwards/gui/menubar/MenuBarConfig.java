@@ -1,10 +1,9 @@
 package me.jsedwards.gui.menubar;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import me.jsedwards.MinecraftWrapperUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 public class MenuBarConfig {
 
@@ -13,8 +12,7 @@ public class MenuBarConfig {
     private MenuBarConfig() {}
 
     public static MenuBarConfig create(InputStream stream) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(new InputStreamReader(stream), MenuBarConfig.class);
+        return MinecraftWrapperUtils.readJson(stream, MenuBarConfig.class);
     }
 
     public static class Menu {

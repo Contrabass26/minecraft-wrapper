@@ -43,4 +43,13 @@ public class MinecraftWrapperUtils {
             writer.write(json);
         }
     }
+
+    public static String getUserFolder() {
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("mac")) {
+            return "/Users/" + System.getProperty("user.name");
+        }
+        // TODO: Windows and linux user home folder
+        throw new RuntimeException("Unsupported operating system");
+    }
 }

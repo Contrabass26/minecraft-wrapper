@@ -51,8 +51,17 @@ public class Server extends JPanel {
         return servers.stream().anyMatch(s -> s.serverName.equals(name));
     }
 
+    public static Server get(String name) {
+        for (Server server : servers) {
+            if (server.serverName.equals(name)) {
+                return server;
+            }
+        }
+        return null;
+    }
+
     /**
-     * Creates a new server, adds it to the CardLayout and adds a button for it. Should not be used before all GUI elements have been initialised
+     * Creates a new server and adds it to the volatile list. Can be used before GUI elements have been initialised.
      * @param name The name of the server
      * @param location The location where the server files are stored
      * @param modLoader The mod loader used by the server
@@ -78,6 +87,10 @@ public class Server extends JPanel {
         }
     }
 
+    /**
+     * Add all servers in the volatile list to the given CardPanel and adds buttons to its ServerSelectPanel. Should not be used before GUI elements have been initialised.
+     * @param cardPanel The card panel to add the servers to
+     */
     public static void addToGUI(CardPanel cardPanel) {
         servers.forEach(cardPanel.serverSelectPanel::addServer);
         servers.forEach(cardPanel::addServerCard);
@@ -103,6 +116,10 @@ public class Server extends JPanel {
         return new File("/Users/josephedwards/Library/Application Support/minecraft-wrapper");
     }
 
+    public File getPropertiesLocation() {
+        return new File(this.serverLocation + "/server.properties");
+    }
+
     public void start() {
         try {
             consoleWrapper = new ConsoleWrapper("java -Xmx2G -jar fabric-server-launch.jar nogui", new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log);
@@ -126,9 +143,13 @@ public class Server extends JPanel {
             JLabel titleLabel = new JLabel(Server.this.serverName + " - " + Server.this.modLoader);
             titleLabel.setFont(Main.MAIN_FONT);
             this.add(titleLabel, new GridBagConstraints(2, 1, 1, 1, 1, 1, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+            // Configure button
+            JButton configureButton = new JButton("Configure");
+            configureButton.addActionListener(e -> Main.WINDOW.cardPanel.switchToServerConfig(Server.this.serverName));
+            this.add(configureButton, new GridBagConstraints(3, 1, 1, 1, 0, 1, GridBagConstraints.EAST, GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 5), 0, 0));
             // Start button
             StartStopButton startStopButton = new StartStopButton();
-            this.add(startStopButton, new GridBagConstraints(3, 1, 1, 1, 0, 1, GridBagConstraints.EAST, GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 0), 0, 0));
+            this.add(startStopButton, new GridBagConstraints(4, 1, 1, 1, 0, 1, GridBagConstraints.EAST, GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 0), 0, 0));
         }
     }
 

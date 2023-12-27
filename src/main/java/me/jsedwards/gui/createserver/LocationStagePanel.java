@@ -7,6 +7,11 @@ import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.stream.Stream;
 
 public class LocationStagePanel extends ValidatedStage {
 
@@ -29,10 +34,31 @@ public class LocationStagePanel extends ValidatedStage {
                 if (text.length() == 0) {
                     LocationStagePanel.this.validationLabel.setText("No location entered");
                     LocationStagePanel.this.validationLabel.setForeground(Color.RED);
-                } else {
-                    LocationStagePanel.this.validationLabel.setText("Valid location");
-                    LocationStagePanel.this.validationLabel.setForeground(Color.GREEN);
+                    return;
                 }
+                final Path path = new File(text).toPath();
+                if (!Files.exists(path)) {
+                    LocationStagePanel.this.validationLabel.setText("Path does not exist");
+                    LocationStagePanel.this.validationLabel.setForeground(Color.RED);
+                    return;
+                }
+                if (!Files.isDirectory(path)) {
+                    LocationStagePanel.this.validationLabel.setText("Not a directory");
+                    LocationStagePanel.this.validationLabel.setForeground(Color.RED);
+                    return;
+                }
+                try (Stream<Path> files = Files.list(path))  {
+                    if (files.findFirst().isPresent()) {
+                        LocationStagePanel.this.validationLabel.setText("Directory is not empty - files may be overwritten");
+                        LocationStagePanel.this.validationLabel.setForeground(Color.ORANGE);
+                        return;
+                    }
+                } catch (IOException e) {
+                    LocationStagePanel.this.validationLabel.setText("Unable to parse path");
+                    LocationStagePanel.this.validationLabel.setForeground(Color.RED);
+                }
+                LocationStagePanel.this.validationLabel.setText("Valid location");
+                LocationStagePanel.this.validationLabel.setForeground(Color.GREEN);
             }
         };
         this.add(this.textField, new GridBagConstraints(2, 1, 1, 1, 1, 0, GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));

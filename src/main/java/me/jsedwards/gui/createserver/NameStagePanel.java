@@ -31,6 +31,9 @@ public class NameStagePanel extends ValidatedStage {
                 } else if (Server.exists(text)) {
                     NameStagePanel.this.validationLabel.setText("Name is already taken");
                     NameStagePanel.this.validationLabel.setForeground(Color.RED);
+                } else if (text.contains("\\")) {
+                    NameStagePanel.this.validationLabel.setText("Name must not contain escape codes");
+                    NameStagePanel.this.validationLabel.setForeground(Color.RED);
                 } else {
                     NameStagePanel.this.validationLabel.setText("Valid server name");
                     NameStagePanel.this.validationLabel.setForeground(Color.GREEN);

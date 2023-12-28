@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class Server extends JPanel {
 
     private static final Logger LOGGER = LogManager.getLogger();
-    private static List<Server> servers = null;
+    private static List<Server> servers = new ArrayList<>();
 
     public final String serverName;
     public final String serverLocation;
@@ -54,17 +54,25 @@ public class Server extends JPanel {
         return servers.stream().anyMatch(s -> s.serverName.equals(name));
     }
 
-    public static Server create(String name, String location, ModLoader modLoader, String mcVersion) {
+    public static Server create(String name, String location, ModLoader modLoader, String mcVersion, boolean addCard) {
         Server server = new Server(name, location, modLoader, mcVersion);
         servers.add(server);
-        Main.WINDOW.cardPanel.addServerCard(server);
+        if (addCard) Main.WINDOW.cardPanel.addServerCard(server);
         return server;
+    }
+
+    public static void addCards(CardPanel panel) {
+        servers.forEach(server -> {
+            panel.addServerCard(server);
+            // Add new button to server select panel
+            panel.serverSelectPanel.addServer(server);
+        });
     }
 
     public static void load() {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            servers = objectMapper.readValue(getSaveLocation(), new TypeReference<List<ServerData>>(){}).stream().map(ServerData::convert).collect(Collectors.toList());
+            objectMapper.readValue(getSaveLocation(), new TypeReference<List<ServerData>>(){}).forEach(ServerData::convert);
         } catch (IOException e) {
             LOGGER.warn("Failed to read server data", e);
             servers = new ArrayList<>();
@@ -75,7 +83,7 @@ public class Server extends JPanel {
         getSaveDir().mkdirs();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            objectMapper.writeValue(getSaveLocation(), servers.stream().map(ServerData::new).toList());
+            objectMapper.writeValue(getSaveLocation(), servers.stream().map(ServerData::create).toList());
         } catch (IOException e) {
             LOGGER.error("Failed to write server data", e);
         }

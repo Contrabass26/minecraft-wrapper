@@ -19,6 +19,8 @@ public class CardPanel extends JPanel {
         ServerCreatePanel serverCreatePanel = new ServerCreatePanel();
         JScrollPane scrollPane = new JScrollPane(serverCreatePanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         this.add("create_server", scrollPane);
+        // Server dashboards
+        Server.addCards(this);
     }
 
     public void addServerCard(Server server) {

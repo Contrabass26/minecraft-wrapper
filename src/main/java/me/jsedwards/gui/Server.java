@@ -2,6 +2,7 @@ package me.jsedwards.gui;
 
 import com.google.gson.reflect.TypeToken;
 import me.jsedwards.*;
+import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -80,10 +81,10 @@ public class Server extends JPanel {
     public static void load() {
         servers.clear();
         try {
-            MinecraftWrapperUtils.readJson(getSaveLocation(), SERVER_DATA_LIST_TYPE).forEach(ServerData::convert);
-            LOGGER.info("Loaded %s servers from file".formatted(servers.size()));
+            MinecraftWrapperUtils.readJson(OSUtils.getServersFile(), SERVER_DATA_LIST_TYPE).forEach(ServerData::convert);
+            LOGGER.info("Loaded %s servers from %s".formatted(servers.size(), OSUtils.serversLocation));
         } catch (IOException e) {
-            LOGGER.error("Failed to load server data", e);
+            LOGGER.error("Failed to load server data from " + OSUtils.serversLocation, e);
         }
     }
 
@@ -97,23 +98,13 @@ public class Server extends JPanel {
     }
 
     public static void save() {
-        getSaveDir().mkdirs();
+        OSUtils.createDataDir();
         try {
-            MinecraftWrapperUtils.writeJson(getSaveLocation(), servers.stream().map(ServerData::new).collect(Collectors.toList()));
-            LOGGER.info("Saved %s servers to file".formatted(servers.size()));
+            MinecraftWrapperUtils.writeJson(OSUtils.getServersFile(), servers.stream().map(ServerData::new).collect(Collectors.toList()));
+            LOGGER.info("Saved %s servers to %s".formatted(servers.size(), OSUtils.serversLocation));
         } catch (IOException e) {
-            LOGGER.error("Failed to save server data", e);
+            LOGGER.error("Failed to save server data to " + OSUtils.serversLocation, e);
         }
-    }
-
-    private static File getSaveLocation() {
-        // TODO: Generalise path
-        return new File("/Users/josephedwards/Library/Application Support/minecraft-wrapper/servers.json");
-    }
-
-    private static File getSaveDir() {
-        // TODO: Generalise path
-        return new File("/Users/josephedwards/Library/Application Support/minecraft-wrapper");
     }
 
     public File getPropertiesLocation() {

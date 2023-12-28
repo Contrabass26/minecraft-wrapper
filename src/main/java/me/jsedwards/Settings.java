@@ -1,5 +1,6 @@
 package me.jsedwards;
 
+import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,33 +16,23 @@ public class Settings {
 
     public static void load() {
         try {
-            INSTANCE = MinecraftWrapperUtils.readJson(getLocation(), Settings.class);
-            LOGGER.info("Loaded settings from file");
+            INSTANCE = MinecraftWrapperUtils.readJson(OSUtils.getSettingsFile(), Settings.class);
+            LOGGER.info("Loaded settings from " + OSUtils.settingsLocation);
         } catch (IOException e) {
             INSTANCE =  new Settings();
-            LOGGER.warn("Failed to load settings from file, using default", e);
+            LOGGER.warn("Failed to load settings from %s, using default".formatted(OSUtils.settingsLocation), e);
         }
     }
 
     public static void save() {
         try {
-            getLocationDir().mkdirs();
-            File location = getLocation();
+            OSUtils.createDataDir();
+            File location = OSUtils.getSettingsFile();
             location.createNewFile();
             MinecraftWrapperUtils.writeJson(location, INSTANCE);
-            LOGGER.info("Saved settings to file");
+            LOGGER.info("Saved settings to " + OSUtils.settingsLocation);
         } catch (IOException e) {
-            LOGGER.error("Failed to save settings", e);
+            LOGGER.error("Failed to save settings to " + OSUtils.settingsLocation, e);
         }
-    }
-
-    private static File getLocation() {
-        // TODO: Generalise path
-        return new File("/Users/josephedwards/Library/Application Support/minecraft-wrapper/settings.json");
-    }
-
-    private static File getLocationDir() {
-        // TODO: Generalise path
-        return new File("/Users/josephedwards/Library/Application Support/minecraft-wrapper");
     }
 }

@@ -6,26 +6,20 @@ public class ServerData {
 
     public String name;
     public String location;
-    public ModLoader modLoader;
+    public String modLoader;
     public String mcVersion;
 
-    public ServerData(Server server) {
-        this.name = server.serverName;
-        this.location = server.serverLocation;
-        this.modLoader = server.modLoader;
-        this.mcVersion = server.mcVersion;
-    }
-
-    @SuppressWarnings("unused")
-    public ServerData(String name, String location, String modLoader, String mcVersion) {
-        this.name = name;
-        this.location = location;
-        this.modLoader = ModLoader.valueOf(modLoader);
-        this.mcVersion = mcVersion;
+    public static ServerData create(Server server) {
+        ServerData data = new ServerData();
+        data.name = server.serverName;
+        data.location = server.serverLocation;
+        data.modLoader = server.modLoader.toString().toUpperCase();
+        data.mcVersion = server.mcVersion;
+        return data;
     }
 
     public void convert() {
-        Server.create(this.name, this.location, this.modLoader, this.mcVersion);
+        Server.create(this.name, this.location, ModLoader.valueOf(this.modLoader), this.mcVersion, false);
     }
 
     @Override

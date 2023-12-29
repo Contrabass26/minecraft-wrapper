@@ -83,18 +83,30 @@ public class ServerConfigPanel extends JPanel implements Card {
 
     private static class AdvancedPanel extends JPanel {
 
+        private final SidePanel sidePanel;
         private ServerPropertiesManager properties = new ServerPropertiesManager();
         private final JList<String> propertiesList;
 
         public AdvancedPanel() {
             this.setLayout(new GridBagLayout());
+            // Search label
+            this.add(new JLabel("Search properties:"), new GridBagConstraints(1, 1, 1, 1, 0, 0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+            // Search box
+            JTextField searchBox = new UnifiedListenerTextField() {
+                @Override
+                protected void update() {
+                    properties.updateSearch(this.getText());
+                    AdvancedPanel.this.updateList();
+                }
+            };
+            this.add(searchBox, new GridBagConstraints(2, 1, 1, 1, 1, 0, GridBagConstraints.EAST, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
             // List box
             propertiesList = new JList<>(properties);
             JScrollPane scrollPane = new JScrollPane(propertiesList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-            this.add(scrollPane, new GridBagConstraints(1, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+            this.add(scrollPane, new GridBagConstraints(1, 2, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
             // Side panel
-            SidePanel sidePanel = new SidePanel();
-            this.add(sidePanel, new GridBagConstraints(2, 1, 1, 1, 0.3, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 5, 0, 0), 0, 0));
+            sidePanel = new SidePanel();
+            this.add(sidePanel, new GridBagConstraints(3, 1, 1, 2, 0.3, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
             // Selection listener
             propertiesList.addListSelectionListener(e -> sidePanel.update());
         }
@@ -102,6 +114,12 @@ public class ServerConfigPanel extends JPanel implements Card {
         private void setServer(Server server) {
             this.properties = new ServerPropertiesManager(server.getPropertiesLocation());
             this.propertiesList.setModel(this.properties);
+        }
+
+        private void updateList() {
+            propertiesList.invalidate();
+            propertiesList.repaint();
+            sidePanel.update();
         }
 
         private class SidePanel extends JPanel {
@@ -130,8 +148,7 @@ public class ServerConfigPanel extends JPanel implements Card {
                     String key = selected.substring(0, splitIndex);
                     String value = JOptionPane.showInputDialog(editBtn, "Enter new value for %s:".formatted(key), "Edit value", JOptionPane.QUESTION_MESSAGE);
                     AdvancedPanel.this.properties.set(key, value);
-                    AdvancedPanel.this.propertiesList.invalidate();
-                    AdvancedPanel.this.propertiesList.repaint();
+                    AdvancedPanel.this.updateList();
                 });
                 return editBtn;
             }

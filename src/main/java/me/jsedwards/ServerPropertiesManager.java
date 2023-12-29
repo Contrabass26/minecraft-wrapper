@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -15,7 +16,8 @@ public class ServerPropertiesManager extends DefaultListModel<String> {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private final Properties properties;
-    private final List<Object> keys;
+    private final List<String> keys;
+    private List<String> filteredKeys;
     private final File propertiesFile;
     private boolean saved = true;
 
@@ -27,18 +29,25 @@ public class ServerPropertiesManager extends DefaultListModel<String> {
         if (Files.exists(propertiesFile.toPath())) {
             try (InputStream stream = new FileInputStream(propertiesFile)) {
                 properties.load(stream);
-                keys.addAll(properties.keySet());
+                properties.keySet().stream().map(o -> (String) o).forEach(keys::add);
+                Collections.sort(keys);
                 LOGGER.info("Loaded properties from " + propertiesFile.getAbsolutePath());
             } catch (IOException e) {
                 LOGGER.error("Failed to load properties from " + propertiesFile.getAbsolutePath(), e);
             }
         }
+        filteredKeys = new ArrayList<>(keys);
     }
 
     public ServerPropertiesManager() {
         properties = new Properties();
         keys = new ArrayList<>();
+        filteredKeys = new ArrayList<>();
         propertiesFile = null;
+    }
+
+    public void updateSearch(String text) {
+        filteredKeys = keys.stream().filter(s -> s.contains(text)).toList();
     }
 
     public void save() {
@@ -67,12 +76,12 @@ public class ServerPropertiesManager extends DefaultListModel<String> {
 
     @Override
     public int getSize() {
-        return keys.size();
+        return filteredKeys.size();
     }
 
     @Override
     public String getElementAt(int index) {
-        Object key = keys.get(index);
+        Object key = filteredKeys.get(index);
         Object value = properties.get(key);
         return key.toString() + ": " + value.toString();
     }

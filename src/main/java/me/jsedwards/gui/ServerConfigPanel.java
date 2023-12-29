@@ -29,9 +29,9 @@ public class ServerConfigPanel extends JPanel implements Card {
         this.add(serverNameLbl, new GridBagConstraints(2, 1, 1, 1, 1, 0, GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(30, 0, 0, 0), 0, 0));
         // Tabbed pane
         JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.add("Advanced", advancedPanel);
         BasicPanel basicPanel = new BasicPanel();
         tabbedPane.add("Basic", basicPanel);
+        tabbedPane.add("Advanced", advancedPanel);
         this.add(tabbedPane, new GridBagConstraints(1, 2, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(10, 10, 10, 10), 0, 0));
     }
 

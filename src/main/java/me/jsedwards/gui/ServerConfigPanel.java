@@ -125,6 +125,7 @@ public class ServerConfigPanel extends JPanel implements Card {
         private class SidePanel extends JPanel {
 
             private final JLabel nameLbl;
+            private final JTextArea descriptionLbl;
 
             public SidePanel() {
                 super();
@@ -133,11 +134,22 @@ public class ServerConfigPanel extends JPanel implements Card {
                 nameLbl = new JLabel("Select a property...");
                 nameLbl.setFont(Main.MAIN_FONT.deriveFont(18f));
                 this.add(nameLbl, new GridBagConstraints(1, 1, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+                // Property description
+                descriptionLbl = new JTextArea("");
+                descriptionLbl.setLineWrap(true);
+                descriptionLbl.setWrapStyleWord(true);
+                descriptionLbl.setEditable(false);
+                this.add(descriptionLbl, new GridBagConstraints(1, 2, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
                 // Edit button
                 JButton editBtn = createEditButton();
-                this.add(editBtn, new GridBagConstraints(1, 2, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 0, 0, 0), 0, 0));
+                this.add(editBtn, new GridBagConstraints(1, 3, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 0, 0, 0), 0, 0));
                 // Padding
-                this.add(new JPanel(), new GridBagConstraints(1, 3, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+                this.add(new JPanel(), new GridBagConstraints(1, 4, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+            }
+
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension((int) (AdvancedPanel.this.getWidth() * 0.05), AdvancedPanel.this.getHeight());
             }
 
             private JButton createEditButton() {
@@ -156,7 +168,9 @@ public class ServerConfigPanel extends JPanel implements Card {
             private void update() {
                 String selectedItem = AdvancedPanel.this.propertiesList.getSelectedValue();
                 if (selectedItem != null) {
-                    this.nameLbl.setText(selectedItem.substring(0, selectedItem.indexOf(':')));
+                    String key = selectedItem.substring(0, selectedItem.indexOf(':'));
+                    this.nameLbl.setText(key);
+                    this.descriptionLbl.setText(ServerPropertiesManager.getDescription(key));
                 }
             }
         }

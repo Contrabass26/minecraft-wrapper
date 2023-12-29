@@ -1,19 +1,25 @@
 package me.jsedwards;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 public class ServerPropertiesManager extends DefaultListModel<String> {
 
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final HashMap<String, String> PROPERTY_DESCRIPTIONS;
+    static {
+        try {
+            PROPERTY_DESCRIPTIONS = MinecraftWrapperUtils.readJson(ServerPropertiesManager.class.getClassLoader().getResourceAsStream("descriptions/property_descriptions.json"), new TypeReference<>() {});
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private final Properties properties;
     private final List<String> keys;
@@ -72,6 +78,10 @@ public class ServerPropertiesManager extends DefaultListModel<String> {
         } catch (IOException e) {
             LOGGER.error("Failed to save properties to " + propertiesFile.getAbsolutePath(), e);
         }
+    }
+
+    public static String getDescription(String key) {
+        return PROPERTY_DESCRIPTIONS.getOrDefault(key, "");
     }
 
     @Override

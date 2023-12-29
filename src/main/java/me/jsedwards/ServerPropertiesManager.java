@@ -17,6 +17,7 @@ public class ServerPropertiesManager extends DefaultListModel<String> {
 
     private final Properties properties;
     private final List<String> keys;
+    private List<String> filteredKeys;
     private final File propertiesFile;
     private boolean saved = true;
 
@@ -35,12 +36,18 @@ public class ServerPropertiesManager extends DefaultListModel<String> {
                 LOGGER.error("Failed to load properties from " + propertiesFile.getAbsolutePath(), e);
             }
         }
+        filteredKeys = new ArrayList<>(keys);
     }
 
     public ServerPropertiesManager() {
         properties = new Properties();
         keys = new ArrayList<>();
+        filteredKeys = new ArrayList<>();
         propertiesFile = null;
+    }
+
+    public void updateSearch(String text) {
+        filteredKeys = keys.stream().filter(s -> s.contains(text)).toList();
     }
 
     public void save() {
@@ -69,12 +76,12 @@ public class ServerPropertiesManager extends DefaultListModel<String> {
 
     @Override
     public int getSize() {
-        return keys.size();
+        return filteredKeys.size();
     }
 
     @Override
     public String getElementAt(int index) {
-        Object key = keys.get(index);
+        Object key = filteredKeys.get(index);
         Object value = properties.get(key);
         return key.toString() + ": " + value.toString();
     }

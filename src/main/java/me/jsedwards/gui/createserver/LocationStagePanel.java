@@ -31,7 +31,7 @@ public class LocationStagePanel extends ValidatedStage {
             @Override
             protected void update() {
                 String text = LocationStagePanel.this.textField.getText();
-                if (text.length() == 0) {
+                if (text.isEmpty()) {
                     LocationStagePanel.this.validationLabel.setText("No location entered");
                     LocationStagePanel.this.validationLabel.setForeground(Color.RED);
                     return;

@@ -88,7 +88,7 @@ public class Server extends JPanel {
             objectMapper.readValue(OSUtils.getServersFile(), new TypeReference<List<ServerData>>(){}).forEach(ServerData::convert);
             LOGGER.info("Loaded %s servers from %s".formatted(servers.size(), OSUtils.serversLocation));
         } catch (IOException e) {
-            LOGGER.error("Failed to load server data from " + OSUtils.serversLocation, e);
+            LOGGER.warn("Failed to load server data from " + OSUtils.serversLocation, e);
         }
     }
 

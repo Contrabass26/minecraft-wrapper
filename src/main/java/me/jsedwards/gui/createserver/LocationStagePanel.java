@@ -1,11 +1,8 @@
 package me.jsedwards.gui.createserver;
 
 import me.jsedwards.Main;
-import me.jsedwards.MinecraftWrapperUtils;
 import me.jsedwards.gui.UnifiedListenerTextField;
 import me.jsedwards.util.OSUtils;
-import org.lwjgl.PointerBuffer;
-import org.lwjgl.util.nfd.NativeFileDialog;
 import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
 import javax.swing.*;

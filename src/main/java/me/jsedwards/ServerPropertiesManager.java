@@ -4,7 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
-import javax.swing.event.ListDataListener;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;

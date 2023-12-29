@@ -4,7 +4,6 @@ import me.jsedwards.Main;
 import me.jsedwards.ServerPropertiesManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
 import javax.swing.*;
 import java.awt.*;

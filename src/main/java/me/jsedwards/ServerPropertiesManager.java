@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -15,7 +16,7 @@ public class ServerPropertiesManager extends DefaultListModel<String> {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private final Properties properties;
-    private final List<Object> keys;
+    private final List<String> keys;
     private final File propertiesFile;
     private boolean saved = true;
 
@@ -27,7 +28,8 @@ public class ServerPropertiesManager extends DefaultListModel<String> {
         if (Files.exists(propertiesFile.toPath())) {
             try (InputStream stream = new FileInputStream(propertiesFile)) {
                 properties.load(stream);
-                keys.addAll(properties.keySet());
+                properties.keySet().stream().map(o -> (String) o).forEach(keys::add);
+                Collections.sort(keys);
                 LOGGER.info("Loaded properties from " + propertiesFile.getAbsolutePath());
             } catch (IOException e) {
                 LOGGER.error("Failed to load properties from " + propertiesFile.getAbsolutePath(), e);

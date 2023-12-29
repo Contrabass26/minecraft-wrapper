@@ -1,8 +1,11 @@
 package me.jsedwards;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import javax.swing.*;
 import java.io.*;
@@ -12,10 +15,25 @@ import java.util.*;
 public class ServerPropertiesManager extends DefaultListModel<String> {
 
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final HashMap<String, String> PROPERTY_DESCRIPTIONS;
+    private static final HashMap<String, String> PROPERTY_DESCRIPTIONS = new HashMap<>();
+    private static final HashMap<String, String> PROPERTY_DATA_TYPES = new HashMap<>();
+    private static final HashMap<String, String> PROPERTY_DEFAULTS = new HashMap<>();
     static {
         try {
-            PROPERTY_DESCRIPTIONS = MinecraftWrapperUtils.readJson(ServerPropertiesManager.class.getClassLoader().getResourceAsStream("descriptions/property_descriptions.json"), new TypeReference<>() {});
+            Document document = Jsoup.connect("https://minecraft.wiki/w/Server.properties").userAgent("Mozilla").get();
+            Element table = document.select("table[data-description=Server properties]").get(0);
+            Elements rows = table.select("tr");
+            for (int i = 1; i < rows.size(); i++) {
+                Element row = rows.get(i);
+                Elements cells = row.select("td");
+                String key = cells.get(0).text();
+                String description = cells.get(3).html();
+                String datatype = cells.get(1).text();
+                String defaultValue = cells.get(2).text();
+                PROPERTY_DESCRIPTIONS.put(key, description);
+                PROPERTY_DATA_TYPES.put(key, datatype);
+                PROPERTY_DEFAULTS.put(key, defaultValue);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -81,7 +99,15 @@ public class ServerPropertiesManager extends DefaultListModel<String> {
     }
 
     public static String getDescription(String key) {
-        return PROPERTY_DESCRIPTIONS.getOrDefault(key, "");
+        return PROPERTY_DESCRIPTIONS.getOrDefault(key, "No description found");
+    }
+
+    public static String getDataType(String key) {
+        return PROPERTY_DATA_TYPES.getOrDefault(key, "Not found");
+    }
+
+    public static String getDefaultValue(String key) {
+        return PROPERTY_DEFAULTS.getOrDefault(key, "Not found");
     }
 
     @Override

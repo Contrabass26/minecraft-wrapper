@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
+import javax.swing.text.DefaultStyledDocument;
 import java.awt.*;
 
 public class ServerConfigPanel extends JPanel implements Card {
@@ -125,26 +126,33 @@ public class ServerConfigPanel extends JPanel implements Card {
         private class SidePanel extends JPanel {
 
             private final JLabel nameLbl;
-            private final JTextArea descriptionLbl;
+            private final JLabel dataTypeLbl;
+            private final JLabel defaultValueLbl;
+            private final JTextPane descriptionLbl;
 
             public SidePanel() {
                 super();
                 setLayout(new GridBagLayout());
                 // Property name
-                nameLbl = new JLabel("Select a property...");
+                nameLbl = new JLabel("Select a property");
                 nameLbl.setFont(Main.MAIN_FONT.deriveFont(18f));
-                this.add(nameLbl, new GridBagConstraints(1, 1, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+                this.add(nameLbl, new GridBagConstraints(1, 1, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 5, 0, 0), 0, 0));
+                // Data type
+                dataTypeLbl = new JLabel("Data type:");
+                this.add(dataTypeLbl, new GridBagConstraints(1, 2, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(10, 5, 0, 0), 0, 0));
+                // Default value
+                defaultValueLbl = new JLabel("Default value:");
+                this.add(defaultValueLbl, new GridBagConstraints(1, 3, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(10, 5, 0, 0), 0, 0));
                 // Property description
-                descriptionLbl = new JTextArea("");
-                descriptionLbl.setLineWrap(true);
-                descriptionLbl.setWrapStyleWord(true);
+                descriptionLbl = new JTextPane(new DefaultStyledDocument());
+                descriptionLbl.setContentType("text/html");
                 descriptionLbl.setEditable(false);
-                this.add(descriptionLbl, new GridBagConstraints(1, 2, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+                this.add(descriptionLbl, new GridBagConstraints(1, 4, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(20, 0, 0, 0), 0, 0));
                 // Edit button
                 JButton editBtn = createEditButton();
-                this.add(editBtn, new GridBagConstraints(1, 3, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 0, 0, 0), 0, 0));
+                this.add(editBtn, new GridBagConstraints(1, 5, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(10, 5, 0, 0), 0, 0));
                 // Padding
-                this.add(new JPanel(), new GridBagConstraints(1, 4, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+                this.add(new JPanel(), new GridBagConstraints(1, 6, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
             }
 
             @Override
@@ -170,7 +178,9 @@ public class ServerConfigPanel extends JPanel implements Card {
                 if (selectedItem != null) {
                     String key = selectedItem.substring(0, selectedItem.indexOf(':'));
                     this.nameLbl.setText(key);
-                    this.descriptionLbl.setText(ServerPropertiesManager.getDescription(key));
+                    this.descriptionLbl.setText("<html>" + ServerPropertiesManager.getDescription(key) + "</html>");
+                    this.dataTypeLbl.setText("Data type: " + ServerPropertiesManager.getDataType(key));
+                    this.defaultValueLbl.setText("Default value: " + ServerPropertiesManager.getDefaultValue(key));
                 }
             }
         }

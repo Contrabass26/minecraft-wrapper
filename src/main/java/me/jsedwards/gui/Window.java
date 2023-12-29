@@ -57,6 +57,7 @@ public class Window extends JFrame {
             @Override
             public void windowClosing(WindowEvent e) {
                 // Save data
+                cardPanel.exitCurrent();
                 Settings.save();
                 Server.save();
                 // Exit

@@ -5,7 +5,7 @@ import me.jsedwards.Main;
 import javax.swing.*;
 import java.awt.*;
 
-public class ServerSelectPanel extends JPanel {
+public class ServerSelectPanel extends JPanel implements Card {
 
     private static final int BOXES_PER_ROW = 5;
 
@@ -38,6 +38,9 @@ public class ServerSelectPanel extends JPanel {
     public void addServer(Server server) {
         this.buttonsPanel.addServer(server);
     }
+
+    @Override
+    public void exit() {}
 
     private static class ButtonsPanel extends JPanel {
 

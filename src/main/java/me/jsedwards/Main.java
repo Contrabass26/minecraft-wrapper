@@ -63,9 +63,6 @@ public final class Main {
         // Load servers
         Server.load();
         // Create main window
-        SwingUtilities.invokeLater(() -> {
-            Server.load();
-            WINDOW = new Window();
-        });
+        SwingUtilities.invokeLater(() -> WINDOW = new Window());
     }
 }

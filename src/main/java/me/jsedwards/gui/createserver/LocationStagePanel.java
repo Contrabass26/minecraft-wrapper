@@ -3,6 +3,9 @@ package me.jsedwards.gui.createserver;
 import me.jsedwards.Main;
 import me.jsedwards.MinecraftWrapperUtils;
 import me.jsedwards.gui.UnifiedListenerTextField;
+import me.jsedwards.util.OSUtils;
+import org.lwjgl.PointerBuffer;
+import org.lwjgl.util.nfd.NativeFileDialog;
 import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
 import javax.swing.*;
@@ -65,7 +68,7 @@ public class LocationStagePanel extends ValidatedStage {
         // Choose folder button
         JButton chooseFolderButton = new JButton("Choose");
         chooseFolderButton.addActionListener(e -> {
-            String location = TinyFileDialogs.tinyfd_selectFolderDialog("Choose a folder", MinecraftWrapperUtils.getUserFolder());
+            String location = TinyFileDialogs.tinyfd_selectFolderDialog("Choose a folder", OSUtils.userHome);
             LocationStagePanel.this.textField.setText(location);
         });
         this.add(chooseFolderButton, new GridBagConstraints(3, 1, 1, 1, 0, 0, GridBagConstraints.NORTHWEST, GridBagConstraints.NONE, new Insets(0, 5, 0, 0), 0, 0));
@@ -81,6 +84,6 @@ public class LocationStagePanel extends ValidatedStage {
 
     @Override
     public boolean isStageValid() {
-        return this.textField.getText().length() != 0;
+        return !this.textField.getText().isEmpty();
     }
 }

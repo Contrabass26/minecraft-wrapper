@@ -26,9 +26,13 @@ val lwjglNatives = Pair(
                 "natives-linux"
         arrayOf("Mac OS X", "Darwin").any { name.startsWith(it) }                ->
             "natives-macos${if (arch.startsWith("aarch64")) "-arm64" else ""}"
-        arrayOf("Windows").any { name.startsWith(it) }                           ->
-            "natives-windows-x86"
-        else -> throw Error("Unrecognized or unsupported platform. Please set \"lwjglNatives\" manually")
+        arrayOf("Windows").any { name.startsWith(it) }                ->
+            if (arch.contains("64"))
+                "natives-windows${if (arch.startsWith("aarch64")) "-arm64" else ""}"
+            else
+                "natives-windows-x86"
+        else                                                                            ->
+            throw Error("Unrecognized or unsupported platform. Please set \"lwjglNatives\" manually")
     }
 }
 
@@ -45,6 +49,11 @@ dependencies {
     // GUI appearance
     implementation("com.formdev:flatlaf:3.2.1")
     implementation("com.github.Dansoftowner:jSystemThemeDetector:3.8")
+
+    // Jackson - JSON parsing
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.3")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.15.3")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.3")
 
     // Gson - JSON parsing
     implementation("com.google.code.gson:gson:2.10.1")

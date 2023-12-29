@@ -24,6 +24,6 @@ public class ServerData {
 
     @Override
     public String toString() {
-        return "ServerData{name='%s', location='%s', modLoader=%s, mcVersion='%s'}".formatted(name, location, this.modLoader.toString(), mcVersion);
+        return "ServerData{name='%s', location='%s', modLoader=%s, mcVersion='%s'}".formatted(name, location, this.modLoader, mcVersion);
     }
 }

@@ -9,11 +9,14 @@ public class OSUtils {
     public static final String settingsLocation;
     public static final String dataDir;
     public static final String serversLocation;
+    public static final String userHome;
 
     static {
-        dataDir = getAppDataLocation().formatted(System.getProperty("user.name")) + "minecraft-wrapper";
+        String username = System.getProperty("user.name");
+        dataDir = getAppDataLocation().formatted(username) + "minecraft-wrapper";
         settingsLocation = dataDir + File.separator + "settings.json";
         serversLocation = dataDir + File.separator + "servers.json";
+        userHome = getUserHome().formatted(username);
     }
 
     private OSUtils() {}
@@ -27,6 +30,19 @@ public class OSUtils {
         }
         if (SystemUtils.IS_OS_LINUX) {
             return "/home/%s/.";
+        }
+        throw new RuntimeException("Operating system not supported: " + System.getProperty("os.name"));
+    }
+
+    private static String getUserHome() {
+        if (SystemUtils.IS_OS_WINDOWS) {
+            return "C:\\Users\\%s";
+        }
+        if (SystemUtils.IS_OS_MAC) {
+            return "/Users/%s";
+        }
+        if (SystemUtils.IS_OS_LINUX) {
+            return "/home/%s";
         }
         throw new RuntimeException("Operating system not supported: " + System.getProperty("os.name"));
     }

@@ -17,6 +17,7 @@ public class ServerPropertiesManager extends DefaultListModel<String> {
     private final Properties properties;
     private final List<Object> keys;
     private final File propertiesFile;
+    private boolean saved = true;
 
     public ServerPropertiesManager(File propertiesFile) {
         this.propertiesFile = propertiesFile;
@@ -40,17 +41,25 @@ public class ServerPropertiesManager extends DefaultListModel<String> {
         propertiesFile = null;
     }
 
+    public void save() {
+        if (!saved) realSave();
+    }
+
     public void set(String key, String value) {
+        if (!value.equals(this.properties.getProperty(key))) {
+            saved = false;
+        }
         properties.setProperty(key, value);
     }
 
-    public void save() {
+    private void realSave() {
         if (propertiesFile == null) {
             throw new IllegalStateException("Trying to save with no propertiesFile set");
         }
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(propertiesFile))) {
             properties.store(writer, "");
             LOGGER.info("Saved properties to " + propertiesFile.getAbsolutePath());
+            saved = false;
         } catch (IOException e) {
             LOGGER.error("Failed to save properties to " + propertiesFile.getAbsolutePath(), e);
         }

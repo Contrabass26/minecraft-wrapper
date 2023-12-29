@@ -2,6 +2,7 @@ package me.jsedwards.gui.createserver;
 
 import me.jsedwards.Main;
 import me.jsedwards.ModLoader;
+import me.jsedwards.gui.Card;
 import me.jsedwards.gui.Server;
 
 import javax.swing.*;
@@ -11,7 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ServerCreatePanel extends JPanel {
+public class ServerCreatePanel extends JPanel implements Card {
 
     private final List<ValidatedStage> stages = new ArrayList<>();
 
@@ -73,4 +74,7 @@ public class ServerCreatePanel extends JPanel {
         JPanel bottomPadding = new JPanel();
         this.add(bottomPadding, new GridBagConstraints(1, stages.size() + 3, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
     }
+
+    @Override
+    public void exit() {}
 }

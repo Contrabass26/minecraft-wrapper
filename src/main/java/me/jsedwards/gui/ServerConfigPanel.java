@@ -2,19 +2,20 @@ package me.jsedwards.gui;
 
 import me.jsedwards.Main;
 import me.jsedwards.ServerPropertiesManager;
+import me.jsedwards.util.MathUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class ServerConfigPanel extends JPanel {
+public class ServerConfigPanel extends JPanel implements Card {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
     private String server = null;
     private final JLabel serverNameLbl;
-    private final PropertiesPanel propertiesPanel = new PropertiesPanel();
+    private final AdvancedPanel advancedPanel = new AdvancedPanel();
 
     public ServerConfigPanel() {
         this.setLayout(new GridBagLayout());
@@ -28,7 +29,9 @@ public class ServerConfigPanel extends JPanel {
         this.add(serverNameLbl, new GridBagConstraints(2, 1, 1, 1, 1, 0, GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(30, 0, 0, 0), 0, 0));
         // Tabbed pane
         JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.add("Properties", propertiesPanel);
+        tabbedPane.add("Advanced", advancedPanel);
+        BasicPanel basicPanel = new BasicPanel();
+        tabbedPane.add("Basic", basicPanel);
         this.add(tabbedPane, new GridBagConstraints(1, 2, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(10, 10, 10, 10), 0, 0));
     }
 
@@ -41,15 +44,49 @@ public class ServerConfigPanel extends JPanel {
         this.server = serverName;
         this.serverNameLbl.setText(serverName + " - " + server.modLoader);
         // Load server properties
-        propertiesPanel.setServer(server);
+        advancedPanel.setServer(server);
     }
 
-    private static class PropertiesPanel extends JPanel {
+    @Override
+    public void exit() {
+        advancedPanel.properties.save();
+    }
+
+    private class BasicPanel extends JPanel {
+
+        public BasicPanel() {
+            super();
+            this.setLayout(new GridBagLayout());
+            // General optimisation slider
+            JSlider slider = createSlider();
+            this.add(slider, new GridBagConstraints(1, 1, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+            // Slider labels
+            JLabel lowerLbl = new JLabel("More performance");
+            lowerLbl.setHorizontalAlignment(SwingConstants.LEFT);
+            this.add(lowerLbl, new GridBagConstraints(1, 2, 1, 1, 1, 0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+            JLabel upperLbl = new JLabel("Better experience");
+            upperLbl.setHorizontalAlignment(SwingConstants.LEFT);
+            this.add(upperLbl, new GridBagConstraints(2, 2, 1, 1, 0, 0, GridBagConstraints.EAST, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+            // Padding
+            this.add(new JPanel(), new GridBagConstraints(1, 3, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+        }
+
+        private JSlider createSlider() {
+            JSlider slider = new JSlider(0, 100);
+            slider.addChangeListener(e -> {
+                long viewDistance = Math.round(MathUtils.scale(0, 100, 2, 32, slider.getValue()));
+                ServerConfigPanel.this.advancedPanel.properties.set("view-distance", String.valueOf(viewDistance));
+            });
+            return slider;
+        }
+    }
+
+    private static class AdvancedPanel extends JPanel {
 
         private ServerPropertiesManager properties = new ServerPropertiesManager();
         private final JList<String> propertiesList;
 
-        public PropertiesPanel() {
+        public AdvancedPanel() {
             this.setLayout(new GridBagLayout());
             // List box
             propertiesList = new JList<>(properties);
@@ -83,28 +120,24 @@ public class ServerConfigPanel extends JPanel {
                 this.add(editBtn, new GridBagConstraints(1, 2, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 0, 0, 0), 0, 0));
                 // Padding
                 this.add(new JPanel(), new GridBagConstraints(1, 3, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
-                // Save button
-                JButton saveBtn = new JButton("Save");
-                saveBtn.addActionListener(e -> PropertiesPanel.this.properties.save());
-                this.add(saveBtn, new GridBagConstraints(1, 4, 1, 1, 1, 0, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
             }
 
             private JButton createEditButton() {
                 JButton editBtn = new JButton("Edit");
                 editBtn.addActionListener(e -> {
-                    String selected = PropertiesPanel.this.propertiesList.getSelectedValue();
+                    String selected = AdvancedPanel.this.propertiesList.getSelectedValue();
                     int splitIndex = selected.indexOf(':');
                     String key = selected.substring(0, splitIndex);
                     String value = JOptionPane.showInputDialog(editBtn, "Enter new value for %s:".formatted(key), "Edit value", JOptionPane.QUESTION_MESSAGE);
-                    PropertiesPanel.this.properties.set(key, value);
-                    PropertiesPanel.this.propertiesList.invalidate();
-                    PropertiesPanel.this.propertiesList.repaint();
+                    AdvancedPanel.this.properties.set(key, value);
+                    AdvancedPanel.this.propertiesList.invalidate();
+                    AdvancedPanel.this.propertiesList.repaint();
                 });
                 return editBtn;
             }
 
             private void update() {
-                String selectedItem = PropertiesPanel.this.propertiesList.getSelectedValue();
+                String selectedItem = AdvancedPanel.this.propertiesList.getSelectedValue();
                 if (selectedItem != null) {
                     this.nameLbl.setText(selectedItem.substring(0, selectedItem.indexOf(':')));
                 }

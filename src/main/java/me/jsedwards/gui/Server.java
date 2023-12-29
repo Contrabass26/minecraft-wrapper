@@ -1,7 +1,11 @@
 package me.jsedwards.gui;
 
-import com.google.gson.reflect.TypeToken;
-import me.jsedwards.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import me.jsedwards.ConsoleWrapper;
+import me.jsedwards.Main;
+import me.jsedwards.ModLoader;
+import me.jsedwards.ServerData;
 import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,13 +22,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Server extends JPanel {
 
     private static final Logger LOGGER = LogManager.getLogger();
     private static final List<Server> servers = new ArrayList<>();
-    private static final TypeToken<ArrayList<ServerData>> SERVER_DATA_LIST_TYPE = new TypeToken<>() {};
 
     public final String serverName;
     public final String serverLocation;
@@ -69,9 +71,10 @@ public class Server extends JPanel {
      * @param mcVersion The Minecraft version of the server, e.g. 1.20.1
      * @return The new server object with the specified properties
      */
-    public static Server create(String name, String location, ModLoader modLoader, String mcVersion) {
+    public static Server create(String name, String location, ModLoader modLoader, String mcVersion, boolean addCard) {
         Server server = new Server(name, location, modLoader, mcVersion);
         servers.add(server);
+        if (addCard) Main.WINDOW.cardPanel.addServerCard(server);
         return server;
     }
 
@@ -80,11 +83,12 @@ public class Server extends JPanel {
      */
     public static void load() {
         servers.clear();
+        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            MinecraftWrapperUtils.readJson(OSUtils.getServersFile(), SERVER_DATA_LIST_TYPE).forEach(ServerData::convert);
+            objectMapper.readValue(OSUtils.getServersFile(), new TypeReference<List<ServerData>>(){}).forEach(ServerData::convert);
             LOGGER.info("Loaded %s servers from %s".formatted(servers.size(), OSUtils.serversLocation));
         } catch (IOException e) {
-            LOGGER.error("Failed to load server data from " + OSUtils.serversLocation, e);
+            LOGGER.warn("Failed to load server data from " + OSUtils.serversLocation, e);
         }
     }
 
@@ -99,8 +103,9 @@ public class Server extends JPanel {
 
     public static void save() {
         OSUtils.createDataDir();
+        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            MinecraftWrapperUtils.writeJson(OSUtils.getServersFile(), servers.stream().map(ServerData::new).collect(Collectors.toList()));
+            objectMapper.writeValue(OSUtils.getServersFile(), servers.stream().map(ServerData::create).toList());
             LOGGER.info("Saved %s servers to %s".formatted(servers.size(), OSUtils.serversLocation));
         } catch (IOException e) {
             LOGGER.error("Failed to save server data to " + OSUtils.serversLocation, e);
@@ -196,6 +201,11 @@ public class Server extends JPanel {
             scrollPane = new JScrollPane(outputArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
             this.add(scrollPane, new GridBagConstraints(1, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
             // Input field
+            JTextField textField = makeTextField();
+            this.add(textField, new GridBagConstraints(1, 2, 2, 1, 1, 0, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(5, 0, 0, 0), 0, 0));
+        }
+
+        private JTextField makeTextField() {
             JTextField textField = new JTextField();
             textField.setFont(Main.MONOSPACED_FONT);
             textField.addKeyListener(new KeyAdapter() {
@@ -212,7 +222,7 @@ public class Server extends JPanel {
                     }
                 }
             });
-            this.add(textField, new GridBagConstraints(1, 2, 2, 1, 1, 0, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(5, 0, 0, 0), 0, 0));
+            return textField;
         }
 
         public void clearOutput() {

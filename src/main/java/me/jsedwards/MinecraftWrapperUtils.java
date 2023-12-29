@@ -1,14 +1,11 @@
 package me.jsedwards;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
-import java.util.stream.Collector;
 
 public class MinecraftWrapperUtils {
-
-    public static final Collector<String, StringBuilder, String> STRING_COLLECTOR = Collector.of(StringBuilder::new, StringBuilder::append, StringBuilder::append, StringBuilder::toString);
 
     public static <T> T readJson(File file, Class<T> clazz) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -22,42 +19,27 @@ public class MinecraftWrapperUtils {
         }
     }
 
-    private static <T> T readJson(BufferedReader reader, Class<T> clazz) {
-        String json = reader.lines().collect(STRING_COLLECTOR);
-        Gson gson = new Gson();
-        return gson.fromJson(json, clazz);
+    private static <T> T readJson(BufferedReader reader, Class<T> clazz) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(reader, clazz);
     }
 
-    public static <T> T readJson(File file, TypeToken<T> type) throws IOException {
+    public static <T> T readJson(File file, TypeReference<T> type) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String json = reader.lines().collect(STRING_COLLECTOR);
-            Gson gson = new Gson();
-            return gson.fromJson(json, type);
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(reader, type);
         }
     }
 
-    public static <T> T readJson(InputStream stream, TypeToken<T> type) throws IOException {
+    public static <T> T readJson(InputStream stream, TypeReference<T> type) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
-            String json = reader.lines().collect(STRING_COLLECTOR);
-            Gson gson = new Gson();
-            return gson.fromJson(json, type);
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(reader, type);
         }
     }
 
     public static <T> void writeJson(File file, T value) throws IOException {
-        Gson gson = new Gson();
-        String json = gson.toJson(value);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write(json);
-        }
-    }
-
-    public static String getUserFolder() {
-        String os = System.getProperty("os.name").toLowerCase();
-        if (os.contains("mac")) {
-            return "/Users/" + System.getProperty("user.name");
-        }
-        // TODO: Windows and linux user home folder
-        throw new RuntimeException("Unsupported operating system");
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(file, value);
     }
 }

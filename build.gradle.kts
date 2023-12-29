@@ -12,8 +12,6 @@ application {
 }
 
 // LWJGL stuff
-val lwjglVersion = "3.3.3"
-
 val lwjglNatives = Pair(
     System.getProperty("os.name")!!,
     System.getProperty("os.arch")!!
@@ -24,11 +22,15 @@ val lwjglNatives = Pair(
                 "natives-linux${if (arch.contains("64") || arch.startsWith("armv8")) "-arm64" else "-arm32"}"
             else
                 "natives-linux"
-        arrayOf("Mac OS X", "Darwin").any { name.startsWith(it) }                ->
+        arrayOf("Mac OS X", "Darwin").any { name.startsWith(it) } ->
             "natives-macos${if (arch.startsWith("aarch64")) "-arm64" else ""}"
-        arrayOf("Windows").any { name.startsWith(it) }                           ->
-            "natives-windows-x86"
-        else -> throw Error("Unrecognized or unsupported platform. Please set \"lwjglNatives\" manually")
+        arrayOf("Windows").any { name.startsWith(it) } ->
+            if (arch.contains("64"))
+                "natives-windows${if (arch.startsWith("aarch64")) "-arm64" else ""}"
+            else
+                "natives-windows-x86"
+        else ->
+            throw Error("Unrecognized or unsupported platform. Please set \"lwjglNatives\" manually")
     }
 }
 
@@ -46,8 +48,10 @@ dependencies {
     implementation("com.formdev:flatlaf:3.2.1")
     implementation("com.github.Dansoftowner:jSystemThemeDetector:3.8")
 
-    // Gson - JSON parsing
-    implementation("com.google.code.gson:gson:2.10.1")
+    // Jackson - JSON parsing
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.3")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.15.3")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.3")
 
     // Apache commons lang
     implementation("org.apache.commons:commons-lang3:3.13.0")
@@ -56,8 +60,12 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-api:2.21.1")
     implementation("org.apache.logging.log4j:log4j-core:2.21.1")
 
+    // Slf4j
+    implementation("org.slf4j:slf4j-api:2.0.9")
+    implementation("org.slf4j:slf4j-simple:2.0.9")
+
     // LWJGL - native file dialogs
-    implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
+    implementation(platform("org.lwjgl:lwjgl-bom:3.3.3"))
     implementation("org.lwjgl", "lwjgl")
     implementation("org.lwjgl", "lwjgl-nfd")
     implementation("org.lwjgl", "lwjgl-tinyfd")

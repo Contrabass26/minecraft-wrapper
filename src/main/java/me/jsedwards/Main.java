@@ -60,10 +60,9 @@ public final class Main {
             FlatLightLaf.setup();
         }
         LOGGER.info("Setting dark theme: " + DARK_THEME);
+        // Load servers
+        Server.load();
         // Create main window
-        SwingUtilities.invokeLater(() -> {
-            Server.load();
-            WINDOW = new Window();
-        });
+        SwingUtilities.invokeLater(() -> WINDOW = new Window());
     }
 }

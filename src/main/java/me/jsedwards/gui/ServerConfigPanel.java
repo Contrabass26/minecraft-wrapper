@@ -1,14 +1,15 @@
 package me.jsedwards.gui;
 
+import me.jsedwards.ConfigManager;
 import me.jsedwards.Main;
 import me.jsedwards.ServerPropertiesManager;
-import me.jsedwards.util.MathUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import javax.swing.text.DefaultStyledDocument;
 import java.awt.*;
+import java.util.function.Function;
 
 public class ServerConfigPanel extends JPanel implements Card {
 
@@ -16,7 +17,7 @@ public class ServerConfigPanel extends JPanel implements Card {
 
     private String server = null;
     private final JLabel serverNameLbl;
-    private final AdvancedPanel advancedPanel = new AdvancedPanel();
+    private final AdvancedPanel[] advancedPanels = {new AdvancedPanel(ServerPropertiesManager::new, "Vanilla")};
 
     public ServerConfigPanel() {
         this.setLayout(new GridBagLayout());
@@ -31,8 +32,10 @@ public class ServerConfigPanel extends JPanel implements Card {
         // Tabbed pane
         JTabbedPane tabbedPane = new JTabbedPane();
         BasicPanel basicPanel = new BasicPanel();
-        tabbedPane.add("Basic", basicPanel);
-        tabbedPane.add("Advanced", advancedPanel);
+        tabbedPane.add("General", basicPanel);
+        for (AdvancedPanel panel : advancedPanels) {
+            tabbedPane.add(panel.name, panel);
+        }
         this.add(tabbedPane, new GridBagConstraints(1, 2, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(10, 10, 10, 10), 0, 0));
     }
 
@@ -45,12 +48,16 @@ public class ServerConfigPanel extends JPanel implements Card {
         this.server = serverName;
         this.serverNameLbl.setText(serverName + " - " + server.modLoader);
         // Load server properties
-        advancedPanel.setServer(server);
+        for (AdvancedPanel panel : advancedPanels) {
+            panel.setServer(server);
+        }
     }
 
     @Override
     public void exit() {
-        advancedPanel.properties.save();
+        for (AdvancedPanel panel : advancedPanels) {
+            panel.properties.save();
+        }
     }
 
     private class BasicPanel extends JPanel {
@@ -75,8 +82,10 @@ public class ServerConfigPanel extends JPanel implements Card {
         private JSlider createSlider() {
             JSlider slider = new JSlider(0, 100);
             slider.addChangeListener(e -> {
-                long viewDistance = Math.round(MathUtils.scale(0, 100, 2, 32, slider.getValue()));
-                ServerConfigPanel.this.advancedPanel.properties.set("view-distance", String.valueOf(viewDistance));
+                int sliderValue = slider.getValue();
+                for (AdvancedPanel panel : ServerConfigPanel.this.advancedPanels) {
+                    panel.properties.optimise(sliderValue);
+                }
             });
             return slider;
         }
@@ -85,11 +94,16 @@ public class ServerConfigPanel extends JPanel implements Card {
     private static class AdvancedPanel extends JPanel {
 
         private final SidePanel sidePanel;
-        private ServerPropertiesManager properties = new ServerPropertiesManager();
+        private final Function<Server, ConfigManager> configManagerCreator;
+        private ConfigManager properties;
         private final JList<String> propertiesList;
+        public final String name;
 
-        public AdvancedPanel() {
+        public AdvancedPanel(Function<Server, ConfigManager> configManagerCreator, String name) {
+            this.name = name;
+            this.configManagerCreator = configManagerCreator;
             this.setLayout(new GridBagLayout());
+            properties = configManagerCreator.apply(null);
             // Search label
             this.add(new JLabel("Search properties:"), new GridBagConstraints(1, 1, 1, 1, 0, 0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
             // Search box
@@ -113,7 +127,7 @@ public class ServerConfigPanel extends JPanel implements Card {
         }
 
         private void setServer(Server server) {
-            this.properties = new ServerPropertiesManager(server.getPropertiesLocation());
+            this.properties = configManagerCreator.apply(server);
             this.propertiesList.setModel(this.properties);
         }
 
@@ -178,9 +192,9 @@ public class ServerConfigPanel extends JPanel implements Card {
                 if (selectedItem != null) {
                     String key = selectedItem.substring(0, selectedItem.indexOf(':'));
                     this.nameLbl.setText(key);
-                    this.descriptionLbl.setText("<html>" + ServerPropertiesManager.getDescription(key) + "</html>");
-                    this.dataTypeLbl.setText("Data type: " + ServerPropertiesManager.getDataType(key));
-                    this.defaultValueLbl.setText("Default value: " + ServerPropertiesManager.getDefaultValue(key));
+                    this.descriptionLbl.setText("<html>" + AdvancedPanel.this.properties.getDescription(key) + "</html>");
+                    this.dataTypeLbl.setText("Data type: " + AdvancedPanel.this.properties.getDataType(key));
+                    this.defaultValueLbl.setText("Default value: " + AdvancedPanel.this.properties.getDefaultValue(key));
                 }
             }
         }

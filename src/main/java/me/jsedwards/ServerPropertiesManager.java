@@ -1,5 +1,7 @@
 package me.jsedwards;
 
+import me.jsedwards.gui.Server;
+import me.jsedwards.util.MathUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
@@ -12,9 +14,10 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
 
-public class ServerPropertiesManager extends DefaultListModel<String> {
+public class ServerPropertiesManager extends DefaultListModel<String> implements ConfigManager {
 
     private static final Logger LOGGER = LogManager.getLogger();
+
     private static final HashMap<String, String> PROPERTY_DESCRIPTIONS = new HashMap<>();
     private static final HashMap<String, String> PROPERTY_DATA_TYPES = new HashMap<>();
     private static final HashMap<String, String> PROPERTY_DEFAULTS = new HashMap<>();
@@ -45,29 +48,29 @@ public class ServerPropertiesManager extends DefaultListModel<String> {
     private final File propertiesFile;
     private boolean saved = true;
 
-    public ServerPropertiesManager(File propertiesFile) {
-        this.propertiesFile = propertiesFile;
-        // Load properties
-        properties = new Properties();
-        keys = new ArrayList<>();
-        if (Files.exists(propertiesFile.toPath())) {
-            try (InputStream stream = new FileInputStream(propertiesFile)) {
-                properties.load(stream);
-                properties.keySet().stream().map(o -> (String) o).forEach(keys::add);
-                Collections.sort(keys);
-                LOGGER.info("Loaded properties from " + propertiesFile.getAbsolutePath());
-            } catch (IOException e) {
-                LOGGER.error("Failed to load properties from " + propertiesFile.getAbsolutePath(), e);
+    public ServerPropertiesManager(Server server) {
+        if (server == null) {
+            properties = new Properties();
+            keys = new ArrayList<>();
+            filteredKeys = new ArrayList<>();
+            propertiesFile = null;
+        } else {
+            this.propertiesFile = server.getPropertiesLocation();
+            // Load properties
+            properties = new Properties();
+            keys = new ArrayList<>();
+            if (Files.exists(propertiesFile.toPath())) {
+                try (InputStream stream = new FileInputStream(propertiesFile)) {
+                    properties.load(stream);
+                    properties.keySet().stream().map(o -> (String) o).forEach(keys::add);
+                    Collections.sort(keys);
+                    LOGGER.info("Loaded properties from " + propertiesFile.getAbsolutePath());
+                } catch (IOException e) {
+                    LOGGER.error("Failed to load properties from " + propertiesFile.getAbsolutePath(), e);
+                }
             }
+            filteredKeys = new ArrayList<>(keys);
         }
-        filteredKeys = new ArrayList<>(keys);
-    }
-
-    public ServerPropertiesManager() {
-        properties = new Properties();
-        keys = new ArrayList<>();
-        filteredKeys = new ArrayList<>();
-        propertiesFile = null;
     }
 
     public void updateSearch(String text) {
@@ -98,16 +101,22 @@ public class ServerPropertiesManager extends DefaultListModel<String> {
         }
     }
 
-    public static String getDescription(String key) {
+    public String getDescription(String key) {
         return PROPERTY_DESCRIPTIONS.getOrDefault(key, "No description found");
     }
 
-    public static String getDataType(String key) {
+    public String getDataType(String key) {
         return PROPERTY_DATA_TYPES.getOrDefault(key, "Not found");
     }
 
-    public static String getDefaultValue(String key) {
+    public String getDefaultValue(String key) {
         return PROPERTY_DEFAULTS.getOrDefault(key, "Not found");
+    }
+
+    @Override
+    public void optimise(int sliderValue) {
+        long viewDistance = Math.round(MathUtils.scale(0, 100, 3, 32, sliderValue));
+        this.set("view-distance", String.valueOf(viewDistance));
     }
 
     @Override

@@ -1,8 +1,6 @@
 package me.jsedwards;
 
 import me.jsedwards.gui.Server;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.swing.*;
@@ -15,8 +13,6 @@ import java.util.Map;
 import java.util.function.Function;
 
 public abstract class YamlConfigManager extends DefaultListModel<String> implements ConfigManager {
-
-    protected static final Logger LOGGER = LogManager.getLogger();
 
     protected final File yamlFile;
     protected final List<String> keys = new ArrayList<>();

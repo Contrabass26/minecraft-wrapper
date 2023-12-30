@@ -2,8 +2,6 @@ package me.jsedwards;
 
 import me.jsedwards.gui.Server;
 import me.jsedwards.util.MathUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -15,8 +13,6 @@ import java.nio.file.Files;
 import java.util.*;
 
 public class ServerPropertiesManager extends DefaultListModel<String> implements ConfigManager {
-
-    private static final Logger LOGGER = LogManager.getLogger();
 
     private static final HashMap<String, String> PROPERTY_DESCRIPTIONS = new HashMap<>();
     private static final HashMap<String, String> PROPERTY_DATA_TYPES = new HashMap<>();

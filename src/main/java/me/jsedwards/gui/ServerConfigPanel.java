@@ -1,9 +1,6 @@
 package me.jsedwards.gui;
 
-import me.jsedwards.ConfigManager;
-import me.jsedwards.Main;
-import me.jsedwards.ServerPropertiesManager;
-import me.jsedwards.SpigotConfigManager;
+import me.jsedwards.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -22,7 +19,8 @@ public class ServerConfigPanel extends JPanel implements Card {
     private final JTabbedPane tabbedPane = new JTabbedPane();
     private final AdvancedPanel[] advancedPanels = {
             new AdvancedPanel(ServerPropertiesManager::new, "Vanilla", s -> true),
-            new AdvancedPanel(SpigotConfigManager::new, "Spigot", s -> true)
+            new AdvancedPanel(SpigotConfigManager::new, "Spigot", s -> true),
+            new AdvancedPanel(BukkitConfigManager::new, "Bukkit", s -> true)
     };
 
     public ServerConfigPanel() {

@@ -41,7 +41,6 @@ public abstract class YamlConfigManager extends DefaultListModel<String> impleme
         }
         explore(map, "");
         filteredKeys = new ArrayList<>(keys);
-        LOGGER.info("Loaded spigot config");
     }
 
     protected void explore(Map<?, ?> in, String current) {
@@ -81,8 +80,9 @@ public abstract class YamlConfigManager extends DefaultListModel<String> impleme
             String dump = yaml.dumpAsMap(map);
             writer.write(dump);
             saved = true;
+            LOGGER.info("Saved config to " + yamlFile.getAbsolutePath());
         } catch (IOException e) {
-            LOGGER.error("Failed to save spigot config to " + yamlFile.getAbsolutePath(), e);
+            LOGGER.error("Failed to save config to " + yamlFile.getAbsolutePath(), e);
         }
     }
 

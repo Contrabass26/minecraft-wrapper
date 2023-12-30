@@ -3,8 +3,8 @@ package me.jsedwards;
 import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.jthemedetecor.OsThemeDetector;
-import me.jsedwards.gui.Server;
-import me.jsedwards.gui.Window;
+import me.jsedwards.dashboard.Server;
+import me.jsedwards.data.Settings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

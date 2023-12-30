@@ -4,30 +4,76 @@ import me.jsedwards.gui.Server;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.MatchResult;
+import java.util.regex.Pattern;
 
 public class SpigotConfigManager extends DefaultListModel<String> implements ConfigManager {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
+    private static final HashMap<String, String> PROPERTY_DESCRIPTIONS = new HashMap<>();
+    private static final HashMap<String, String> PROPERTY_DATA_TYPES = new HashMap<>();
+    private static final HashMap<String, String> PROPERTY_DEFAULTS = new HashMap<>();
+    static {
+        Pattern pattern = Pattern.compile("Default: ((?:.(?!Type:))*) Type: ((?:.(?!Description:))*) Description: ((?:.(?!Default:))*)");
+        try {
+            Document document = Jsoup.connect("https://www.spigotmc.org/wiki/spigot-configuration/").userAgent("Mozilla").get();
+            List<Node> children = document.select(".page-content").get(0).childNodes();
+            for (int i = 0; i < children.size(); i++) {
+                Node node = children.get(i);
+                if (node instanceof Element child && child.is("span")) {
+                    String key = child.text();
+                    if (PROPERTY_DESCRIPTIONS.containsKey(key)) {
+                        PROPERTY_DESCRIPTIONS.put(key, "Not found");
+                    } else {
+                        StringBuilder text = new StringBuilder();
+                        for (int j = i + 1; j < children.size(); j++) {
+                            Node candidate = children.get(j);
+                            if (candidate instanceof Element element) {
+                                if (element.is("style")) continue;
+                                if (element.is("span")) {
+                                    Optional<MatchResult> matcher = pattern.matcher(text).results().findFirst();
+                                    if (matcher.isPresent()) {
+                                        MatchResult matchResult = matcher.get();
+                                        PROPERTY_DEFAULTS.put(key, matchResult.group(1));
+                                        PROPERTY_DATA_TYPES.put(key, matchResult.group(2));
+                                        PROPERTY_DESCRIPTIONS.put(key, matchResult.group(3));
+                                    }
+                                    LOGGER.debug(text.toString());
+                                    break;
+                                }
+                                text.append(element.text());
+                            } else if (candidate instanceof TextNode textNode) {
+                                text.append(textNode.text());
+                            }
+                        }
+                    }
+                }
+            }
+            LOGGER.info(PROPERTY_DESCRIPTIONS.toString());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private final File yamlFile;
     private Map<String, Object> map = new HashMap<>();
     private final List<String> keys = new ArrayList<>();
     private List<String> filteredKeys;
-    private final Map<String, String> descriptions = new HashMap<>();
-    private final Map<String, String> dataTypes = new HashMap<>();
     private boolean saved = true;
 
     public SpigotConfigManager(Server server) {
-        List<String> lines = new ArrayList<>();
         if (server == null) {
             yamlFile = null;
         } else {
@@ -40,32 +86,10 @@ public class SpigotConfigManager extends DefaultListModel<String> implements Con
                 } catch (IOException e) {
                     LOGGER.error("Failed to load spigot config from " + yamlFile.getAbsolutePath(), e);
                 }
-                // Get lines
-                try (BufferedReader reader = new BufferedReader(new FileReader(yamlFile))) {
-                    lines = reader.lines().toList();
-                } catch (IOException e) {
-                    LOGGER.error("Failed to read lines of spigot config from " + yamlFile.getAbsolutePath(), e);
-                }
             }
         }
         explore(map, "");
         filteredKeys = new ArrayList<>(keys);
-        // Get surrounding comments
-        StringBuilder comment = new StringBuilder();
-        for (String line : lines) {
-            if (line.startsWith("#")) {
-                if (line.length() >= 3) {
-                    comment.append(line.substring(2)).append(' ');
-                } else {
-                    comment.append("\n");
-                }
-            } else if (!line.isBlank()) {
-                // Associate comment with current key
-                String key = StringUtils.substringBefore(line, ':').strip();
-                descriptions.put(key, comment.toString());
-                comment = new StringBuilder();
-            }
-        }
         LOGGER.info("Loaded spigot config");
     }
 
@@ -77,7 +101,6 @@ public class SpigotConfigManager extends DefaultListModel<String> implements Con
                 explore((Map<?, ?>) value, newCurrent);
             } else {
                 keys.add(newCurrent.substring(1));
-                dataTypes.put(newCurrent.substring(1), value.getClass().getSimpleName());
             }
         }
     }
@@ -127,22 +150,17 @@ public class SpigotConfigManager extends DefaultListModel<String> implements Con
 
     @Override
     public String getDescription(String key) {
-        String[] split = key.split("/");
-        for (int i = split.length - 1; i >= 0; i--) {
-            String description = descriptions.getOrDefault(split[i], "Not found");
-            if (!description.isEmpty()) return description;
-        }
-        return "Not found";
+        return PROPERTY_DESCRIPTIONS.getOrDefault(StringUtils.substringAfterLast(key, '/'), "Not found");
     }
 
     @Override
     public String getDataType(String key) {
-        return dataTypes.getOrDefault(key, "Not found");
+        return PROPERTY_DATA_TYPES.getOrDefault(StringUtils.substringAfterLast(key, '/'), "Not found");
     }
 
     @Override
     public String getDefaultValue(String key) {
-        return "Not found";
+        return PROPERTY_DEFAULTS.getOrDefault(StringUtils.substringAfterLast(key, '/'), "Not found");
     }
 
     @Override

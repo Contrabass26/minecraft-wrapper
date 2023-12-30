@@ -22,7 +22,7 @@ public class ServerConfigPanel extends JPanel implements Card {
     private final JTabbedPane tabbedPane = new JTabbedPane();
     private final AdvancedPanel[] advancedPanels = {
             new AdvancedPanel(ServerPropertiesManager::new, "Vanilla", s -> true),
-            new AdvancedPanel(SpigotConfigManager::new, "Paper", s -> true)
+            new AdvancedPanel(SpigotConfigManager::new, "Spigot", s -> true)
     };
 
     public ServerConfigPanel() {

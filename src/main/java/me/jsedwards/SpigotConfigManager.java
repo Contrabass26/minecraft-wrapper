@@ -1,15 +1,13 @@
 package me.jsedwards;
 
 import me.jsedwards.gui.Server;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,12 +19,14 @@ public class SpigotConfigManager extends DefaultListModel<String> implements Con
     private static final Logger LOGGER = LogManager.getLogger();
 
     private final File yamlFile;
-    private Map<String, Object> map;
-    private final List<String> keys;
+    private Map<String, Object> map = new HashMap<>();
+    private final List<String> keys = new ArrayList<>();
     private List<String> filteredKeys;
+    private final Map<String, String> descriptions = new HashMap<>();
+    private final Map<String, String> dataTypes = new HashMap<>();
 
     public SpigotConfigManager(Server server) {
-        map = new HashMap<>();
+        List<String> lines = new ArrayList<>();
         if (server == null) {
             yamlFile = null;
         } else {
@@ -39,28 +39,51 @@ public class SpigotConfigManager extends DefaultListModel<String> implements Con
                 } catch (IOException e) {
                     LOGGER.error("Failed to load spigot config from " + yamlFile.getAbsolutePath(), e);
                 }
+                // Get lines
+                try (BufferedReader reader = new BufferedReader(new FileReader(yamlFile))) {
+                    lines = reader.lines().toList();
+                } catch (IOException e) {
+                    LOGGER.error("Failed to read lines of spigot config from " + yamlFile.getAbsolutePath(), e);
+                }
             }
         }
-        keys = new ArrayList<>();
-        explore(map, keys, "");
+        explore(map, "");
         filteredKeys = new ArrayList<>(keys);
+        // Get surrounding comments
+        StringBuilder comment = new StringBuilder();
+        for (String line : lines) {
+            if (line.startsWith("#")) {
+                if (line.length() >= 3) {
+                    comment.append(line.substring(2)).append(' ');
+                } else {
+                    comment.append("\n");
+                }
+            } else if (!line.isBlank()) {
+                // Associate comment with current key
+                String key = StringUtils.substringBefore(line, ':').strip();
+                descriptions.put(key, comment.toString());
+                comment = new StringBuilder();
+            }
+        }
+        LOGGER.info("Loaded spigot config");
     }
 
-    private static void explore(Map<?, ?> in, List<String> keysOut, String current) {
+    private void explore(Map<?, ?> in, String current) {
         for (Object key : in.keySet()) {
             String newCurrent = current + "/" + key;
             Object value = in.get(key);
             if (value instanceof Map) {
-                explore((Map<?, ?>) value, keysOut, newCurrent);
+                explore((Map<?, ?>) value, newCurrent);
             } else {
-                keysOut.add(newCurrent);
+                keys.add(newCurrent.substring(1));
+                dataTypes.put(newCurrent.substring(1), value.getClass().getSimpleName());
             }
         }
     }
 
     private Object getFromPath(String path) {
         Object next = map;
-        String[] split = path.substring(1).split("/");
+        String[] split = path.split("/");
         for (String s : split) {
             next = ((Map<?, ?>) next).get(s);
         }
@@ -91,17 +114,22 @@ public class SpigotConfigManager extends DefaultListModel<String> implements Con
 
     @Override
     public String getDescription(String key) {
-        return "null";
+        String[] split = key.split("/");
+        for (int i = split.length - 1; i >= 0; i--) {
+            String description = descriptions.get(split[i]);
+            if (!description.isEmpty()) return description;
+        }
+        return "Not found";
     }
 
     @Override
     public String getDataType(String key) {
-        return "null";
+        return dataTypes.getOrDefault(key, "Not found");
     }
 
     @Override
     public String getDefaultValue(String key) {
-        return "null";
+        return "Not found";
     }
 
     @Override
@@ -117,6 +145,6 @@ public class SpigotConfigManager extends DefaultListModel<String> implements Con
     @Override
     public String getElementAt(int index) {
         String key = filteredKeys.get(index);
-        return key.substring(1) + ": " + getFromPath(key);
+        return key + ": " + getFromPath(key);
     }
 }

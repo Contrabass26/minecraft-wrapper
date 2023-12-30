@@ -24,6 +24,7 @@ public class SpigotConfigManager extends DefaultListModel<String> implements Con
     private List<String> filteredKeys;
     private final Map<String, String> descriptions = new HashMap<>();
     private final Map<String, String> dataTypes = new HashMap<>();
+    private boolean saved = true;
 
     public SpigotConfigManager(Server server) {
         List<String> lines = new ArrayList<>();
@@ -97,7 +98,18 @@ public class SpigotConfigManager extends DefaultListModel<String> implements Con
 
     @Override
     public void save() {
+        if (!saved) realSave();
+    }
 
+    private void realSave() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(yamlFile))) {
+            Yaml yaml = new Yaml();
+            String dump = yaml.dumpAsMap(map);
+            writer.write(dump);
+            saved = true;
+        } catch (IOException e) {
+            LOGGER.error("Failed to save spigot config to " + yamlFile.getAbsolutePath(), e);
+        }
     }
 
     @Override
@@ -110,13 +122,14 @@ public class SpigotConfigManager extends DefaultListModel<String> implements Con
             next = ((Map<?, ?>) next).get(s);
         }
         ((Map<Object, Object>) last).put(split[split.length - 1], value);
+        saved = false;
     }
 
     @Override
     public String getDescription(String key) {
         String[] split = key.split("/");
         for (int i = split.length - 1; i >= 0; i--) {
-            String description = descriptions.get(split[i]);
+            String description = descriptions.getOrDefault(split[i], "Not found");
             if (!description.isEmpty()) return description;
         }
         return "Not found";

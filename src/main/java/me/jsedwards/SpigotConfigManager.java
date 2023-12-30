@@ -50,7 +50,6 @@ public class SpigotConfigManager extends DefaultListModel<String> implements Con
                                         PROPERTY_DATA_TYPES.put(key, matchResult.group(2));
                                         PROPERTY_DESCRIPTIONS.put(key, matchResult.group(3));
                                     }
-                                    LOGGER.debug(text.toString());
                                     break;
                                 }
                                 text.append(element.text());
@@ -144,8 +143,22 @@ public class SpigotConfigManager extends DefaultListModel<String> implements Con
             last = next;
             next = ((Map<?, ?>) next).get(s);
         }
-        ((Map<Object, Object>) last).put(split[split.length - 1], value);
+        Map<Object, Object> map = (Map<Object, Object>) last;
+        String lastKey = split[split.length - 1];
+        Object current = map.get(lastKey);
+        Object castValue = cast(value, current.getClass());
+        map.put(lastKey, castValue);
         saved = false;
+    }
+
+    private Object cast(String value, Class<?> clazz) {
+        if (clazz == String.class) return value;
+        if (clazz == Integer.class) return Integer.parseInt(value);
+        if (clazz == Boolean.class) return Boolean.valueOf(value);
+        if (clazz == Double.class) return Double.parseDouble(value);
+        if (clazz == Float.class) return Float.parseFloat(value);
+        LOGGER.warn("Unsupported class found in %s: %s".formatted(yamlFile.getAbsolutePath(), clazz.getName()));
+        return value;
     }
 
     @Override

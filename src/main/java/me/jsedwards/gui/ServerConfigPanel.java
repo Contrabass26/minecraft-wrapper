@@ -3,6 +3,7 @@ package me.jsedwards.gui;
 import me.jsedwards.ConfigManager;
 import me.jsedwards.Main;
 import me.jsedwards.ServerPropertiesManager;
+import me.jsedwards.SpigotConfigManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,6 +11,7 @@ import javax.swing.*;
 import javax.swing.text.DefaultStyledDocument;
 import java.awt.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class ServerConfigPanel extends JPanel implements Card {
 
@@ -17,7 +19,11 @@ public class ServerConfigPanel extends JPanel implements Card {
 
     private String server = null;
     private final JLabel serverNameLbl;
-    private final AdvancedPanel[] advancedPanels = {new AdvancedPanel(ServerPropertiesManager::new, "Vanilla")};
+    private final JTabbedPane tabbedPane = new JTabbedPane();
+    private final AdvancedPanel[] advancedPanels = {
+            new AdvancedPanel(ServerPropertiesManager::new, "Vanilla", s -> true),
+            new AdvancedPanel(SpigotConfigManager::new, "Paper", s -> true)
+    };
 
     public ServerConfigPanel() {
         this.setLayout(new GridBagLayout());
@@ -30,7 +36,6 @@ public class ServerConfigPanel extends JPanel implements Card {
         serverNameLbl.setFont(Main.MAIN_FONT);
         this.add(serverNameLbl, new GridBagConstraints(2, 1, 1, 1, 1, 0, GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(30, 0, 0, 0), 0, 0));
         // Tabbed pane
-        JTabbedPane tabbedPane = new JTabbedPane();
         BasicPanel basicPanel = new BasicPanel();
         tabbedPane.add("General", basicPanel);
         for (AdvancedPanel panel : advancedPanels) {
@@ -48,8 +53,13 @@ public class ServerConfigPanel extends JPanel implements Card {
         this.server = serverName;
         this.serverNameLbl.setText(serverName + " - " + server.modLoader);
         // Load server properties
-        for (AdvancedPanel panel : advancedPanels) {
-            panel.setServer(server);
+        for (int i = 0; i < advancedPanels.length; i++) {
+            AdvancedPanel panel = advancedPanels[i];
+            boolean enabled = panel.isEnabled(server);
+            if (enabled) {
+                panel.setServer(server);
+            }
+            tabbedPane.setEnabledAt(i + 1, enabled);
         }
     }
 
@@ -95,13 +105,15 @@ public class ServerConfigPanel extends JPanel implements Card {
 
         private final SidePanel sidePanel;
         private final Function<Server, ConfigManager> configManagerCreator;
+        private final Predicate<Server> enabled;
         private ConfigManager properties;
         private final JList<String> propertiesList;
         public final String name;
 
-        public AdvancedPanel(Function<Server, ConfigManager> configManagerCreator, String name) {
+        public AdvancedPanel(Function<Server, ConfigManager> configManagerCreator, String name, Predicate<Server> enabled) {
             this.name = name;
             this.configManagerCreator = configManagerCreator;
+            this.enabled = enabled;
             this.setLayout(new GridBagLayout());
             properties = configManagerCreator.apply(null);
             // Search label
@@ -124,6 +136,10 @@ public class ServerConfigPanel extends JPanel implements Card {
             this.add(sidePanel, new GridBagConstraints(3, 1, 1, 2, 0.3, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
             // Selection listener
             propertiesList.addListSelectionListener(e -> sidePanel.update());
+        }
+
+        private boolean isEnabled(Server server) {
+            return enabled.test(server);
         }
 
         private void setServer(Server server) {

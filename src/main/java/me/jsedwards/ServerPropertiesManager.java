@@ -73,8 +73,8 @@ public class ServerPropertiesManager extends DefaultListModel<String> implements
         }
     }
 
-    public void updateSearch(String text) {
-        filteredKeys = keys.stream().filter(s -> s.contains(text)).toList();
+    public void updateSearch(String query) {
+        filteredKeys = keys.stream().filter(s -> s.contains(query)).toList();
     }
 
     public void save() {

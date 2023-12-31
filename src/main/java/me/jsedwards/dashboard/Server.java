@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.jsedwards.CardPanel;
 import me.jsedwards.Main;
 import me.jsedwards.data.ServerData;
-import me.jsedwards.util.ModLoader;
+import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

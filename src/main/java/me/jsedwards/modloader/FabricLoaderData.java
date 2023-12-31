@@ -1,4 +1,4 @@
-package me.jsedwards.util;
+package me.jsedwards.modloader;
 
 @SuppressWarnings("unused")
 public class FabricLoaderData {

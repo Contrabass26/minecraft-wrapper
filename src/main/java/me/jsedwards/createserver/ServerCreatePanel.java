@@ -3,7 +3,7 @@ package me.jsedwards.createserver;
 import me.jsedwards.Card;
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
-import me.jsedwards.util.ModLoader;
+import me.jsedwards.modloader.ModLoader;
 
 import javax.swing.*;
 import java.awt.*;

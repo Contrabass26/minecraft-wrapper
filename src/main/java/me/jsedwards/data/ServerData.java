@@ -1,7 +1,7 @@
 package me.jsedwards.data;
 
 import me.jsedwards.dashboard.Server;
-import me.jsedwards.util.ModLoader;
+import me.jsedwards.modloader.ModLoader;
 
 public class ServerData {
 

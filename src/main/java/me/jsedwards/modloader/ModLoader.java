@@ -1,6 +1,7 @@
-package me.jsedwards.util;
+package me.jsedwards.modloader;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import me.jsedwards.util.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

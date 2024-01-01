@@ -118,7 +118,7 @@ public class Server extends JPanel {
 
     public void start() {
         try {
-            consoleWrapper = new ConsoleWrapper("java -Xmx2G -jar fabric-server-launch.jar nogui", new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log);
+            consoleWrapper = new ConsoleWrapper(modLoader.getStartCommand(2048), new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log);
         } catch (IOException e) {
             consolePanel.log("Failed to start server: " + e.getMessage());
             LOGGER.error("Failed to start server", e);

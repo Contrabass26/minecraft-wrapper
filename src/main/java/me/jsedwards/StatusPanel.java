@@ -47,7 +47,7 @@ public class StatusPanel extends JPanel {
     public void saveFileFromUrl(URL in, File out) {
         Thread thread = new Thread(() -> {
             try {
-                setStatus("Downloading " + in.getFile());
+                setStatus("Downloading " + in.toString());
                 HttpURLConnection connection = (HttpURLConnection) in.openConnection();
                 connection.setRequestMethod("GET");
                 int contentLength = connection.getContentLength();
@@ -72,7 +72,7 @@ public class StatusPanel extends JPanel {
     public <T> void getJsonFromUrl(URL in, Class<T> jsonClazz, Consumer<T> onSuccess) {
         Thread thread = new Thread(() -> {
             try {
-                setStatus("Downloading " + in.getFile());
+                setStatus("Downloading " + in.toString());
                 ObjectMapper mapper = new ObjectMapper();
                 T result = mapper.readValue(in, jsonClazz);
                 LOGGER.info("Downloaded %s".formatted(in.toString()));
@@ -90,7 +90,7 @@ public class StatusPanel extends JPanel {
     public void getJsonNodeFromUrl(URL in, Consumer<JsonNode> onSuccess) {
         Thread thread = new Thread(() -> {
             try {
-                setStatus("Downloading " + in.getFile());
+                setStatus("Downloading " + in.toString());
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode result = mapper.readTree(in);
                 LOGGER.info("Downloaded %s".formatted(in.toString()));

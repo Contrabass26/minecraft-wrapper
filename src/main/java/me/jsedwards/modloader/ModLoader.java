@@ -47,6 +47,11 @@ public enum ModLoader {
             });
             ModLoader.writeEula(destination);
         }
+
+        @Override
+        public String getStartCommand(int mbMemory) {
+            return "java -Xmx%sM -jar server.jar nogui".formatted(mbMemory);
+        }
     },
     FORGE,
     FABRIC {
@@ -56,6 +61,11 @@ public enum ModLoader {
             Main.WINDOW.statusPanel.saveFileFromUrl(new URL("https://meta.fabricmc.net/v2/versions/loader/%s/%s/%s/server/jar".formatted(mcVersion, FABRIC_LOADER_VERSION, FABRIC_INSTALLER_VERSION)), new File(destination.getAbsolutePath() + "/fabric-server-launch.jar"));
             // eula.txt
             ModLoader.writeEula(destination);
+        }
+
+        @Override
+        public String getStartCommand(int mbMemory) {
+            return "java -Xmx%sM -jar fabric-server-launch.jar nogui".formatted(mbMemory);
         }
     };
 
@@ -103,6 +113,10 @@ public enum ModLoader {
     }
 
     public void downloadFiles(File destination, String mcVersion) throws IOException {
+        throw new RuntimeException("Mod loader not supported!");
+    }
+
+    public String getStartCommand(int mbMemory) {
         throw new RuntimeException("Mod loader not supported!");
     }
 

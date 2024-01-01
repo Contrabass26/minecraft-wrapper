@@ -2,9 +2,12 @@ package me.jsedwards.dashboard;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.jsedwards.CardPanel;
 import me.jsedwards.Main;
-import me.jsedwards.data.ServerData;
+import me.jsedwards.data.ServerDeserialiser;
+import me.jsedwards.data.ServerSerialiser;
 import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;
@@ -23,10 +26,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@JsonSerialize(using = ServerSerialiser.class)
+@JsonDeserialize(using = ServerDeserialiser.class)
 public class Server extends JPanel {
 
     private static final Logger LOGGER = LogManager.getLogger();
     private static final List<Server> servers = new ArrayList<>();
+    private static final TypeReference<List<Server>> SERVER_LIST_TYPE_REFERENCE = new TypeReference<>() {};
 
     public final String serverName;
     public final String serverLocation;
@@ -85,7 +91,7 @@ public class Server extends JPanel {
         servers.clear();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            objectMapper.readValue(OSUtils.getServersFile(), new TypeReference<List<ServerData>>(){}).forEach(ServerData::convert);
+            objectMapper.readValue(OSUtils.getServersFile(), SERVER_LIST_TYPE_REFERENCE);
             LOGGER.info("Loaded %s servers from %s".formatted(servers.size(), OSUtils.serversLocation));
         } catch (IOException e) {
             LOGGER.warn("Failed to load server data from " + OSUtils.serversLocation, e);
@@ -105,7 +111,7 @@ public class Server extends JPanel {
         OSUtils.createDataDir();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            objectMapper.writeValue(OSUtils.getServersFile(), servers.stream().map(ServerData::create).toList());
+            objectMapper.writeValue(OSUtils.getServersFile(), servers);
             LOGGER.info("Saved %s servers to %s".formatted(servers.size(), OSUtils.serversLocation));
         } catch (IOException e) {
             LOGGER.error("Failed to save server data to " + OSUtils.serversLocation, e);

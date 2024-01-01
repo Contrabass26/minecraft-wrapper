@@ -55,7 +55,7 @@ public class ServerCreatePanel extends JPanel implements Card {
                 String serverLocation = locationStagePanel.getServerLocation();
                 ModLoader modLoader = modLoaderStagePanel.getSelectedModLoader();
                 String mcVersion = mcVersionStagePanel.getSelectedVersion();
-                Server server = Server.create(serverName, serverLocation, modLoader, mcVersion, true);
+                Server server = Server.create(serverName, serverLocation, modLoader, mcVersion, 8192, 50, true);
                 // Add new button to server select panel
                 Main.WINDOW.cardPanel.serverSelectPanel.addServer(server);
                 // Download server

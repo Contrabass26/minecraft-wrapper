@@ -38,15 +38,19 @@ public class Server extends JPanel {
     public final String serverLocation;
     public final ModLoader modLoader;
     public final String mcVersion;
+    public final int mbMemory;
+    public final int optimisationLevel;
     private final ConsolePanel consolePanel;
     private ConsoleWrapper consoleWrapper = null;
 
-    private Server(String serverName, String serverLocation, ModLoader modLoader, String mcVersion) {
+    private Server(String serverName, String serverLocation, ModLoader modLoader, String mcVersion, int mbMemory, int optimisationLevel) {
         super();
         this.serverName = serverName;
         this.serverLocation = serverLocation;
         this.modLoader = modLoader;
         this.mcVersion = mcVersion;
+        this.mbMemory = mbMemory;
+        this.optimisationLevel = optimisationLevel;
         // Layout
         this.setLayout(new GridBagLayout());
         // Top panel
@@ -77,8 +81,8 @@ public class Server extends JPanel {
      * @param mcVersion The Minecraft version of the server, e.g. 1.20.1
      * @return The new server object with the specified properties
      */
-    public static Server create(String name, String location, ModLoader modLoader, String mcVersion, boolean addCard) {
-        Server server = new Server(name, location, modLoader, mcVersion);
+    public static Server create(String name, String location, ModLoader modLoader, String mcVersion, int mbMemory, int optimisationLevel, boolean addCard) {
+        Server server = new Server(name, location, modLoader, mcVersion, mbMemory, optimisationLevel);
         servers.add(server);
         if (addCard) Main.WINDOW.cardPanel.addServerCard(server);
         return server;

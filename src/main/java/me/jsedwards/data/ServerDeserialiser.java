@@ -23,10 +23,12 @@ public class ServerDeserialiser extends StdDeserializer<Server> {
     @Override
     public Server deserialize(JsonParser parser, DeserializationContext context) throws IOException {
         JsonNode root = parser.getCodec().readTree(parser);
-        String name = root.get("name").textValue();
-        String location = root.get("location").textValue();
+        String name = root.get("serverName").textValue();
+        String location = root.get("serverLocation").textValue();
         ModLoader modLoader = ModLoader.valueOf(root.get("modLoader").textValue());
         String mcVersion = root.get("mcVersion").textValue();
-        return Server.create(name, location, modLoader, mcVersion, false);
+        int mbMemory = root.get("mbMemory").intValue();
+        int optimisationLevel = root.get("optimisationLevel").intValue();
+        return Server.create(name, location, modLoader, mcVersion, mbMemory, optimisationLevel, false);
     }
 }

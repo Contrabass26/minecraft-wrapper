@@ -21,10 +21,12 @@ public class ServerSerialiser extends StdSerializer<Server> {
     @Override
     public void serialize(Server server, JsonGenerator generator, SerializerProvider provider) throws IOException {
         generator.writeStartObject();
-        generator.writeStringField("name", server.serverName);
-        generator.writeStringField("location", server.serverLocation);
+        generator.writeStringField("serverName", server.serverName);
+        generator.writeStringField("serverLocation", server.serverLocation);
         generator.writeStringField("modLoader", server.modLoader.toString().toUpperCase());
         generator.writeStringField("mcVersion", server.mcVersion);
+        generator.writeNumberField("mbMemory", server.mbMemory);
+        generator.writeNumberField("optimisationLevel", server.optimisationLevel);
         generator.writeEndObject();
     }
 }

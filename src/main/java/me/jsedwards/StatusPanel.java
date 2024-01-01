@@ -1,5 +1,7 @@
 package me.jsedwards;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,8 +44,8 @@ public class StatusPanel extends JPanel {
     }
 
     // Can be called from any thread
-    public void downloadFile(URL in, File out) {
-        Thread downloadThread = new Thread(() -> {
+    public void saveFileFromUrl(URL in, File out) {
+        Thread thread = new Thread(() -> {
             try {
                 setStatus("Downloading " + in.getFile());
                 HttpURLConnection connection = (HttpURLConnection) in.openConnection();
@@ -56,15 +58,51 @@ public class StatusPanel extends JPanel {
                     inputStream.transferTo(outputStream);
                 }
                 inputStream.close();
-                LOGGER.info("Downloaded %s to %s".formatted(in.getFile(), out.getAbsolutePath()));
+                LOGGER.info("Downloaded %s to %s".formatted(in.toString(), out.getAbsolutePath()));
                 setStatus("Ready");
             } catch (IOException e) {
-                LOGGER.error("Failed to download %s to %s".formatted(in.getFile(), out.getAbsolutePath()), e);
+                LOGGER.error("Failed to download %s to %s".formatted(in.toString(), out.getAbsolutePath()), e);
                 setStatus("Download failed");
             }
             progressGetter.set(() -> 0);
         });
-        downloadThread.start();
+        thread.start();
+    }
+
+    public <T> void getJsonFromUrl(URL in, Class<T> jsonClazz, Consumer<T> onSuccess) {
+        Thread thread = new Thread(() -> {
+            try {
+                setStatus("Downloading " + in.getFile());
+                ObjectMapper mapper = new ObjectMapper();
+                T result = mapper.readValue(in, jsonClazz);
+                LOGGER.info("Downloaded %s".formatted(in.toString()));
+                onSuccess.accept(result);
+                setStatus("Ready");
+            } catch (IOException e) {
+                LOGGER.error("Failed to download %s".formatted(in.toString()), e);
+                setStatus("Download failed");
+            }
+            progressGetter.set(() -> 0);
+        });
+        thread.start();
+    }
+
+    public void getJsonNodeFromUrl(URL in, Consumer<JsonNode> onSuccess) {
+        Thread thread = new Thread(() -> {
+            try {
+                setStatus("Downloading " + in.getFile());
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode result = mapper.readTree(in);
+                LOGGER.info("Downloaded %s".formatted(in.toString()));
+                onSuccess.accept(result);
+                setStatus("Ready");
+            } catch (IOException e) {
+                LOGGER.error("Failed to download %s".formatted(in.toString()), e);
+                setStatus("Download failed");
+            }
+            progressGetter.set(() -> 0);
+        });
+        thread.start();
     }
 
     public void exit() {

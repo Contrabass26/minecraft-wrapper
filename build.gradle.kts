@@ -62,6 +62,9 @@ dependencies {
     // Apache commons lang
     implementation("org.apache.commons:commons-lang3:3.13.0")
 
+    // Apache commons IO
+    implementation("commons-io:commons-io:2.15.1")
+
     // Log4j2
     implementation("org.apache.logging.log4j:log4j-api:2.21.1")
     implementation("org.apache.logging.log4j:log4j-core:2.21.1")

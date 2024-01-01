@@ -20,6 +20,7 @@ public class Window extends JFrame {
     private static final Logger LOGGER = LogManager.getLogger();
 
     public final CardPanel cardPanel;
+    public final StatusPanel statusPanel;
     private AboutWindow aboutWindow = null;
 
     public Window() {
@@ -28,9 +29,13 @@ public class Window extends JFrame {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.setSize(screenSize.width, screenSize.height);
         this.setExtendedState(this.getExtendedState() | JFrame.MAXIMIZED_BOTH);
-        // Set content pane - main panel with lots of cards
+        this.setLayout(new BorderLayout());
+        // Main panel with lots of cards
         this.cardPanel = new CardPanel();
-        this.setContentPane(this.cardPanel);
+        this.add(this.cardPanel, BorderLayout.CENTER);
+        // Status bar
+        statusPanel = new StatusPanel();
+        this.add(statusPanel, BorderLayout.SOUTH);
         // Add servers to GUI elements
         Server.addToGUI(this.cardPanel);
         // Menu bar - native if macOS, otherwise at the top
@@ -61,6 +66,7 @@ public class Window extends JFrame {
                 Settings.save();
                 Server.save();
                 // Exit
+                statusPanel.exit();
                 Window.this.dispose();
                 System.exit(0);
             }

@@ -1,36 +1,61 @@
 package me.jsedwards.modloader;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import me.jsedwards.Main;
 import me.jsedwards.util.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 public enum ModLoader {
 
-    VANILLA,
+    VANILLA {
+        @Override
+        public void downloadFiles(File destination, String mcVersion) throws IOException {
+            Main.WINDOW.statusPanel.getJsonNodeFromUrl(new URL("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"), node -> {
+                JsonNode versions = node.get("versions");
+                if (versions instanceof ArrayNode list) {
+                    for (JsonNode version : list) {
+                        if (mcVersion.equals(version.get("id").textValue())) {
+                            try {
+                                Main.WINDOW.statusPanel.getJsonNodeFromUrl(new URL(version.get("url").textValue()), node1 -> {
+                                    String url = node1.get("downloads").get("server").get("url").textValue();
+                                    try {
+                                        Main.WINDOW.statusPanel.saveFileFromUrl(new URL(url), new File(destination.getAbsolutePath() + "/server.jar"));
+                                    } catch (MalformedURLException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                });
+                            } catch (MalformedURLException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }
+                }
+            });
+            ModLoader.writeEula(destination);
+        }
+    },
     FORGE,
     FABRIC {
         @Override
         public void downloadFiles(File destination, String mcVersion) throws IOException {
             // Get fabric-server-launch.jar
-            HttpURLConnection connection = (HttpURLConnection) new URL("https://meta.fabricmc.net/v2/versions/loader/%s/%s/%s/server/jar".formatted(mcVersion, FABRIC_LOADER_VERSION, FABRIC_INSTALLER_VERSION)).openConnection();
-            connection.setRequestMethod("GET");
-            InputStream inputStream = connection.getInputStream();
-            try (FileOutputStream stream = new FileOutputStream(destination.getAbsolutePath() + "/fabric-server-launch.jar")) {
-                inputStream.transferTo(stream);
-            }
-            inputStream.close();
+            Main.WINDOW.statusPanel.saveFileFromUrl(new URL("https://meta.fabricmc.net/v2/versions/loader/%s/%s/%s/server/jar".formatted(mcVersion, FABRIC_LOADER_VERSION, FABRIC_INSTALLER_VERSION)), new File(destination.getAbsolutePath() + "/fabric-server-launch.jar"));
             // eula.txt
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(destination.getAbsolutePath() + "/eula.txt"))) {
-                writer.write("eula=true");
-            }
+            ModLoader.writeEula(destination);
         }
     };
 
@@ -60,6 +85,12 @@ public enum ModLoader {
             LOGGER.info("Detected latest Fabric installer version: " + FABRIC_INSTALLER_VERSION);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static void writeEula(File serverRoot) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(serverRoot.getAbsolutePath() + "/eula.txt"))) {
+            writer.write("eula=true");
         }
     }
 

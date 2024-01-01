@@ -10,9 +10,8 @@ import org.jsoup.nodes.TextNode;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
@@ -21,8 +20,11 @@ public class SpigotConfigManager extends YamlConfigManager {
     private static final HashMap<String, String> PROPERTY_DESCRIPTIONS = new HashMap<>();
     private static final HashMap<String, String> PROPERTY_DATA_TYPES = new HashMap<>();
     private static final HashMap<String, String> PROPERTY_DEFAULTS = new HashMap<>();
+    private static final Map<String, Function<Integer, Integer>> OPTIMISATION_FUNCTIONS = new HashMap<>();
+    private static final Map<String, Boolean> KEYS_ENABLED = new HashMap<>();
 
     static {
+        // Property descriptions
         Pattern pattern = Pattern.compile("Default: ((?:.(?!Type:))*) Type: ((?:.(?!Description:))*) Description: ((?:.(?!Default:))*)");
         try {
             Document document = Jsoup.connect("https://www.spigotmc.org/wiki/spigot-configuration/").userAgent("Mozilla").get();
@@ -60,6 +62,8 @@ public class SpigotConfigManager extends YamlConfigManager {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        OPTIMISATION_FUNCTIONS.put("view-distance", ConfigManager.VIEW_DISTANCE_OPTIMISATION);
+        OPTIMISATION_FUNCTIONS.put("simulation-distance", ConfigManager.SIMULATION_DISTANCE_OPTIMISATION);
     }
 
     public SpigotConfigManager(Server server) {
@@ -82,7 +86,21 @@ public class SpigotConfigManager extends YamlConfigManager {
     }
 
     @Override
-    public void optimise(int sliderValue) {
+    public Set<String> getKeysToOptimise() {
+        return OPTIMISATION_FUNCTIONS.keySet();
+    }
 
+    @Override
+    public void setKeyEnabled(String key, boolean enabled) {
+        KEYS_ENABLED.put(key, enabled);
+    }
+
+    @Override
+    public void optimise(int sliderValue) {
+        OPTIMISATION_FUNCTIONS.forEach((key, function) -> {
+            if (KEYS_ENABLED.getOrDefault(key, true)) {
+                this.set(key, String.valueOf(function.apply(sliderValue)));
+            }
+        });
     }
 }

@@ -4,7 +4,7 @@ public class MathUtils {
 
     private MathUtils() {}
 
-    public static double scale(double srcStart, double srcEnd, double destStart, double destEnd, double src) {
+    public static double linearFunction(double srcStart, double srcEnd, double destStart, double destEnd, double src) {
         return destStart + (src - srcStart) / (srcEnd - srcStart) * (destEnd - destStart);
     }
 
@@ -14,5 +14,9 @@ public class MathUtils {
 
     public static double quadraticFunction(double x, double a, double b, double c) {
         return a * Math.pow(x, 2) + b * x + c;
+    }
+
+    public static double exponentialFunction(double x, double a, double b) {
+        return a * Math.pow(Math.E, b * x);
     }
 }

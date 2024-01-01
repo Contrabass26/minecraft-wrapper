@@ -11,13 +11,18 @@ import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.function.Function;
 
 public class ServerPropertiesManager extends DefaultListModel<String> implements ConfigManager {
 
     private static final HashMap<String, String> PROPERTY_DESCRIPTIONS = new HashMap<>();
     private static final HashMap<String, String> PROPERTY_DATA_TYPES = new HashMap<>();
     private static final HashMap<String, String> PROPERTY_DEFAULTS = new HashMap<>();
+    private static final Map<String, Function<Integer, Integer>> OPTIMISATION_FUNCTIONS = new HashMap<>();
+    private static final Map<String, Boolean> KEYS_ENABLED = new HashMap<>();
+
     static {
+        // Property descriptions
         try {
             Document document = Jsoup.connect("https://minecraft.wiki/w/Server.properties").userAgent("Mozilla").get();
             Element table = document.select("table[data-description=Server properties]").get(0);
@@ -36,6 +41,10 @@ public class ServerPropertiesManager extends DefaultListModel<String> implements
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        // Optimisation functions
+        OPTIMISATION_FUNCTIONS.put("view-distance", VIEW_DISTANCE_OPTIMISATION);
+        OPTIMISATION_FUNCTIONS.put("entity-broadcast-range-percentage", slider -> (int) Math.round(MathUtils.exponentialFunction(slider, 10, 0.0460517)));
+        OPTIMISATION_FUNCTIONS.put("simulation-distance", SIMULATION_DISTANCE_OPTIMISATION);
     }
 
     private final Properties properties;
@@ -110,10 +119,22 @@ public class ServerPropertiesManager extends DefaultListModel<String> implements
     }
 
     @Override
+    public Set<String> getKeysToOptimise() {
+        return OPTIMISATION_FUNCTIONS.keySet();
+    }
+
+    @Override
+    public void setKeyEnabled(String key, boolean enabled) {
+        KEYS_ENABLED.put(key, enabled);
+    }
+
+    @Override
     public void optimise(int sliderValue) {
-        // Render distance
-        long viewDistance = Math.round(MathUtils.quadraticFunction(sliderValue, 0.002, 0.1, 2));
-        this.set("view-distance", String.valueOf(viewDistance));
+        OPTIMISATION_FUNCTIONS.forEach((key, function) -> {
+            if (KEYS_ENABLED.getOrDefault(key, true)) {
+                this.set(key, String.valueOf(function.apply(sliderValue)));
+            }
+        });
     }
 
     @Override

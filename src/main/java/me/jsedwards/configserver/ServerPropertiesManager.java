@@ -111,7 +111,8 @@ public class ServerPropertiesManager extends DefaultListModel<String> implements
 
     @Override
     public void optimise(int sliderValue) {
-        long viewDistance = Math.round(MathUtils.scale(0, 100, 3, 32, sliderValue));
+        // Render distance
+        long viewDistance = Math.round(MathUtils.quadraticFunction(sliderValue, 0.002, 0.1, 2));
         this.set("view-distance", String.valueOf(viewDistance));
     }
 

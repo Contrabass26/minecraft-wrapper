@@ -11,4 +11,8 @@ public class MathUtils {
     public static double roundToNearestMultiple(double n, double round) {
         return Math.round(n / round) * round;
     }
+
+    public static double quadraticFunction(double x, double a, double b, double c) {
+        return a * Math.pow(x, 2) + b * x + c;
+    }
 }

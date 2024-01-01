@@ -8,6 +8,8 @@ import me.jsedwards.util.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -66,6 +68,41 @@ public enum ModLoader {
         @Override
         public String getStartCommand(int mbMemory) {
             return "java -Xmx%sM -jar fabric-server-launch.jar nogui".formatted(mbMemory);
+        }
+    },
+    PUFFERFISH {
+        @Override
+        public void downloadFiles(File destination, String mcVersion) throws IOException {
+            // Pufferfish files
+            String shortMcVersion = StringUtils.countMatches(mcVersion, '.') == 1 ? mcVersion : StringUtils.substringBeforeLast(mcVersion, ".");
+            Main.WINDOW.statusPanel.getJsoupFromUrl("https://ci.pufferfish.host/job/Pufferfish-%s/changes".formatted(shortMcVersion), document -> {
+                Elements children = document.select("#main-panel").get(0).children();
+                for (int i = 0; i < children.size(); i++) {
+                    Element child = children.get(i);
+                    if (child.is("h2")) {
+                        Element description = children.get(i + 1);
+                        if (description.is("ol") && description.text().contains(mcVersion)) {
+                            // Get that one
+                            String versionNumber = StringUtils.substringBetween(child.text(), "#", " ");
+                            Main.WINDOW.statusPanel.getJsoupFromUrl("https://ci.pufferfish.host/job/Pufferfish-%s/%s".formatted(shortMcVersion, versionNumber), document1 -> {
+                                String relativeJarPath = document1.select(".fileList").get(0).child(0).child(0).child(1).child(0).attr("href");
+                                try {
+                                    Main.WINDOW.statusPanel.saveFileFromUrl(new URL("https://ci.pufferfish.host/job/Pufferfish-%s/%s/%s".formatted(shortMcVersion, versionNumber, relativeJarPath)), new File(destination.getAbsolutePath() + "/pufferfish.jar"));
+                                } catch (MalformedURLException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            });
+                            break;
+                        }
+                    }
+                }
+            });
+            ModLoader.writeEula(destination);
+        }
+
+        @Override
+        public String getStartCommand(int mbMemory) {
+            return "java -Xmx%sM -jar pufferfish.jar nogui".formatted(mbMemory);
         }
     };
 

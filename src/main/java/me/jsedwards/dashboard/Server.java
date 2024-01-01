@@ -38,8 +38,8 @@ public class Server extends JPanel {
     public final String serverLocation;
     public final ModLoader modLoader;
     public final String mcVersion;
-    public final int mbMemory;
-    public final int optimisationLevel;
+    public int mbMemory;
+    public int optimisationLevel;
     private final ConsolePanel consolePanel;
     private ConsoleWrapper consoleWrapper = null;
 
@@ -128,7 +128,7 @@ public class Server extends JPanel {
 
     public void start() {
         try {
-            consoleWrapper = new ConsoleWrapper(modLoader.getStartCommand(2048), new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log);
+            consoleWrapper = new ConsoleWrapper(modLoader.getStartCommand(mbMemory), new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log);
         } catch (IOException e) {
             consolePanel.log("Failed to start server: " + e.getMessage());
             LOGGER.error("Failed to start server", e);

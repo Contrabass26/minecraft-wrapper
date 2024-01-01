@@ -16,6 +16,7 @@ public class ServerConfigPanel extends JPanel implements Card {
     private String server = null;
     private final JLabel serverNameLbl;
     private final JTabbedPane tabbedPane = new JTabbedPane();
+    private final BasicPanel basicPanel;
     private final AdvancedPanel[] advancedPanels = {
             new AdvancedPanel(ServerPropertiesManager::new, "Vanilla", s -> true),
             new AdvancedPanel(SpigotConfigManager::new, "Spigot", s -> true),
@@ -33,7 +34,7 @@ public class ServerConfigPanel extends JPanel implements Card {
         serverNameLbl.setFont(Main.MAIN_FONT);
         this.add(serverNameLbl, new GridBagConstraints(2, 1, 1, 1, 1, 0, GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(30, 0, 0, 0), 0, 0));
         // Tabbed pane
-        BasicPanel basicPanel = new BasicPanel(this);
+        basicPanel = new BasicPanel(this);
         tabbedPane.add("General", basicPanel);
         for (AdvancedPanel panel : advancedPanels) {
             tabbedPane.add(panel.name, panel);
@@ -64,6 +65,8 @@ public class ServerConfigPanel extends JPanel implements Card {
             }
             tabbedPane.setEnabledAt(i + 1, enabled);
         }
+        // Set sliders on basic panel
+        basicPanel.setServer(server);
     }
 
     @Override

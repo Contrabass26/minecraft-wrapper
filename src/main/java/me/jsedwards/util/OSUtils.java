@@ -1,15 +1,22 @@
 package me.jsedwards.util;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.management.*;
 import java.io.File;
+import java.lang.management.ManagementFactory;
 
 public class OSUtils {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public static final String settingsLocation;
     public static final String dataDir;
     public static final String serversLocation;
     public static final String userHome;
+    public static final long totalMemoryBytes;
 
     static {
         String username = System.getProperty("user.name");
@@ -17,6 +24,9 @@ public class OSUtils {
         settingsLocation = dataDir + File.separator + "settings.json";
         serversLocation = dataDir + File.separator + "servers.json";
         userHome = getUserHome().formatted(username);
+        // Memory
+        totalMemoryBytes = getSystemMemory();
+        LOGGER.info("System memory detected as %s bytes".formatted(totalMemoryBytes));
     }
 
     private OSUtils() {}
@@ -57,5 +67,15 @@ public class OSUtils {
 
     public static File getServersFile() {
         return new File(serversLocation);
+    }
+
+    private static long getSystemMemory() {
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        try {
+            return (long) mBeanServer.getAttribute(new ObjectName("java.lang", "type", "OperatingSystem"), "TotalPhysicalMemorySize");
+        } catch (MBeanException | AttributeNotFoundException | InstanceNotFoundException | ReflectionException | MalformedObjectNameException e) {
+            LOGGER.error("Failed to read system memory", e);
+        }
+        return 8589934592L; // Default to 8GB
     }
 }

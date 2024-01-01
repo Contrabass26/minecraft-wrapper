@@ -5,6 +5,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 import com.jthemedetecor.OsThemeDetector;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.data.Settings;
+import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -60,6 +61,13 @@ public final class Main {
             FlatLightLaf.setup();
         }
         LOGGER.info("Setting dark theme: " + DARK_THEME);
+        // Memory check
+        if (OSUtils.totalMemoryBytes < 4294967296L) { // Less than 4GB
+            double gbMemory = OSUtils.totalMemoryBytes / 1073741824D;
+            LOGGER.error("Not enough memory: >4GB required, only %.2f detected. Operating system: %s".formatted(gbMemory, System.getProperty("os.name")));
+            JOptionPane.showMessageDialog(null, "You do not have enough system memory: >4GB required, only %.2fGB detected.".formatted(gbMemory), "Not enough memory", JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
+        }
         // Load servers
         Server.load();
         // Create main window

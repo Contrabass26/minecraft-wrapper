@@ -44,6 +44,11 @@ public class ServerSelectPanel extends JPanel implements Card {
     @Override
     public void exit() {}
 
+    @Override
+    public void onShowCard() {
+
+    }
+
     private static class ButtonsPanel extends JPanel {
 
         private int count = -1;

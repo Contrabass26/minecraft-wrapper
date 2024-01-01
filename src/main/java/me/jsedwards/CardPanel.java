@@ -40,6 +40,7 @@ public class CardPanel extends JPanel {
         exitCurrent();
         this.getCardLayout().show(this, "select_server");
         current = this.serverSelectPanel;
+        showCurrent();
     }
 
     private CardLayout getCardLayout() {
@@ -56,6 +57,7 @@ public class CardPanel extends JPanel {
         exitCurrent();
         this.getCardLayout().show(this, "create_server");
         current = this.serverCreatePanel;
+        showCurrent();
     }
 
     public void switchToServerConfig(String server) {
@@ -63,6 +65,11 @@ public class CardPanel extends JPanel {
         this.serverConfigPanel.setServer(server);
         this.getCardLayout().show(this, "config_server");
         current = this.serverConfigPanel;
+        showCurrent();
+    }
+
+    private void showCurrent() {
+        current.onShowCard();
     }
 
     public void exitCurrent() {

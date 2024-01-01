@@ -79,4 +79,9 @@ public class ServerCreatePanel extends JPanel implements Card {
 
     @Override
     public void exit() {}
+
+    @Override
+    public void onShowCard() {
+
+    }
 }

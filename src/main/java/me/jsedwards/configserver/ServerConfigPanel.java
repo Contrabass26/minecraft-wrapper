@@ -73,4 +73,8 @@ public class ServerConfigPanel extends JPanel implements Card {
         }
     }
 
+    @Override
+    public void onShowCard() {
+
+    }
 }

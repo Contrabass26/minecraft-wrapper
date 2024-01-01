@@ -57,7 +57,6 @@ public class SpigotConfigManager extends YamlConfigManager {
                     }
                 }
             }
-            LOGGER.info(PROPERTY_DESCRIPTIONS.toString());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

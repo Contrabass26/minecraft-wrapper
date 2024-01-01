@@ -1,12 +1,16 @@
 package me.jsedwards.modloader;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import me.jsedwards.Main;
 import me.jsedwards.util.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -20,13 +24,7 @@ public enum ModLoader {
         @Override
         public void downloadFiles(File destination, String mcVersion) throws IOException {
             // Get fabric-server-launch.jar
-            HttpURLConnection connection = (HttpURLConnection) new URL("https://meta.fabricmc.net/v2/versions/loader/%s/%s/%s/server/jar".formatted(mcVersion, FABRIC_LOADER_VERSION, FABRIC_INSTALLER_VERSION)).openConnection();
-            connection.setRequestMethod("GET");
-            InputStream inputStream = connection.getInputStream();
-            try (FileOutputStream stream = new FileOutputStream(destination.getAbsolutePath() + "/fabric-server-launch.jar")) {
-                inputStream.transferTo(stream);
-            }
-            inputStream.close();
+            Main.WINDOW.statusPanel.downloadFile(new URL("https://meta.fabricmc.net/v2/versions/loader/%s/%s/%s/server/jar".formatted(mcVersion, FABRIC_LOADER_VERSION, FABRIC_INSTALLER_VERSION)), new File(destination.getAbsolutePath() + "/fabric-server-launch.jar"));
             // eula.txt
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(destination.getAbsolutePath() + "/eula.txt"))) {
                 writer.write("eula=true");

@@ -4,6 +4,8 @@ import me.jsedwards.Card;
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.modloader.ModLoader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ServerCreatePanel extends JPanel implements Card {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     private final List<ValidatedStage> stages = new ArrayList<>();
 
@@ -55,7 +59,6 @@ public class ServerCreatePanel extends JPanel implements Card {
                 // Add new button to server select panel
                 Main.WINDOW.cardPanel.serverSelectPanel.addServer(server);
                 // Download server
-                // TODO: Progress bar for download
                 File destination = new File(serverLocation);
                 try {
                     modLoader.downloadFiles(destination, mcVersion);
@@ -65,8 +68,7 @@ public class ServerCreatePanel extends JPanel implements Card {
                 // Switch to new server dashboard
                 Main.WINDOW.cardPanel.switchToServer(serverName);
             } else {
-                // TODO: Elegant error message
-                System.out.println("Invalid options");
+                LOGGER.info("Invalid options selected");
             }
         });
         this.add(createButton, new GridBagConstraints(1, stages.size() + 2, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(10, 10, 0, 10), 0, 0));

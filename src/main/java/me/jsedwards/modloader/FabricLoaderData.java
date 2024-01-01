@@ -8,4 +8,8 @@ public class FabricLoaderData {
     public String maven;
     public String version;
     public boolean stable;
+
+    public boolean isStable() {
+        return stable;
+    }
 }

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 import javax.swing.*;
 import java.awt.*;
@@ -101,6 +103,18 @@ public class StatusPanel extends JPanel {
                 setStatus("Download failed");
             }
             progressGetter.set(() -> 0);
+        });
+        thread.start();
+    }
+
+    public void getJsoupFromUrl(String in, Consumer<Document> onSuccess) {
+        Thread thread = new Thread(() -> {
+            try {
+                Document document = Jsoup.connect(in).userAgent("Mozilla").get();
+                onSuccess.accept(document);
+            } catch (IOException e) {
+               LOGGER.error("Failed to Jsoup %s".formatted(in));
+            }
         });
         thread.start();
     }

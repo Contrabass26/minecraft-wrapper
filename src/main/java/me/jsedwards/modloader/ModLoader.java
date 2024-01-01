@@ -8,6 +8,8 @@ import me.jsedwards.util.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -67,10 +69,45 @@ public enum ModLoader {
         public String getStartCommand(int mbMemory) {
             return "java -Xmx%sM -jar fabric-server-launch.jar nogui".formatted(mbMemory);
         }
+    },
+    PUFFERFISH {
+        @Override
+        public void downloadFiles(File destination, String mcVersion) throws IOException {
+            // Pufferfish files
+            String shortMcVersion = StringUtils.countMatches(mcVersion, '.') == 1 ? mcVersion : StringUtils.substringBeforeLast(mcVersion, ".");
+            Main.WINDOW.statusPanel.getJsoupFromUrl("https://ci.pufferfish.host/job/Pufferfish-%s/changes".formatted(shortMcVersion), document -> {
+                Elements children = document.select("#main-panel").get(0).children();
+                for (int i = 0; i < children.size(); i++) {
+                    Element child = children.get(i);
+                    if (child.is("h2")) {
+                        Element description = children.get(i + 1);
+                        if (description.is("ol") && description.text().contains(mcVersion)) {
+                            // Get that one
+                            String versionNumber = StringUtils.substringBetween(child.text(), "#", " ");
+                            Main.WINDOW.statusPanel.getJsoupFromUrl("https://ci.pufferfish.host/job/Pufferfish-%s/%s".formatted(shortMcVersion, versionNumber), document1 -> {
+                                String relativeJarPath = document1.select(".fileList").get(0).child(0).child(0).child(1).child(0).attr("href");
+                                try {
+                                    Main.WINDOW.statusPanel.saveFileFromUrl(new URL("https://ci.pufferfish.host/job/Pufferfish-%s/%s/%s".formatted(shortMcVersion, versionNumber, relativeJarPath)), new File(destination.getAbsolutePath() + "/pufferfish.jar"));
+                                } catch (MalformedURLException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            });
+                            break;
+                        }
+                    }
+                }
+            });
+            ModLoader.writeEula(destination);
+        }
+
+        @Override
+        public String getStartCommand(int mbMemory) {
+            return "java -Xmx%sM -jar pufferfish.jar nogui".formatted(mbMemory);
+        }
     };
 
-    private static final String FABRIC_LOADER_VERSION;
-    private static final String FABRIC_INSTALLER_VERSION;
+    private static String FABRIC_LOADER_VERSION;
+    private static String FABRIC_INSTALLER_VERSION;
 
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -82,19 +119,21 @@ public enum ModLoader {
             HttpURLConnection connection = (HttpURLConnection) new URL("https://meta.fabricmc.net/v2/versions/loader").openConnection();
             connection.setRequestMethod("GET");
             List<FabricLoaderData> loaders = JsonUtils.readJson(connection.getInputStream(), FABRIC_LOADER_DATA_LIST_TYPE);
-            FABRIC_LOADER_VERSION = loaders.get(0).version;
-            LOGGER.info("Detected latest Fabric loader version: " + FABRIC_LOADER_VERSION);
+            FABRIC_LOADER_VERSION = loaders.stream().filter(FabricLoaderData::isStable).findFirst().orElseThrow(IOException::new).version;
+            LOGGER.info("Detected latest stable Fabric loader version: " + FABRIC_LOADER_VERSION);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Failed to load latest stable Fabric loader version");
+            FABRIC_LOADER_VERSION = "0.15.3";
         }
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL("https://meta.fabricmc.net/v2/versions/installer").openConnection();
             connection.setRequestMethod("GET");
             List<FabricInstallerData> installers = JsonUtils.readJson(connection.getInputStream(), FABRIC_INSTALLER_DATA_LIST_TYPE);
-            FABRIC_INSTALLER_VERSION = installers.get(0).version;
-            LOGGER.info("Detected latest Fabric installer version: " + FABRIC_INSTALLER_VERSION);
+            FABRIC_INSTALLER_VERSION = installers.stream().filter(FabricInstallerData::isStable).findFirst().orElseThrow(IOException::new).version;
+            LOGGER.info("Detected latest stable Fabric installer version: " + FABRIC_INSTALLER_VERSION);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Failed to load latest stable Fabric installer version");
+            FABRIC_INSTALLER_VERSION = "0.11.2";
         }
     }
 

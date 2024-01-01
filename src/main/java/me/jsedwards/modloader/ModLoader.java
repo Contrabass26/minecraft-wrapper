@@ -69,8 +69,8 @@ public enum ModLoader {
         }
     };
 
-    private static final String FABRIC_LOADER_VERSION;
-    private static final String FABRIC_INSTALLER_VERSION;
+    private static String FABRIC_LOADER_VERSION;
+    private static String FABRIC_INSTALLER_VERSION;
 
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -82,19 +82,21 @@ public enum ModLoader {
             HttpURLConnection connection = (HttpURLConnection) new URL("https://meta.fabricmc.net/v2/versions/loader").openConnection();
             connection.setRequestMethod("GET");
             List<FabricLoaderData> loaders = JsonUtils.readJson(connection.getInputStream(), FABRIC_LOADER_DATA_LIST_TYPE);
-            FABRIC_LOADER_VERSION = loaders.get(0).version;
-            LOGGER.info("Detected latest Fabric loader version: " + FABRIC_LOADER_VERSION);
+            FABRIC_LOADER_VERSION = loaders.stream().filter(FabricLoaderData::isStable).findFirst().orElseThrow(IOException::new).version;
+            LOGGER.info("Detected latest stable Fabric loader version: " + FABRIC_LOADER_VERSION);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Failed to load latest stable Fabric loader version");
+            FABRIC_LOADER_VERSION = "0.15.3";
         }
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL("https://meta.fabricmc.net/v2/versions/installer").openConnection();
             connection.setRequestMethod("GET");
             List<FabricInstallerData> installers = JsonUtils.readJson(connection.getInputStream(), FABRIC_INSTALLER_DATA_LIST_TYPE);
-            FABRIC_INSTALLER_VERSION = installers.get(0).version;
-            LOGGER.info("Detected latest Fabric installer version: " + FABRIC_INSTALLER_VERSION);
+            FABRIC_INSTALLER_VERSION = installers.stream().filter(FabricInstallerData::isStable).findFirst().orElseThrow(IOException::new).version;
+            LOGGER.info("Detected latest stable Fabric installer version: " + FABRIC_INSTALLER_VERSION);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Failed to load latest stable Fabric installer version");
+            FABRIC_INSTALLER_VERSION = "0.11.2";
         }
     }
 

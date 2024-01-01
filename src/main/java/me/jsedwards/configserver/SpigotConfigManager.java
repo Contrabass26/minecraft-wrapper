@@ -62,8 +62,11 @@ public class SpigotConfigManager extends YamlConfigManager {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        OPTIMISATION_FUNCTIONS.put("view-distance", ConfigManager.VIEW_DISTANCE_OPTIMISATION);
-        OPTIMISATION_FUNCTIONS.put("simulation-distance", ConfigManager.SIMULATION_DISTANCE_OPTIMISATION);
+        OPTIMISATION_FUNCTIONS.put("world-settings/default/view-distance", ConfigManager.VIEW_DISTANCE_OPTIMISATION);
+        OPTIMISATION_FUNCTIONS.put("world-settings/default/simulation-distance", ConfigManager.SIMULATION_DISTANCE_OPTIMISATION);
+        OPTIMISATION_FUNCTIONS.put("world-settings/default/merge-radius/exp", slider -> (int) Math.round(5 - 0.04 * slider));
+        OPTIMISATION_FUNCTIONS.put("world-settings/default/merge-radius/item", slider -> (int) Math.round(5 - 0.04 * slider));
+        OPTIMISATION_FUNCTIONS.put("world-settings/default/item-despawn-rate", slider -> (int) Math.min(Math.round(6100 - 5000 * Math.pow(Math.E, -0.05 * slider)), 6000));
     }
 
     public SpigotConfigManager(Server server) {

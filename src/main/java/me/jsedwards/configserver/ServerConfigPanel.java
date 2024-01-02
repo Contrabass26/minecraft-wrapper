@@ -3,6 +3,7 @@ package me.jsedwards.configserver;
 import me.jsedwards.Card;
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.modloader.ModLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,8 +20,8 @@ public class ServerConfigPanel extends JPanel implements Card {
     private final BasicPanel basicPanel;
     private final AdvancedPanel[] advancedPanels = {
             new AdvancedPanel(ServerPropertiesManager::new, "Vanilla", s -> true),
-            new AdvancedPanel(SpigotConfigManager::new, "Spigot", s -> true),
-            new AdvancedPanel(BukkitConfigManager::new, "Bukkit", s -> true)
+            new AdvancedPanel(SpigotConfigManager::new, "Spigot", s -> s.modLoader == ModLoader.PUFFERFISH),
+            new AdvancedPanel(BukkitConfigManager::new, "Bukkit", s -> s.modLoader == ModLoader.PUFFERFISH)
     };
 
     public ServerConfigPanel() {

@@ -2,10 +2,14 @@ package me.jsedwards.dashboard;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.jsedwards.CardPanel;
 import me.jsedwards.Main;
-import me.jsedwards.data.ServerData;
+import me.jsedwards.data.ServerDeserialiser;
+import me.jsedwards.data.ServerSerialiser;
 import me.jsedwards.modloader.ModLoader;
+import me.jsedwards.util.Identifier;
 import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,25 +26,35 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+@JsonSerialize(using = ServerSerialiser.class)
+@JsonDeserialize(using = ServerDeserialiser.class)
 public class Server extends JPanel {
 
     private static final Logger LOGGER = LogManager.getLogger();
     private static final List<Server> servers = new ArrayList<>();
+    private static final TypeReference<List<Server>> SERVER_LIST_TYPE_REFERENCE = new TypeReference<>() {};
 
     public final String serverName;
     public final String serverLocation;
     public final ModLoader modLoader;
     public final String mcVersion;
+    public int mbMemory;
+    public int optimisationLevel;
+    public Map<Identifier, Boolean> keysToOptimise; // Only stores keys that have been changed - all others will have their default value
     private final ConsolePanel consolePanel;
     private ConsoleWrapper consoleWrapper = null;
 
-    private Server(String serverName, String serverLocation, ModLoader modLoader, String mcVersion) {
+    private Server(String serverName, String serverLocation, ModLoader modLoader, String mcVersion, int mbMemory, int optimisationLevel, Map<Identifier, Boolean> keysToOptimise) {
         super();
         this.serverName = serverName;
         this.serverLocation = serverLocation;
         this.modLoader = modLoader;
         this.mcVersion = mcVersion;
+        this.mbMemory = mbMemory;
+        this.optimisationLevel = optimisationLevel;
+        this.keysToOptimise = keysToOptimise;
         // Layout
         this.setLayout(new GridBagLayout());
         // Top panel
@@ -71,8 +85,8 @@ public class Server extends JPanel {
      * @param mcVersion The Minecraft version of the server, e.g. 1.20.1
      * @return The new server object with the specified properties
      */
-    public static Server create(String name, String location, ModLoader modLoader, String mcVersion, boolean addCard) {
-        Server server = new Server(name, location, modLoader, mcVersion);
+    public static Server create(String name, String location, ModLoader modLoader, String mcVersion, int mbMemory, int optimisationLevel, Map<Identifier, Boolean> keysToOptimise, boolean addCard) {
+        Server server = new Server(name, location, modLoader, mcVersion, mbMemory, optimisationLevel, keysToOptimise);
         servers.add(server);
         if (addCard) Main.WINDOW.cardPanel.addServerCard(server);
         return server;
@@ -85,7 +99,7 @@ public class Server extends JPanel {
         servers.clear();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            objectMapper.readValue(OSUtils.getServersFile(), new TypeReference<List<ServerData>>(){}).forEach(ServerData::convert);
+            objectMapper.readValue(OSUtils.getServersFile(), SERVER_LIST_TYPE_REFERENCE);
             LOGGER.info("Loaded %s servers from %s".formatted(servers.size(), OSUtils.serversLocation));
         } catch (IOException e) {
             LOGGER.warn("Failed to load server data from " + OSUtils.serversLocation, e);
@@ -105,7 +119,7 @@ public class Server extends JPanel {
         OSUtils.createDataDir();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            objectMapper.writeValue(OSUtils.getServersFile(), servers.stream().map(ServerData::create).toList());
+            objectMapper.writeValue(OSUtils.getServersFile(), servers);
             LOGGER.info("Saved %s servers to %s".formatted(servers.size(), OSUtils.serversLocation));
         } catch (IOException e) {
             LOGGER.error("Failed to save server data to " + OSUtils.serversLocation, e);
@@ -118,7 +132,7 @@ public class Server extends JPanel {
 
     public void start() {
         try {
-            consoleWrapper = new ConsoleWrapper(modLoader.getStartCommand(2048), new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log);
+            consoleWrapper = new ConsoleWrapper(modLoader.getStartCommand(mbMemory), new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log);
         } catch (IOException e) {
             consolePanel.log("Failed to start server: " + e.getMessage());
             LOGGER.error("Failed to start server", e);

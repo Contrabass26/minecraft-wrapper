@@ -12,6 +12,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class ServerCreatePanel extends JPanel implements Card {
@@ -55,7 +56,7 @@ public class ServerCreatePanel extends JPanel implements Card {
                 String serverLocation = locationStagePanel.getServerLocation();
                 ModLoader modLoader = modLoaderStagePanel.getSelectedModLoader();
                 String mcVersion = mcVersionStagePanel.getSelectedVersion();
-                Server server = Server.create(serverName, serverLocation, modLoader, mcVersion, true);
+                Server server = Server.create(serverName, serverLocation, modLoader, mcVersion, 8192, 50, new HashMap<>(), true);
                 // Add new button to server select panel
                 Main.WINDOW.cardPanel.serverSelectPanel.addServer(server);
                 // Download server
@@ -79,4 +80,9 @@ public class ServerCreatePanel extends JPanel implements Card {
 
     @Override
     public void exit() {}
+
+    @Override
+    public void onShowCard() {
+
+    }
 }

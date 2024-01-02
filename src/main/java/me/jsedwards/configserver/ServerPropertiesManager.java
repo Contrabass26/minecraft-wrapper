@@ -124,6 +124,11 @@ public class ServerPropertiesManager extends DefaultListModel<String> implements
     }
 
     @Override
+    public boolean isKeyOptimised(String key) {
+        return KEYS_ENABLED.getOrDefault(key, true);
+    }
+
+    @Override
     public void setKeyOptimised(String key, boolean enabled) {
         KEYS_ENABLED.put(key, enabled);
     }
@@ -131,7 +136,7 @@ public class ServerPropertiesManager extends DefaultListModel<String> implements
     @Override
     public void optimise(int sliderValue) {
         OPTIMISATION_FUNCTIONS.forEach((key, function) -> {
-            if (KEYS_ENABLED.getOrDefault(key, true)) {
+            if (isKeyOptimised(key)) {
                 this.set(key, String.valueOf(function.apply(sliderValue)));
             }
         });

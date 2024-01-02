@@ -60,6 +60,15 @@ public class ServerConfigPanel extends JPanel implements Card {
         return keys;
     }
 
+    public boolean isKeyOptimised(Identifier key) {
+        for (AdvancedPanel panel : advancedPanels) {
+            if (key.namespace.equals(panel.name)) {
+                return panel.isKeyOptimised(key);
+            }
+        }
+        throw new IllegalArgumentException("No panel with name " + key.namespace);
+    }
+
     public void setServer(String serverName) {
         Server server = Server.get(serverName);
         if (server == null) {
@@ -99,6 +108,10 @@ public class ServerConfigPanel extends JPanel implements Card {
                 panel.setKeyOptimised(key, selected);
                 break;
             }
+        }
+        Server server = Server.get(this.server);
+        if (server != null) {
+            server.keysToOptimise.put(key, selected);
         }
     }
 }

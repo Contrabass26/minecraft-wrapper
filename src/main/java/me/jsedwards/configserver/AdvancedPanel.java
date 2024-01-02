@@ -57,6 +57,7 @@ public class AdvancedPanel extends JPanel {
     public void setServer(Server server) {
         this.properties = configManagerCreator.apply(server);
         this.propertiesList.setModel(this.properties);
+        server.keysToOptimise.forEach((key, optimise) -> properties.setKeyOptimised(key.path, optimise));
     }
 
     private void updateList() {
@@ -71,6 +72,10 @@ public class AdvancedPanel extends JPanel {
 
     public void setKeyOptimised(Identifier key, boolean selected) {
         properties.setKeyOptimised(key.path, selected);
+    }
+
+    public boolean isKeyOptimised(Identifier key) {
+        return properties.isKeyOptimised(key.path);
     }
 
     public void saveProperties() {

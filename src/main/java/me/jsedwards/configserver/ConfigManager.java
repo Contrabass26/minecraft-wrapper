@@ -28,6 +28,8 @@ public interface ConfigManager extends ListModel<String> {
 
     Set<String> getKeysToOptimise();
 
+    boolean isKeyOptimised(String key);
+
     void setKeyOptimised(String key, boolean enabled);
 
     void optimise(int sliderValue);

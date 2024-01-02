@@ -22,6 +22,7 @@ class BasicPanel extends JPanel {
     private final ServerConfigPanel serverConfigPanel;
     private final JSlider memorySlider;
     private final JSlider optimiseSlider;
+    private final List<JCheckBox> checkBoxes;
     private Server server = null;
 
     public BasicPanel(ServerConfigPanel serverConfigPanel) {
@@ -73,9 +74,11 @@ class BasicPanel extends JPanel {
         // Optimisation options
         List<Identifier> keysToOptimise = new ArrayList<>(serverConfigPanel.getKeysToOptimise());
         Collections.sort(keysToOptimise);
+        checkBoxes = new ArrayList<>();
         CheckBoxMatrixPanel optimisationPanel = new CheckBoxMatrixPanel();
         for (Identifier key : keysToOptimise) {
             JCheckBox checkBox = new JCheckBox(key.toString());
+            checkBoxes.add(checkBox);
             checkBox.addActionListener(e -> serverConfigPanel.setKeyOptimised(key, checkBox.isSelected()));
             optimisationPanel.addOption(checkBox);
         }
@@ -113,7 +116,9 @@ class BasicPanel extends JPanel {
         this.server = server;
         memorySlider.setValue(server.mbMemory);
         optimiseSlider.setValue(server.optimisationLevel);
-
+        for (JCheckBox checkBox : checkBoxes) {
+            checkBox.setSelected(serverConfigPanel.isKeyOptimised(new Identifier(checkBox.getText())));
+        }
     }
 
     private JSlider createSlider() {

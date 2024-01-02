@@ -4,8 +4,10 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.util.Identifier;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class ServerSerialiser extends StdSerializer<Server> {
 
@@ -27,6 +29,11 @@ public class ServerSerialiser extends StdSerializer<Server> {
         generator.writeStringField("mcVersion", server.mcVersion);
         generator.writeNumberField("mbMemory", server.mbMemory);
         generator.writeNumberField("optimisationLevel", server.optimisationLevel);
+        generator.writeObjectFieldStart("keysToOptimise");
+        for (Map.Entry<Identifier, Boolean> entry : server.keysToOptimise.entrySet()) {
+            generator.writeBooleanField(entry.getKey().toString(), entry.getValue());
+        }
+        generator.writeEndObject();
         generator.writeEndObject();
     }
 }

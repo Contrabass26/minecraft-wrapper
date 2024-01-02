@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import me.jsedwards.Main;
+import me.jsedwards.dashboard.ConsoleWrapper;
 import me.jsedwards.util.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -20,6 +21,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public enum ModLoader {
 
@@ -55,7 +60,46 @@ public enum ModLoader {
             return "java -Xmx%sM -jar server.jar nogui".formatted(mbMemory);
         }
     },
-    FORGE,
+    FORGE {
+        @Override
+        public void downloadFiles(File destination, String mcVersion) throws IOException {
+            Main.WINDOW.statusPanel.getJsoupFromUrl("https://files.minecraftforge.net/net/minecraftforge/forge/index_%s.html".formatted(mcVersion), document -> {
+                String messyUrl = document.select("div.link.link-boosted").get(0).child(0).attr("href");
+                Pattern pattern = Pattern.compile("url=(https://maven\\.minecraftforge\\.net/net/minecraftforge/forge/%s-([0-9.]+)/forge-%s-\\2-installer\\.jar)".formatted(mcVersion, mcVersion));
+                Matcher matcher = pattern.matcher(messyUrl);
+                MatchResult matchResult = matcher.results().findFirst().orElseThrow(IllegalStateException::new);
+                String url = matchResult.group(1);
+                try {
+                    Main.WINDOW.statusPanel.saveFileFromUrl(new URL(url), new File(destination.getAbsolutePath() + "/installer.jar"), () -> {
+                        try {
+                            Main.WINDOW.statusPanel.setMax(22507); // Heuristic value based on 1.20.2 install
+                            final AtomicInteger lineCount = new AtomicInteger();
+                            new ConsoleWrapper("java -jar installer.jar -installServer", destination, s -> {
+                                int currentCount = lineCount.incrementAndGet();
+                                Main.WINDOW.statusPanel.setProgress(currentCount);
+                                Main.WINDOW.statusPanel.setStatus(s);
+                                if (s.contains("You can delete")) {
+                                    LOGGER.info("Forge installer for %s finished, outputting %s lines".formatted(mcVersion, currentCount));
+                                    Main.WINDOW.statusPanel.setStatus("Ready");
+                                    Main.WINDOW.statusPanel.setProgress(0);
+                                }
+                            }, LOGGER::error);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            ModLoader.writeEula(destination);
+        }
+
+        @Override
+        public String getStartCommand(int mbMemory) {
+            return "java -Xmx" + mbMemory + "M @libraries/net/minecraftforge/forge/1.20.2-48.1.0/win_args.txt nogui %*";
+        }
+    },
     FABRIC {
         @Override
         public void downloadFiles(File destination, String mcVersion) throws IOException {

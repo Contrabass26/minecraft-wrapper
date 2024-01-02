@@ -27,7 +27,7 @@ public class StatusPanel extends JPanel {
     private final JProgressBar progressBar; // Should only be accessed on event thread, use setMax and setProgress
     private final JLabel statusLbl; // Should only be accessed on event thread
     private final Timer progressUpdateTimer; // Should only be accessed on event thread
-    private final AtomicReference<Supplier<Integer>> progressGetter = new AtomicReference<>(() -> 0); // Supplier will be called from event thread
+    private final AtomicReference<Supplier<Integer>> progressGetter = new AtomicReference<>(null); // Supplier will be called from event thread
 
     // Should always be called on event thread
     public StatusPanel() {
@@ -35,13 +35,17 @@ public class StatusPanel extends JPanel {
         this.setLayout(new GridBagLayout());
         // Progress bar
         progressBar = new JProgressBar();
-        progressBar.setValue(75);
         this.add(progressBar, new GridBagConstraints(1, 1, 1, 1, 1, 0, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(0, 10, 0, 10), 0, 20));
         // Status label
         statusLbl = new JLabel("Ready");
         this.add(statusLbl, new GridBagConstraints(1, 2, 1, 1, 1, 0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(5, 10, 10, 10), 0, 0));
         // Progress bar update thread - actual code is run on event thread
-        progressUpdateTimer = new Timer(50, e -> setProgress(progressGetter.get().get()));
+        progressUpdateTimer = new Timer(50, e -> {
+            Supplier<Integer> supplier = progressGetter.get();
+            if (supplier != null) {
+                setProgress(supplier.get());
+            }
+        });
         progressUpdateTimer.start();
     }
 
@@ -49,26 +53,44 @@ public class StatusPanel extends JPanel {
     public void saveFileFromUrl(URL in, File out) {
         Thread thread = new Thread(() -> {
             try {
-                setStatus("Downloading " + in.toString());
-                HttpURLConnection connection = (HttpURLConnection) in.openConnection();
-                connection.setRequestMethod("GET");
-                int contentLength = connection.getContentLength();
-                setMax(contentLength);
-                InputStream inputStream = connection.getInputStream();
-                try (CountingOutputStream outputStream = new CountingOutputStream(new FileOutputStream(out))) {
-                    progressGetter.set(outputStream::getCount);
-                    inputStream.transferTo(outputStream);
-                }
-                inputStream.close();
-                LOGGER.info("Downloaded %s to %s".formatted(in.toString(), out.getAbsolutePath()));
-                setStatus("Ready");
+                innerSaveFileFromUrl(in, out);
             } catch (IOException e) {
                 LOGGER.error("Failed to download %s to %s".formatted(in.toString(), out.getAbsolutePath()), e);
                 setStatus("Download failed");
             }
-            progressGetter.set(() -> 0);
+            progressGetter.set(null);
         });
         thread.start();
+    }
+
+    public void saveFileFromUrl(URL in, File out, Runnable onSuccess) {
+        Thread thread = new Thread(() -> {
+            try {
+                innerSaveFileFromUrl(in, out);
+                onSuccess.run();
+            } catch (IOException e) {
+                LOGGER.error("Failed to download %s to %s".formatted(in.toString(), out.getAbsolutePath()), e);
+                setStatus("Download failed");
+            }
+            progressGetter.set(null);
+        });
+        thread.start();
+    }
+
+    private void innerSaveFileFromUrl(URL in, File out) throws IOException {
+        setStatus("Downloading " + in.toString());
+        HttpURLConnection connection = (HttpURLConnection) in.openConnection();
+        connection.setRequestMethod("GET");
+        int contentLength = connection.getContentLength();
+        setMax(contentLength);
+        InputStream inputStream = connection.getInputStream();
+        try (CountingOutputStream outputStream = new CountingOutputStream(new FileOutputStream(out))) {
+            progressGetter.set(outputStream::getCount);
+            inputStream.transferTo(outputStream);
+        }
+        inputStream.close();
+        LOGGER.info("Downloaded %s to %s".formatted(in.toString(), out.getAbsolutePath()));
+        setStatus("Ready");
     }
 
     public <T> void getJsonFromUrl(URL in, Class<T> jsonClazz, Consumer<T> onSuccess) {
@@ -84,7 +106,7 @@ public class StatusPanel extends JPanel {
                 LOGGER.error("Failed to download %s".formatted(in.toString()), e);
                 setStatus("Download failed");
             }
-            progressGetter.set(() -> 0);
+            progressGetter.set(null);
         });
         thread.start();
     }
@@ -102,7 +124,7 @@ public class StatusPanel extends JPanel {
                 LOGGER.error("Failed to download %s".formatted(in.toString()), e);
                 setStatus("Download failed");
             }
-            progressGetter.set(() -> 0);
+            progressGetter.set(null);
         });
         thread.start();
     }

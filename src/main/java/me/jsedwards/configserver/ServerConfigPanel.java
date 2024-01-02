@@ -4,11 +4,14 @@ import me.jsedwards.Card;
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.modloader.ModLoader;
+import me.jsedwards.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ServerConfigPanel extends JPanel implements Card {
 
@@ -49,6 +52,14 @@ public class ServerConfigPanel extends JPanel implements Card {
         }
     }
 
+    public Set<Identifier> getKeysToOptimise() {
+        Set<Identifier> keys = new HashSet<>();
+        for (AdvancedPanel panel : advancedPanels) {
+            keys.addAll(panel.getPropertiesToOptimise());
+        }
+        return keys;
+    }
+
     public void setServer(String serverName) {
         Server server = Server.get(serverName);
         if (server == null) {
@@ -80,5 +91,14 @@ public class ServerConfigPanel extends JPanel implements Card {
     @Override
     public void onShowCard() {
 
+    }
+
+    public void setKeyOptimised(Identifier key, boolean selected) {
+        for (AdvancedPanel panel : advancedPanels) {
+            if (panel.name.equals(key.namespace)) {
+                panel.setKeyOptimised(key, selected);
+                break;
+            }
+        }
     }
 }

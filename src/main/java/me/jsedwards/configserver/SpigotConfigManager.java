@@ -94,7 +94,7 @@ public class SpigotConfigManager extends YamlConfigManager {
     }
 
     @Override
-    public void setKeyEnabled(String key, boolean enabled) {
+    public void setKeyOptimised(String key, boolean enabled) {
         KEYS_ENABLED.put(key, enabled);
     }
 

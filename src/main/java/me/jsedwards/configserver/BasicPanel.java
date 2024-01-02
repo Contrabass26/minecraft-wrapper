@@ -2,14 +2,22 @@ package me.jsedwards.configserver;
 
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.util.Identifier;
 import me.jsedwards.util.MathUtils;
 import me.jsedwards.util.OSUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Hashtable;
+import java.util.List;
 
 class BasicPanel extends JPanel {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     private final ServerConfigPanel serverConfigPanel;
     private final JSlider memorySlider;
@@ -62,14 +70,50 @@ class BasicPanel extends JPanel {
         });
         this.add(memorySnapCheckbox, new GridBagConstraints(2, 4, 1, 1, 0, 0, GridBagConstraints.EAST, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
         this.add(memorySlider, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+        // Optimisation options
+        List<Identifier> keysToOptimise = new ArrayList<>(serverConfigPanel.getKeysToOptimise());
+        Collections.sort(keysToOptimise);
+        CheckBoxMatrixPanel optimisationPanel = new CheckBoxMatrixPanel();
+        for (Identifier key : keysToOptimise) {
+            JCheckBox checkBox = new JCheckBox(key.toString());
+            checkBox.addActionListener(e -> serverConfigPanel.setKeyOptimised(key, checkBox.isSelected()));
+            optimisationPanel.addOption(checkBox);
+        }
+        this.add(optimisationPanel, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
         // Padding
         this.add(new JPanel(), new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+    }
+
+    private static class CheckBoxMatrixPanel extends JPanel {
+
+        private static final int COLUMNS;
+        static {
+            COLUMNS = Toolkit.getDefaultToolkit().getScreenSize().width / 320;
+            LOGGER.info("Using %s columns for CheckBoxMatrixPanel".formatted(COLUMNS));
+        }
+
+        private int count = -1;
+
+        public CheckBoxMatrixPanel() {
+            super();
+            setLayout(new GridBagLayout());
+        }
+
+        public void addOption(JCheckBox checkBox) {
+            count++;
+//            LOGGER.debug("Added check box %s at (%s, %s)".formatted(checkBox.getText(), count % COLUMNS, Math.floorDiv(count, COLUMNS)));
+            this.add(checkBox, new GridBagConstraints(
+                    count % COLUMNS,
+                    Math.floorDiv(count, COLUMNS),
+                    1, 1, 1, 0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
+        }
     }
 
     public void setServer(Server server) {
         this.server = server;
         memorySlider.setValue(server.mbMemory);
         optimiseSlider.setValue(server.optimisationLevel);
+
     }
 
     private JSlider createSlider() {

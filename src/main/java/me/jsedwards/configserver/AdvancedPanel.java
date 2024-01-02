@@ -2,15 +2,18 @@ package me.jsedwards.configserver;
 
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.util.Identifier;
 import me.jsedwards.util.UnifiedListenerTextField;
 
 import javax.swing.*;
 import javax.swing.text.DefaultStyledDocument;
 import java.awt.*;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
-class AdvancedPanel extends JPanel {
+public class AdvancedPanel extends JPanel {
 
     private final SidePanel sidePanel;
     private final Function<Server, ConfigManager> configManagerCreator;
@@ -60,6 +63,14 @@ class AdvancedPanel extends JPanel {
         propertiesList.invalidate();
         propertiesList.repaint();
         sidePanel.update();
+    }
+
+    public Set<Identifier> getPropertiesToOptimise() {
+        return properties.getKeysToOptimise().stream().map(s -> new Identifier(name, s)).collect(Collectors.toSet());
+    }
+
+    public void setKeyOptimised(Identifier key, boolean selected) {
+        properties.setKeyOptimised(key.path, selected);
     }
 
     public void saveProperties() {

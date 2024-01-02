@@ -28,7 +28,7 @@ public interface ConfigManager extends ListModel<String> {
 
     Set<String> getKeysToOptimise();
 
-    void setKeyEnabled(String key, boolean enabled);
+    void setKeyOptimised(String key, boolean enabled);
 
     void optimise(int sliderValue);
 }

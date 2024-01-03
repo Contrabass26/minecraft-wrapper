@@ -54,24 +54,28 @@ public class ServerCreatePanel extends JPanel implements Card {
         createButton.setFont(Main.MAIN_FONT);
         createButton.addActionListener(e -> {
             if (stages.stream().allMatch(ValidatedStage::isStageValid)) {
-                // Register server
-                String serverName = nameStagePanel.getServerName();
-                String serverLocation = locationStagePanel.getServerLocation();
-                ModLoader modLoader = modLoaderStagePanel.getSelectedModLoader();
-                String mcVersion = mcVersionStagePanel.getSelectedVersion();
-                int mbMemory = memoryStagePanel.getMbMemory();
-                Server server = Server.create(serverName, serverLocation, modLoader, mcVersion, mbMemory, 50, new HashMap<>(), true);
-                // Add new button to server select panel
-                Main.WINDOW.cardPanel.serverSelectPanel.addServer(server);
-                // Download server
-                File destination = new File(serverLocation);
-                try {
-                    modLoader.downloadFiles(destination, mcVersion);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
+                if (!modLoaderStagePanel.getSelectedModLoader().supportsVersion(mcVersionStagePanel.getSelectedVersion())) {
+                    JOptionPane.showMessageDialog(Main.WINDOW, "Mod loader %s does not support Minecraft version %s".formatted(modLoaderStagePanel.getSelectedModLoader().toString(), mcVersionStagePanel.getSelectedVersion()), "Minecraft version not supported", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    // Register server
+                    String serverName = nameStagePanel.getServerName();
+                    String serverLocation = locationStagePanel.getServerLocation();
+                    ModLoader modLoader = modLoaderStagePanel.getSelectedModLoader();
+                    String mcVersion = mcVersionStagePanel.getSelectedVersion();
+                    int mbMemory = memoryStagePanel.getMbMemory();
+                    Server server = Server.create(serverName, serverLocation, modLoader, mcVersion, mbMemory, 50, new HashMap<>(), true);
+                    // Add new button to server select panel
+                    Main.WINDOW.cardPanel.serverSelectPanel.addServer(server);
+                    // Download server
+                    File destination = new File(serverLocation);
+                    try {
+                        modLoader.downloadFiles(destination, mcVersion);
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    // Switch to new server dashboard
+                    Main.WINDOW.cardPanel.switchToServer(serverName);
                 }
-                // Switch to new server dashboard
-                Main.WINDOW.cardPanel.switchToServer(serverName);
             } else {
                 LOGGER.info("Invalid options selected");
             }

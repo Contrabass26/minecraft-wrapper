@@ -265,9 +265,13 @@ public class Server extends JPanel {
                 public void keyReleased(KeyEvent e) {
                     if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                         try {
-                            Server.this.consoleWrapper.write(textField.getText() + "\n");
-                            ConsolePanel.this.log(textField.getText());
-                            textField.setText("");
+                            if (textField.getText().equals("hyoh")) {
+                                JOptionPane.showMessageDialog(Main.WINDOW, "GRRRRRRRRRRRR", "Message from the Contra", JOptionPane.INFORMATION_MESSAGE);
+                            } else {
+                                Server.this.consoleWrapper.write(textField.getText() + "\n");
+                                ConsolePanel.this.log(textField.getText());
+                                textField.setText("");
+                            }
                         } catch (IOException ex) {
                             LOGGER.error("Failed to send command to server", ex);
                         }

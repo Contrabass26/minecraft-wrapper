@@ -61,10 +61,6 @@ public class OSUtils {
         new File(dataDir).mkdirs();
     }
 
-    public static File getSettingsFile() {
-        return new File(settingsLocation);
-    }
-
     public static File getServersFile() {
         return new File(serversLocation);
     }

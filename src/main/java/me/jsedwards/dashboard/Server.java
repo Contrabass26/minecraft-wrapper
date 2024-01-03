@@ -120,6 +120,7 @@ public class Server extends JPanel {
     public static boolean save() { // Returns: whether the servers are happy to stop
         // Check if any are running
         for (Server server : servers) {
+            if (server.consoleWrapper == null) continue;
             if (server.consoleWrapper.isRunning()) {
                 boolean forceStop = JOptionPane.showConfirmDialog(Main.WINDOW, "Server \"%s\" is still running. Do you want to force it to stop?".formatted(server.serverName), "Server still running", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION;
                 if (forceStop) {

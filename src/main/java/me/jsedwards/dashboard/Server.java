@@ -79,6 +79,11 @@ public class Server extends JPanel {
         return null;
     }
 
+    public boolean isRunning() {
+        if (consoleWrapper == null) return false;
+        return consoleWrapper.isRunning();
+    }
+
     /**
      * Creates a new server and adds it to the volatile list. Can be used before GUI elements have been initialised.
      * @param name The name of the server
@@ -92,6 +97,18 @@ public class Server extends JPanel {
         servers.add(server);
         if (addCard) Main.WINDOW.cardPanel.addServerCard(server);
         return server;
+    }
+
+    public static void delete(Server server) {
+        if (server.isRunning()) {
+            server.consoleWrapper.forceStop();
+            server.consoleWrapper.waitFor();
+        }
+        Main.WINDOW.cardPanel.removeServerCard(server);
+        Main.WINDOW.cardPanel.serverSelectPanel.removeServer(server);
+        Main.WINDOW.cardPanel.switchToServerSelect();
+        servers.remove(server);
+        OSUtils.deleteDirectory(new File(server.serverLocation));
     }
 
     /**
@@ -120,8 +137,7 @@ public class Server extends JPanel {
     public static boolean save() { // Returns: whether the servers are happy to stop
         // Check if any are running
         for (Server server : servers) {
-            if (server.consoleWrapper == null) continue;
-            if (server.consoleWrapper.isRunning()) {
+            if (server.isRunning()) {
                 boolean forceStop = JOptionPane.showConfirmDialog(Main.WINDOW, "Server \"%s\" is still running. Do you want to force it to stop?".formatted(server.serverName), "Server still running", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION;
                 if (forceStop) {
                     server.consoleWrapper.forceStop();

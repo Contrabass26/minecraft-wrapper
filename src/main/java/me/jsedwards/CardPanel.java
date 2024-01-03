@@ -36,6 +36,10 @@ public class CardPanel extends JPanel {
         this.add("server_" + server.serverName, server);
     }
 
+    public void removeServerCard(Server server) {
+        this.remove(server);
+    }
+
     public void switchToServerSelect() {
         exitCurrent();
         this.getCardLayout().show(this, "select_server");

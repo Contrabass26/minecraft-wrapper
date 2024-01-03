@@ -7,6 +7,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ServerSelectPanel extends JPanel implements Card {
 
@@ -50,9 +52,14 @@ public class ServerSelectPanel extends JPanel implements Card {
 
     }
 
+    public void removeServer(Server server) {
+        buttonsPanel.removeServer(server);
+    }
+
     private static class ButtonsPanel extends JPanel {
 
         private int count = -1;
+        private final Set<JButton> buttons = new HashSet<>();
 
         private ButtonsPanel() {
             super();
@@ -70,6 +77,7 @@ public class ServerSelectPanel extends JPanel implements Card {
                     Main.WINDOW.cardPanel.switchToServer(StringUtils.substringBefore(button.getText(), " - "));
                 });
                 button.setFont(Main.MAIN_FONT);
+                buttons.add(button);
                 // Add to layout
                 ButtonsPanel.this.add(button,
                         new GridBagConstraints(
@@ -85,6 +93,15 @@ public class ServerSelectPanel extends JPanel implements Card {
                 ButtonsPanel.this.validate();
                 ButtonsPanel.this.repaint();
             });
+        }
+
+        private void removeServer(Server server) {
+            for (JButton button : buttons) {
+                if (StringUtils.substringBefore(button.getText(), " - ").equals(server.serverName)) {
+                    button.setEnabled(false);
+                    break;
+                }
+            }
         }
     }
 }

@@ -37,13 +37,31 @@ public class ServerConfigPanel extends JPanel implements Card {
         serverNameLbl = new JLabel();
         serverNameLbl.setFont(Main.MAIN_FONT);
         this.add(serverNameLbl, new GridBagConstraints(2, 1, 1, 1, 1, 0, GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(30, 0, 0, 0), 0, 0));
+        // Delete button
+        JButton deleteBtn = createDeleteBtn();
+        this.add(deleteBtn, new GridBagConstraints(3, 1, 1, 1, 0, 0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(30, 0, 0, 10), 0, 0));
         // Tabbed pane
         basicPanel = new BasicPanel(this);
         tabbedPane.add("General", basicPanel);
         for (AdvancedPanel panel : advancedPanels) {
             tabbedPane.add(panel.name, panel);
         }
-        this.add(tabbedPane, new GridBagConstraints(1, 2, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(10, 10, 10, 10), 0, 0));
+        this.add(tabbedPane, new GridBagConstraints(1, 2, 3, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(10, 10, 10, 10), 0, 0));
+    }
+
+    private JButton createDeleteBtn() {
+        JButton deleteBtn = new JButton("Delete");
+        deleteBtn.setBackground(Color.RED);
+        deleteBtn.setForeground(Color.WHITE);
+        deleteBtn.addActionListener(e -> {
+            Server server = Server.get(this.server);
+            assert server != null;
+            boolean delete = JOptionPane.showConfirmDialog(Main.WINDOW, "Do you really want to delete server \"%s\"?".formatted(server.serverName), "Confirm delete", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION;
+            if (delete) {
+                Server.delete(server);
+            }
+        });
+        return deleteBtn;
     }
 
     public void optimiseConfigs(int sliderValue) {

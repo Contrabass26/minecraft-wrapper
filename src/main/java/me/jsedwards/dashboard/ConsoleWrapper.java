@@ -14,7 +14,7 @@ public class ConsoleWrapper {
     private final BufferedReader errReader;
     private final BufferedWriter writer;
 
-    public ConsoleWrapper(String command, File dir, Consumer<String> output, Consumer<String> error) throws IOException {
+    public ConsoleWrapper(String command, File dir, Consumer<String> output, Consumer<String> error, Runnable onFinish) throws IOException { // onFinish is not run on the calling thread
         Process process = Runtime.getRuntime().exec(command, null, dir);
         this.outReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         this.errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
@@ -38,6 +38,14 @@ public class ConsoleWrapper {
             } catch (IOException e) {
                 LOGGER.error("Failed to write error from server", e);
             }
+        }).start();
+        new Thread(() -> {
+            try {
+                process.waitFor();
+            } catch (InterruptedException e) {
+                LOGGER.warn("Process was interrupted", e);
+            }
+            onFinish.run();
         }).start();
     }
 

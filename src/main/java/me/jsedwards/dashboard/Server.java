@@ -40,6 +40,7 @@ public class Server extends JPanel {
     public final String serverLocation;
     public final ModLoader modLoader;
     public final String mcVersion;
+    private final TopPanel topPanel;
     public int mbMemory;
     public int optimisationLevel;
     public Map<Identifier, Boolean> keysToOptimise; // Only stores keys that have been changed - all others will have their default value
@@ -58,7 +59,8 @@ public class Server extends JPanel {
         // Layout
         this.setLayout(new GridBagLayout());
         // Top panel
-        this.add(new TopPanel(), new GridBagConstraints(1, 1, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(30, 10, 10, 10), 0, 0));
+        topPanel = new TopPanel();
+        this.add(topPanel, new GridBagConstraints(1, 1, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(30, 10, 10, 10), 0, 0));
         // Console panel
         consolePanel = new ConsolePanel();
         this.add(consolePanel, new GridBagConstraints(1, 2, 1, 1, 1, 1, GridBagConstraints.SOUTH, GridBagConstraints.BOTH, new Insets(0, 10, 10, 10), 0, 0));
@@ -132,7 +134,7 @@ public class Server extends JPanel {
 
     public void start() {
         try {
-            consoleWrapper = new ConsoleWrapper(modLoader.getStartCommand(mbMemory), new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log);
+            consoleWrapper = new ConsoleWrapper(modLoader.getStartCommand(mbMemory), new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log, topPanel.startStopButton::stop);
         } catch (IOException e) {
             consolePanel.log("Failed to start server: " + e.getMessage());
             LOGGER.error("Failed to start server", e);
@@ -140,6 +142,8 @@ public class Server extends JPanel {
     }
 
     private class TopPanel extends JPanel {
+
+        private final StartStopButton startStopButton;
 
         private TopPanel() {
             super();
@@ -158,7 +162,7 @@ public class Server extends JPanel {
             configureButton.addActionListener(e -> Main.WINDOW.cardPanel.switchToServerConfig(Server.this.serverName));
             this.add(configureButton, new GridBagConstraints(3, 1, 1, 1, 0, 1, GridBagConstraints.EAST, GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 5), 0, 0));
             // Start button
-            StartStopButton startStopButton = new StartStopButton();
+            startStopButton = new StartStopButton();
             this.add(startStopButton, new GridBagConstraints(4, 1, 1, 1, 0, 1, GridBagConstraints.EAST, GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 0), 0, 0));
         }
     }
@@ -182,10 +186,11 @@ public class Server extends JPanel {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            running = !running;
-            if (running) {
+            if (!running) {
                 Server.this.consolePanel.clearOutput();
                 Server.this.start();
+                running = true;
+                updateColors();
             } else {
                 try {
                     Server.this.consoleWrapper.write("stop\n");
@@ -194,6 +199,10 @@ public class Server extends JPanel {
                     throw new RuntimeException(ex);
                 }
             }
+        }
+
+        public void stop() {
+            running = false;
             updateColors();
         }
     }

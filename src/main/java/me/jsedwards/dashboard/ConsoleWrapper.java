@@ -58,6 +58,14 @@ public class ConsoleWrapper {
         writer.flush();
     }
 
+    public void waitFor() {
+        try {
+            process.waitFor();
+        } catch (InterruptedException e) {
+            LOGGER.warn("Process was interrupted", e);
+        }
+    }
+
     public boolean isRunning() {
         return running.get();
     }

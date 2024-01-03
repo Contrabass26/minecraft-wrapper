@@ -65,6 +65,18 @@ public class OSUtils {
         return new File(serversLocation);
     }
 
+    public static void deleteDirectory(File file) {
+        if (file.isDirectory()) {
+            File[] children = file.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    deleteDirectory(child);
+                }
+            }
+        }
+        file.delete();
+    }
+
     private static long getSystemMemory() {
         MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
         try {

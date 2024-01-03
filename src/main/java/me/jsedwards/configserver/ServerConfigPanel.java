@@ -60,6 +60,15 @@ public class ServerConfigPanel extends JPanel implements Card {
         return keys;
     }
 
+    public boolean isNamespaceEnabled(String namespace) {
+        for (AdvancedPanel panel : advancedPanels) {
+            if (panel.name.equals(namespace)) {
+                return panel.isEnabled(Server.get(server));
+            }
+        }
+        return false;
+    }
+
     public boolean isKeyOptimised(Identifier key) {
         for (AdvancedPanel panel : advancedPanels) {
             if (key.namespace.equals(panel.name)) {

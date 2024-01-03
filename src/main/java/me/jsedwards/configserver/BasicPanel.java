@@ -117,7 +117,9 @@ class BasicPanel extends JPanel {
         memorySlider.setValue(server.mbMemory);
         optimiseSlider.setValue(server.optimisationLevel);
         for (JCheckBox checkBox : checkBoxes) {
-            checkBox.setSelected(serverConfigPanel.isKeyOptimised(new Identifier(checkBox.getText())));
+            Identifier key = new Identifier(checkBox.getText());
+            checkBox.setSelected(serverConfigPanel.isKeyOptimised(key));
+            checkBox.setEnabled(serverConfigPanel.isNamespaceEnabled(key.namespace));
         }
     }
 

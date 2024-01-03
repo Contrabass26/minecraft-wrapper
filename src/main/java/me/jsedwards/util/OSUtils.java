@@ -61,6 +61,10 @@ public class OSUtils {
         new File(dataDir).mkdirs();
     }
 
+    public static File getServersFile() {
+        return new File(serversLocation);
+    }
+
     public static void deleteDirectory(File file) {
         if (file.isDirectory()) {
             File[] children = file.listFiles();

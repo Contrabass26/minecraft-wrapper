@@ -1,7 +1,11 @@
 package me.jsedwards.configserver;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.data.OperatorPlayer;
+import me.jsedwards.data.WhitelistedPlayer;
 import me.jsedwards.util.Identifier;
 import me.jsedwards.util.MathUtils;
 import me.jsedwards.util.OSUtils;
@@ -10,6 +14,8 @@ import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
@@ -23,6 +29,7 @@ class BasicPanel extends JPanel {
     private final JSlider memorySlider;
     private final JSlider optimiseSlider;
     private final List<JCheckBox> checkBoxes;
+    private final JsonConfigPanel jsonConfigPanel;
     private Server server = null;
 
     public BasicPanel(ServerConfigPanel serverConfigPanel) {
@@ -71,7 +78,13 @@ class BasicPanel extends JPanel {
         });
         this.add(memorySnapCheckbox, new GridBagConstraints(2, 4, 1, 1, 0, 0, GridBagConstraints.EAST, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
         this.add(memorySlider, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+        // Whitelist and ops
+        jsonConfigPanel = new JsonConfigPanel();
+        this.add(jsonConfigPanel, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
         // Optimisation options
+        JLabel optimisationOptionsLbl = new JLabel("General optimisation options:");
+        optimisationOptionsLbl.setFont(Main.MAIN_FONT.deriveFont(18f));
+        this.add(optimisationOptionsLbl, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
         List<Identifier> keysToOptimise = new ArrayList<>(serverConfigPanel.getKeysToOptimise());
         Collections.sort(keysToOptimise);
         checkBoxes = new ArrayList<>();
@@ -85,6 +98,119 @@ class BasicPanel extends JPanel {
         this.add(optimisationPanel, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
         // Padding
         this.add(new JPanel(), new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+    }
+
+    public void save() {
+        ObjectMapper mapper = new ObjectMapper();
+        // Whitelist
+        List<WhitelistedPlayer> whitelistedPlayers = new ArrayList<>();
+        jsonConfigPanel.whitelistModel.elements().asIterator().forEachRemaining(whitelistedPlayers::add);
+        File whitelistFile = new File(server.serverLocation + "/whitelist.json");
+        try {
+            mapper.writeValue(whitelistFile, whitelistedPlayers);
+            LOGGER.info("Saved whitelist to " + whitelistFile.getAbsolutePath());
+        } catch (IOException e) {
+            LOGGER.error("Failed to save whitelist to " + whitelistFile.getAbsolutePath(), e);
+        }
+        // Operators
+        List<OperatorPlayer> operatorPlayers = new ArrayList<>();
+        jsonConfigPanel.opsModel.elements().asIterator().forEachRemaining(operatorPlayers::add);
+        File opsFile = new File(server.serverLocation + "/ops.json");
+        try {
+            mapper.writeValue(opsFile, operatorPlayers);
+            LOGGER.info("Saved operators to " + opsFile.getAbsolutePath());
+        } catch (IOException e) {
+            LOGGER.error("Failed to save operators to " + opsFile.getAbsolutePath(), e);
+        }
+    }
+
+    private static class JsonConfigPanel extends JPanel {
+
+        private static final TypeReference<List<WhitelistedPlayer>> WHITELIST_TYPE_REFERENCE = new TypeReference<>() {};
+        private static final TypeReference<List<OperatorPlayer>> OPS_TYPE_REFERENCE = new TypeReference<>() {};
+
+        private final DefaultListModel<WhitelistedPlayer> whitelistModel;
+        private final JList<WhitelistedPlayer> whitelist;
+        private final DefaultListModel<OperatorPlayer> opsModel;
+        private final JList<OperatorPlayer> opsList;
+
+        public JsonConfigPanel() {
+            super();
+            setLayout(new GridBagLayout());
+            // Whitelist
+            JLabel whitelistLbl = new JLabel("Whitelist:");
+            whitelistLbl.setFont(Main.MAIN_FONT.deriveFont(18f));
+            whitelistModel = new DefaultListModel<>();
+            whitelist = new JList<>(whitelistModel);
+            JButton whitelistAddBtn = new JButton("Add player");
+            whitelistAddBtn.addActionListener(e -> {
+                String username = JOptionPane.showInputDialog(Main.WINDOW, "Enter player name:", "Add to whitelist", JOptionPane.QUESTION_MESSAGE);
+                WhitelistedPlayer player = WhitelistedPlayer.create(username);
+                whitelistModel.addElement(player);
+            });
+            JButton whitelistRemoveBtn = new JButton("Remove selected");
+            whitelistRemoveBtn.addActionListener(e -> {
+                for (int index : whitelist.getSelectedIndices()) {
+                    whitelistModel.remove(index);
+                }
+                whitelist.invalidate();
+                whitelist.repaint();
+            });
+            this.add(whitelistLbl, new GridBagConstraints(1, 1, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+            this.add(whitelist, new GridBagConstraints(1, 2, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(5, 0, 0, 5), 0, 0));
+            this.add(whitelistAddBtn, new GridBagConstraints(1, 3, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 0, 0, 3), 0, 0));
+            this.add(whitelistRemoveBtn, new GridBagConstraints(2, 3, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 3, 0, 5), 0, 0));
+            // Ops
+            JLabel opsLbl = new JLabel("Operators:");
+            opsLbl.setFont(Main.MAIN_FONT.deriveFont(18f));
+            opsModel = new DefaultListModel<>();
+            opsList = new JList<>(opsModel);
+            JButton opsAddBtn = new JButton("Add player");
+            opsAddBtn.addActionListener(e -> {
+                String username = JOptionPane.showInputDialog(Main.WINDOW, "Enter player name:", "Add operator", JOptionPane.QUESTION_MESSAGE);
+                OperatorPlayer player = OperatorPlayer.create(username);
+                opsModel.addElement(player);
+            });
+            JButton opsRemoveBtn = new JButton("Remove selected");
+            opsRemoveBtn.addActionListener(e -> {
+                for (int index : opsList.getSelectedIndices()) {
+                    opsModel.remove(index);
+                }
+                opsList.invalidate();
+                opsList.repaint();
+            });
+            this.add(opsLbl, new GridBagConstraints(3, 1, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+            this.add(opsList, new GridBagConstraints(3, 2, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(5, 5, 0, 0), 0, 0));
+            this.add(opsAddBtn, new GridBagConstraints(3, 3, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 0, 3), 0, 0));
+            this.add(opsRemoveBtn, new GridBagConstraints(4, 3, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(5, 3, 0, 0), 0, 0));
+        }
+
+        public void setServer(Server server) {
+            ObjectMapper mapper = new ObjectMapper();
+            // Whitelist
+            File whitelistFile = new File(server.serverLocation + "/whitelist.json");
+            try {
+                whitelistModel.clear();
+                mapper.readValue(whitelistFile, WHITELIST_TYPE_REFERENCE).forEach(whitelistModel::addElement);
+                LOGGER.info("Loaded whitelist from " + whitelistFile.getAbsolutePath());
+                whitelist.invalidate();
+                whitelist.repaint();
+            } catch (IOException e) {
+                LOGGER.error("Failed to load whitelist from " + whitelistFile.getAbsolutePath(), e);
+            }
+            // Operators
+            File opsFile = new File(server.serverLocation + "/ops.json");
+            try {
+                opsModel.clear();
+                mapper.readValue(opsFile, OPS_TYPE_REFERENCE).forEach(opsModel::addElement);
+                LOGGER.info("Loaded operators from " + opsFile.getAbsolutePath());
+                opsList.invalidate();
+                opsList.repaint();
+            } catch (IOException e) {
+                LOGGER.error("Failed to load operators from " + opsFile.getAbsolutePath(), e);
+            }
+        }
+
     }
 
     private static class CheckBoxMatrixPanel extends JPanel {
@@ -119,6 +245,7 @@ class BasicPanel extends JPanel {
         for (JCheckBox checkBox : checkBoxes) {
             checkBox.setSelected(serverConfigPanel.isKeyOptimised(new Identifier(checkBox.getText())));
         }
+        jsonConfigPanel.setServer(server);
     }
 
     private JSlider createSlider() {

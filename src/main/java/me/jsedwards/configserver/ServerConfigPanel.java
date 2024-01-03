@@ -104,6 +104,7 @@ public class ServerConfigPanel extends JPanel implements Card {
         for (AdvancedPanel panel : advancedPanels) {
             panel.saveProperties();
         }
+        basicPanel.save();
     }
 
     @Override

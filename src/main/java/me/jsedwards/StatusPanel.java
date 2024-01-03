@@ -59,6 +59,7 @@ public class StatusPanel extends JPanel {
                 setStatus("Download failed");
             }
             progressGetter.set(null);
+            setProgress(0);
         });
         thread.start();
     }
@@ -73,6 +74,7 @@ public class StatusPanel extends JPanel {
                 setStatus("Download failed");
             }
             progressGetter.set(null);
+            setProgress(0);
         });
         thread.start();
     }

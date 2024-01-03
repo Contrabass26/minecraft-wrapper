@@ -42,6 +42,9 @@ public class ServerCreatePanel extends JPanel implements Card {
         // Minecraft version
         McVersionStagePanel mcVersionStagePanel = new McVersionStagePanel();
         stages.add(mcVersionStagePanel);
+        // Memory allocation
+        MemoryStagePanel memoryStagePanel = new MemoryStagePanel();
+        stages.add(memoryStagePanel);
         // Add stages
         for (int i = 0; i < stages.size(); i++) {
             this.add(stages.get(i), new GridBagConstraints(1, 2 + i, 1, 1, 1, 0, GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(10, 10, 0, 10), 0, 0));
@@ -56,7 +59,8 @@ public class ServerCreatePanel extends JPanel implements Card {
                 String serverLocation = locationStagePanel.getServerLocation();
                 ModLoader modLoader = modLoaderStagePanel.getSelectedModLoader();
                 String mcVersion = mcVersionStagePanel.getSelectedVersion();
-                Server server = Server.create(serverName, serverLocation, modLoader, mcVersion, 8192, 50, new HashMap<>(), true);
+                int mbMemory = memoryStagePanel.getMbMemory();
+                Server server = Server.create(serverName, serverLocation, modLoader, mcVersion, mbMemory, 50, new HashMap<>(), true);
                 // Add new button to server select panel
                 Main.WINDOW.cardPanel.serverSelectPanel.addServer(server);
                 // Download server

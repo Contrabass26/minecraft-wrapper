@@ -62,11 +62,12 @@ public class Window extends JFrame {
             public void windowClosing(WindowEvent e) {
                 // Save data
                 cardPanel.exitCurrent();
-                Server.save();
-                // Exit
-                statusPanel.exit();
-                Window.this.dispose();
-                System.exit(0);
+                if (Server.save()) {
+                    // Exit
+                    statusPanel.exit();
+                    Window.this.dispose();
+                    System.exit(0);
+                }
             }
         });
         this.setVisible(true);

@@ -78,12 +78,11 @@ public enum ModLoader {
                                 int currentCount = lineCount.incrementAndGet();
                                 Main.WINDOW.statusPanel.setProgress(currentCount);
                                 Main.WINDOW.statusPanel.setStatus(s);
-                                if (s.contains("You can delete")) {
-                                    LOGGER.info("Forge installer for %s finished, outputting %s lines".formatted(mcVersion, currentCount));
-                                    Main.WINDOW.statusPanel.setStatus("Ready");
-                                    Main.WINDOW.statusPanel.setProgress(0);
-                                }
-                            }, LOGGER::error);
+                            }, LOGGER::error, () -> {
+                                LOGGER.info("Forge installer for %s finished, outputting %s lines".formatted(mcVersion, lineCount.get()));
+                                Main.WINDOW.statusPanel.setStatus("Ready");
+                                Main.WINDOW.statusPanel.setProgress(0);
+                            });
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }

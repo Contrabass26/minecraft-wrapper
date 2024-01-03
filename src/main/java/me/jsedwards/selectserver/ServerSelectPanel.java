@@ -3,6 +3,7 @@ package me.jsedwards.selectserver;
 import me.jsedwards.Card;
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -63,11 +64,10 @@ public class ServerSelectPanel extends JPanel implements Card {
                 // Increase count
                 this.count++;
                 // Create new button
-                JButton button = new JButton(server.serverName);
-                // TODO: Show mod loader, location etc. in button
+                JButton button = new JButton("%s - %s".formatted(server.serverName, server.serverLocation));
                 button.addActionListener(e -> {
                     // Switch to correct card
-                    Main.WINDOW.cardPanel.switchToServer(button.getText());
+                    Main.WINDOW.cardPanel.switchToServer(StringUtils.substringBefore(button.getText(), " - "));
                 });
                 button.setFont(Main.MAIN_FONT);
                 // Add to layout

@@ -4,7 +4,6 @@ import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.jthemedetecor.OsThemeDetector;
 import me.jsedwards.dashboard.Server;
-import me.jsedwards.data.Settings;
 import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,8 +38,6 @@ public final class Main {
     }
 
     public static void main(String[] args) {
-        // Load settings
-        Settings.load();
         // Mac-specific properties - must happen before any AWT classes are loaded
         if (System.getProperty("os.name").toLowerCase().contains("mac")) {
             LOGGER.info("MacOS detected - setting system properties");
@@ -49,12 +46,8 @@ public final class Main {
             System.setProperty( "apple.awt.application.appearance", "system"); // Colour of title bar
         }
         // Detect OS theme and set application theme accordingly
-        if (!Settings.INSTANCE.themeOverride.equals("os")) {
-            DARK_THEME = Settings.INSTANCE.themeOverride.equals("dark");
-        } else {
-            OsThemeDetector themeDetector = OsThemeDetector.getDetector();
-            DARK_THEME = themeDetector.isDark();
-        }
+        OsThemeDetector themeDetector = OsThemeDetector.getDetector();
+        DARK_THEME = themeDetector.isDark();
         if (DARK_THEME) {
             FlatDarculaLaf.setup();
         } else {

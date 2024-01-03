@@ -3,7 +3,6 @@ package me.jsedwards;
 import com.formdev.flatlaf.util.SystemInfo;
 import me.jsedwards.about.AboutWindow;
 import me.jsedwards.dashboard.Server;
-import me.jsedwards.data.Settings;
 import me.jsedwards.menubar.ConfiguredMenuBar;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -63,7 +62,6 @@ public class Window extends JFrame {
             public void windowClosing(WindowEvent e) {
                 // Save data
                 cardPanel.exitCurrent();
-                Settings.save();
                 Server.save();
                 // Exit
                 statusPanel.exit();

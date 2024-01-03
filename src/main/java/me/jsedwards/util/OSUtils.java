@@ -61,10 +61,6 @@ public class OSUtils {
         new File(dataDir).mkdirs();
     }
 
-    public static File getSettingsFile() {
-        return new File(settingsLocation);
-    }
-
     public static void deleteDirectory(File file) {
         if (file.isDirectory()) {
             File[] children = file.listFiles();
@@ -75,10 +71,6 @@ public class OSUtils {
             }
         }
         file.delete();
-    }
-
-    public static File getServersFile() {
-        return new File(serversLocation);
     }
 
     private static long getSystemMemory() {

@@ -117,7 +117,18 @@ public class Server extends JPanel {
         servers.forEach(cardPanel::addServerCard);
     }
 
-    public static void save() {
+    public static boolean save() { // Returns: whether the servers are happy to stop
+        // Check if any are running
+        for (Server server : servers) {
+            if (server.consoleWrapper.isRunning()) {
+                boolean forceStop = JOptionPane.showConfirmDialog(Main.WINDOW, "Server \"%s\" is still running. Do you want to force it to stop?".formatted(server.serverName), "Server still running", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION;
+                if (forceStop) {
+                    server.consoleWrapper.forceStop();
+                } else {
+                    return false;
+                }
+            }
+        }
         OSUtils.createDataDir();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -126,6 +137,7 @@ public class Server extends JPanel {
         } catch (IOException e) {
             LOGGER.error("Failed to save server data to " + OSUtils.serversLocation, e);
         }
+        return true;
     }
 
     public File getPropertiesLocation() {

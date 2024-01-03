@@ -150,8 +150,8 @@ class BasicPanel extends JPanel {
             });
             JButton whitelistRemoveBtn = new JButton("Remove selected");
             whitelistRemoveBtn.addActionListener(e -> {
-                for (int index : whitelist.getSelectedIndices()) {
-                    whitelistModel.remove(index);
+                for (WhitelistedPlayer player : whitelist.getSelectedValuesList()) {
+                    whitelistModel.removeElement(player);
                 }
                 whitelist.invalidate();
                 whitelist.repaint();
@@ -173,8 +173,8 @@ class BasicPanel extends JPanel {
             });
             JButton opsRemoveBtn = new JButton("Remove selected");
             opsRemoveBtn.addActionListener(e -> {
-                for (int index : opsList.getSelectedIndices()) {
-                    opsModel.remove(index);
+                for (OperatorPlayer player : opsList.getSelectedValuesList()) {
+                    opsModel.removeElement(player);
                 }
                 opsList.invalidate();
                 opsList.repaint();

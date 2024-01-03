@@ -24,7 +24,7 @@ public class LocationStagePanel extends ValidatedStage {
         this.setLayout(new GridBagLayout());
         // Label
         JLabel label = new JLabel("Server location:");
-        label.setFont(Main.MAIN_FONT);
+        label.setFont(Main.MAIN_FONT.deriveFont(18f));
         this.add(label, new GridBagConstraints(1, 1, 1, 1, 0, 0, GridBagConstraints.NORTHWEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 20), 0, 0));
         // Text field
         this.textField = new UnifiedListenerTextField() {

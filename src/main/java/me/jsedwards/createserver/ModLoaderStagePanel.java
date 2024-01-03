@@ -18,7 +18,7 @@ public class ModLoaderStagePanel extends ValidatedStage {
         this.setLayout(new GridBagLayout());
         // Label
         JLabel label = new JLabel("Mod loader:");
-        label.setFont(Main.MAIN_FONT);
+        label.setFont(Main.MAIN_FONT.deriveFont(18f));
         this.add(label, new GridBagConstraints(1, 1, 1, 1, 0, 0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
         // Radio buttons
         ButtonGroup buttonGroup = new ButtonGroup();

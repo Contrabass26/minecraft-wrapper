@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.ConsoleWrapper;
+import me.jsedwards.dashboard.Server;
 import me.jsedwards.util.JsonUtils;
 import me.jsedwards.util.MinecraftUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,7 +59,7 @@ public enum ModLoader {
         }
 
         @Override
-        public String getStartCommand(int mbMemory) {
+        public String getStartCommand(int mbMemory, Server server) {
             return "java -Xmx%sM -jar server.jar nogui".formatted(mbMemory);
         }
     },
@@ -67,7 +68,7 @@ public enum ModLoader {
         public void downloadFiles(File destination, String mcVersion) throws IOException {
             Main.WINDOW.statusPanel.getJsoupFromUrl("https://files.minecraftforge.net/net/minecraftforge/forge/index_%s.html".formatted(mcVersion), document -> {
                 String messyUrl = document.select("div.link.link-boosted").get(0).child(0).attr("href");
-                Pattern pattern = Pattern.compile("url=(https://maven\\.minecraftforge\\.net/net/minecraftforge/forge/%s-([0-9.]+)/forge-%s-\\2-installer\\.jar)".formatted(mcVersion, mcVersion));
+                Pattern pattern = Pattern.compile("url=(https://maven\\.minecraftforge\\.net/.*)");
                 Matcher matcher = pattern.matcher(messyUrl);
                 MatchResult matchResult = matcher.results().findFirst().orElseThrow(IllegalStateException::new);
                 String url = matchResult.group(1);
@@ -97,7 +98,16 @@ public enum ModLoader {
         }
 
         @Override
-        public String getStartCommand(int mbMemory) {
+        public String getStartCommand(int mbMemory, Server server) {
+            File[] children = new File(server.serverLocation).listFiles();
+            if (children != null) {
+                for (File file : children) {
+                    String name = file.getName();
+                    if (name.matches("minecraft_server.*\\.jar")) {
+                        return "java -Xmx%sM -jar %s nogui".formatted(mbMemory, name);
+                    }
+                }
+            }
             return "java -Xmx" + mbMemory + "M @libraries/net/minecraftforge/forge/1.20.2-48.1.0/win_args.txt nogui %*";
         }
     },
@@ -111,7 +121,7 @@ public enum ModLoader {
         }
 
         @Override
-        public String getStartCommand(int mbMemory) {
+        public String getStartCommand(int mbMemory, Server server) {
             return "java -Xmx%sM -jar fabric-server-launch.jar nogui".formatted(mbMemory);
         }
 
@@ -157,7 +167,7 @@ public enum ModLoader {
         }
 
         @Override
-        public String getStartCommand(int mbMemory) {
+        public String getStartCommand(int mbMemory, Server server) {
             return "java -Xmx%sM -jar pufferfish.jar nogui".formatted(mbMemory);
         }
 
@@ -216,7 +226,7 @@ public enum ModLoader {
         throw new RuntimeException("Mod loader not supported!");
     }
 
-    public String getStartCommand(int mbMemory) {
+    public String getStartCommand(int mbMemory, Server server) {
         throw new RuntimeException("Mod loader not supported!");
     }
 

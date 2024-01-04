@@ -123,6 +123,11 @@ public enum ModLoader {
         public boolean supportsMods() {
             return true;
         }
+
+        @Override
+        public int getGameFlavour() {
+            return 1;
+        }
     },
     FABRIC {
         @Override
@@ -146,6 +151,11 @@ public enum ModLoader {
         @Override
         public boolean supportsMods() {
             return true;
+        }
+
+        @Override
+        public int getGameFlavour() {
+            return 4;
         }
     },
     PUFFERFISH {
@@ -250,6 +260,10 @@ public enum ModLoader {
 
     public boolean supportsMods() {
         return false;
+    }
+
+    public int getGameFlavour() {
+        return -1; // Signifies no game flavour
     }
 
     // Will only be tested back to 1.8.9

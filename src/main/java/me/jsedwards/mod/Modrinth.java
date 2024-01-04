@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import me.jsedwards.modloader.ModLoader;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,7 +16,6 @@ import java.util.List;
 public class Modrinth {
 
     private static final String USER_AGENT = "Contrabass26/minecraft-wrapper";
-    private static final Logger LOGGER = LogManager.getLogger();
 
     public static List<ModrinthProject> search(String query, ModLoader loader, String mcVersion) {
         try {
@@ -27,7 +24,6 @@ public class Modrinth {
             List<ModrinthProject> projects = new ArrayList<>();
             for (JsonNode hit : hits) {
                 projects.add(new ModrinthProject(hit));
-                LOGGER.debug("Added project " + hit.get("title").textValue());
             }
             return projects;
         } catch (IOException e) {
@@ -37,18 +33,16 @@ public class Modrinth {
 
     private static JsonNode doApiCall(String path) throws IOException {
         String url = formatUrl("https://api.modrinth.com/v2/" + path);
-//        LOGGER.debug(url);
         HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("User-Agent", USER_AGENT);
         BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         String content = reader.readLine();
-//        LOGGER.debug(content);
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readTree(content);
     }
 
-    public static ModrinthFile getVersionFile(String id, ModLoader loader, String mcVersion) {
+    public static Project.ModFile getVersionFile(String id, ModLoader loader, String mcVersion) {
         try {
             String path = "project/%s/version?loaders=[\"%s\"]&game_versions=[\"%s\"]".formatted(id, loader.toString().toLowerCase(), mcVersion);
             ArrayNode versions = (ArrayNode) doApiCall(path);
@@ -59,7 +53,7 @@ public class Modrinth {
                         String filename = file.get("filename").textValue();
                         if (filename.endsWith(".jar")) {
                             String url = file.get("url").textValue();
-                            return new ModrinthFile(url, filename);
+                            return new Project.ModFile(url, filename);
                         }
                     }
                 }
@@ -75,13 +69,5 @@ public class Modrinth {
                 .replace("[", "%5B")
                 .replace("]", "%5D")
                 .replace("\"", "%22");
-    }
-
-    public record ModrinthFile(String url, String filename) {
-
-        @Override
-        public String toString() {
-            return filename;
-        }
     }
 }

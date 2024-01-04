@@ -2,8 +2,10 @@ package me.jsedwards.configserver;
 
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.mod.CurseForge;
 import me.jsedwards.mod.Modrinth;
 import me.jsedwards.mod.ModrinthProject;
+import me.jsedwards.mod.Project;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,13 +14,14 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ModsPanel extends JPanel {
 
     private final JTextField searchBox;
-    private final DefaultListModel<ModrinthProject> searchResultsModel;
-    private final JList<ModrinthProject> searchResults;
+    private final DefaultListModel<Project> searchResultsModel;
+    private final JList<Project> searchResults;
     private final DefaultListModel<String> currentModsModel;
     private final JList<String> currentMods;
     private Server server = null;
@@ -72,7 +75,7 @@ public class ModsPanel extends JPanel {
         searchResults.addListSelectionListener(e -> infoPanel.setSelected(searchResults.getSelectedValue()));
         // Add button listener
         addBtn.addActionListener(e -> {
-            Modrinth.ModrinthFile file = searchResults.getSelectedValue().getFile(server.mcVersion, server.modLoader);
+            Project.ModFile file = searchResults.getSelectedValue().getFile(server.mcVersion, server.modLoader);
             try {
                 Main.WINDOW.statusPanel.saveFileFromUrl(new URL(file.url()), new File(server.serverLocation + "/mods/" + file.filename()));
                 currentModsModel.addElement(file.filename());
@@ -84,11 +87,12 @@ public class ModsPanel extends JPanel {
 
     private void search() {
         String query = searchBox.getText();
-        List<ModrinthProject> results = Modrinth.search(query, server.modLoader, server.mcVersion);
+        List<ModrinthProject> results = new ArrayList<>(Modrinth.search(query, server.modLoader, server.mcVersion));
+        CurseForge.search(query, server.modLoader, server.mcVersion, searchResultsModel::addElement);
         searchResultsModel.clear();
         results.forEach(searchResultsModel::addElement);
-        searchResults.invalidate();
-        searchResults.repaint();
+//        searchResults.invalidate();
+//        searchResults.repaint();
     }
 
     public void setServer(Server server) {
@@ -126,7 +130,7 @@ public class ModsPanel extends JPanel {
             return new Dimension(0, 0);
         }
 
-        public void setSelected(ModrinthProject project) {
+        public void setSelected(Project project) {
             titleLbl.setText(project == null ? "" : project.title);
             descriptionLbl.setText(project == null ? "" : project.description);
         }

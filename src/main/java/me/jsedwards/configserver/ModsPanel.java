@@ -7,11 +7,14 @@ import me.jsedwards.mod.Modrinth;
 import me.jsedwards.mod.ModrinthProject;
 import me.jsedwards.mod.Project;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -91,8 +94,6 @@ public class ModsPanel extends JPanel {
         CurseForge.search(query, server.modLoader, server.mcVersion, searchResultsModel::addElement);
         searchResultsModel.clear();
         results.forEach(searchResultsModel::addElement);
-//        searchResults.invalidate();
-//        searchResults.repaint();
     }
 
     public void setServer(Server server) {
@@ -110,19 +111,28 @@ public class ModsPanel extends JPanel {
 
     private static class InfoPanel extends JPanel {
 
+        private final JLabel iconLbl;
         private final JLabel titleLbl;
+        private final JLabel authorLbl;
         private final JTextArea descriptionLbl;
 
         public InfoPanel() {
             super();
             setLayout(new GridBagLayout());
+            // Icon
+            iconLbl = new JLabel();
+            this.add(iconLbl, new GridBagConstraints(1, 1, 1, 2, 0, 0, GridBagConstraints.NORTH, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
             // Title label
             titleLbl = new JLabel();
-            this.add(titleLbl, new GridBagConstraints(1, 1, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+            titleLbl.setFont(Main.MAIN_FONT.deriveFont(18f));
+            this.add(titleLbl, new GridBagConstraints(2, 1, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 5, 0, 0), 0, 0));
+            // Author label
+            authorLbl = new JLabel();
+            this.add(authorLbl, new GridBagConstraints(2, 2, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 5, 0, 0), 0, 0));
             // Description label
             descriptionLbl = new JTextArea();
             descriptionLbl.setEditable(false);
-            this.add(descriptionLbl, new GridBagConstraints(1, 2, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+            this.add(descriptionLbl, new GridBagConstraints(1, 3, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(10, 0, 0, 0), 0, 0));
         }
 
         @Override
@@ -131,8 +141,18 @@ public class ModsPanel extends JPanel {
         }
 
         public void setSelected(Project project) {
-            titleLbl.setText(project == null ? "" : project.title);
-            descriptionLbl.setText(project == null ? "" : project.description);
+            if (project != null) {
+                try {
+                    BufferedImage image = ImageIO.read(new URL(project.icon));
+                    Image scaled = image.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                    iconLbl.setIcon(new ImageIcon(scaled));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                titleLbl.setText(project.title.strip());
+                descriptionLbl.setText(project.description.strip());
+                authorLbl.setText(project.author.strip());
+            }
         }
     }
 }

@@ -28,6 +28,8 @@ public class CurseForge {
                     for (Element child : result.children()) {
                         if (child.hasClass("name")) builder.title = child.text();
                         else if (child.hasClass("description")) builder.description = child.text();
+                        else if (child.hasClass("art")) builder.icon = child.child(0).attr("src");
+                        else if (child.hasClass("author")) builder.author = child.child(0).child(0).text();
                     }
                     onSuccess.accept(builder.build());
                 }

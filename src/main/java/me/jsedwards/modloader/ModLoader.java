@@ -24,6 +24,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -64,6 +65,8 @@ public enum ModLoader {
         }
     },
     FORGE {
+        private static final Set<String> BLACKLIST = Set.of("1.14", "1.14.1", "1.16", "1.17");
+
         @Override
         public void downloadFiles(File destination, String mcVersion) throws IOException {
             Main.WINDOW.statusPanel.getJsoupFromUrl("https://files.minecraftforge.net/net/minecraftforge/forge/index_%s.html".formatted(mcVersion), document -> {
@@ -109,6 +112,11 @@ public enum ModLoader {
                 }
             }
             return "java -Xmx" + mbMemory + "M @libraries/net/minecraftforge/forge/1.20.2-48.1.0/win_args.txt nogui %*";
+        }
+
+        @Override
+        public boolean supportsVersion(String version) {
+            return !BLACKLIST.contains(version);
         }
     },
     FABRIC {

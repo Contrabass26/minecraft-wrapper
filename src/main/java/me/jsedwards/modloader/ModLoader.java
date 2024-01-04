@@ -5,13 +5,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.ConsoleWrapper;
+import me.jsedwards.dashboard.Server;
 import me.jsedwards.util.JsonUtils;
+import me.jsedwards.util.MinecraftUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import javax.swing.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -21,6 +24,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -56,16 +60,18 @@ public enum ModLoader {
         }
 
         @Override
-        public String getStartCommand(int mbMemory) {
+        public String getStartCommand(int mbMemory, Server server) {
             return "java -Xmx%sM -jar server.jar nogui".formatted(mbMemory);
         }
     },
     FORGE {
+        private static final Set<String> BLACKLIST = Set.of("1.14", "1.14.1", "1.16", "1.17");
+
         @Override
         public void downloadFiles(File destination, String mcVersion) throws IOException {
             Main.WINDOW.statusPanel.getJsoupFromUrl("https://files.minecraftforge.net/net/minecraftforge/forge/index_%s.html".formatted(mcVersion), document -> {
                 String messyUrl = document.select("div.link.link-boosted").get(0).child(0).attr("href");
-                Pattern pattern = Pattern.compile("url=(https://maven\\.minecraftforge\\.net/net/minecraftforge/forge/%s-([0-9.]+)/forge-%s-\\2-installer\\.jar)".formatted(mcVersion, mcVersion));
+                Pattern pattern = Pattern.compile("url=(https://maven\\.minecraftforge\\.net/.*)");
                 Matcher matcher = pattern.matcher(messyUrl);
                 MatchResult matchResult = matcher.results().findFirst().orElseThrow(IllegalStateException::new);
                 String url = matchResult.group(1);
@@ -95,8 +101,22 @@ public enum ModLoader {
         }
 
         @Override
-        public String getStartCommand(int mbMemory) {
+        public String getStartCommand(int mbMemory, Server server) {
+            File[] children = new File(server.serverLocation).listFiles();
+            if (children != null) {
+                for (File file : children) {
+                    String name = file.getName();
+                    if (name.matches("minecraft_server.*\\.jar")) {
+                        return "java -Xmx%sM -jar %s nogui".formatted(mbMemory, name);
+                    }
+                }
+            }
             return "java -Xmx" + mbMemory + "M @libraries/net/minecraftforge/forge/1.20.2-48.1.0/win_args.txt nogui %*";
+        }
+
+        @Override
+        public boolean supportsVersion(String version) {
+            return !BLACKLIST.contains(version);
         }
     },
     FABRIC {
@@ -109,8 +129,13 @@ public enum ModLoader {
         }
 
         @Override
-        public String getStartCommand(int mbMemory) {
+        public String getStartCommand(int mbMemory, Server server) {
             return "java -Xmx%sM -jar fabric-server-launch.jar nogui".formatted(mbMemory);
+        }
+
+        @Override
+        public boolean supportsVersion(String version) {
+            return MinecraftUtils.compareVersions(version, "1.14") >= 0;
         }
     },
     PUFFERFISH {
@@ -120,32 +145,43 @@ public enum ModLoader {
             String shortMcVersion = StringUtils.countMatches(mcVersion, '.') == 1 ? mcVersion : StringUtils.substringBeforeLast(mcVersion, ".");
             Main.WINDOW.statusPanel.getJsoupFromUrl("https://ci.pufferfish.host/job/Pufferfish-%s/changes".formatted(shortMcVersion), document -> {
                 Elements children = document.select("#main-panel").get(0).children();
+                String chosenBuild = null;
                 for (int i = 0; i < children.size(); i++) {
                     Element child = children.get(i);
                     if (child.is("h2")) {
                         Element description = children.get(i + 1);
                         if (description.is("ol") && description.text().contains(mcVersion)) {
                             // Get that one
-                            String versionNumber = StringUtils.substringBetween(child.text(), "#", " ");
-                            Main.WINDOW.statusPanel.getJsoupFromUrl("https://ci.pufferfish.host/job/Pufferfish-%s/%s".formatted(shortMcVersion, versionNumber), document1 -> {
-                                String relativeJarPath = document1.select(".fileList").get(0).child(0).child(0).child(1).child(0).attr("href");
-                                try {
-                                    Main.WINDOW.statusPanel.saveFileFromUrl(new URL("https://ci.pufferfish.host/job/Pufferfish-%s/%s/%s".formatted(shortMcVersion, versionNumber, relativeJarPath)), new File(destination.getAbsolutePath() + "/pufferfish.jar"));
-                                } catch (MalformedURLException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            });
+                            chosenBuild = StringUtils.substringBetween(child.text(), "#", " ");
                             break;
                         }
                     }
                 }
+                // Confirm manually
+                String message = chosenBuild == null ? "No relevant build was detected in https://ci.pufferfish.host/job/Pufferfish-%s/changes".formatted(shortMcVersion) : "Detected build %s in https://ci.pufferfish.host/job/Pufferfish-%s/changes".formatted(chosenBuild, shortMcVersion);
+                chosenBuild = (String) JOptionPane.showInputDialog(Main.WINDOW, message + " - enter the build to use:", "Enter build to use", JOptionPane.QUESTION_MESSAGE, null, null, chosenBuild == null ? "" : chosenBuild);
+                // Download jar
+                String finalBuild = chosenBuild;
+                Main.WINDOW.statusPanel.getJsoupFromUrl("https://ci.pufferfish.host/job/Pufferfish-%s/%s".formatted(shortMcVersion, finalBuild), document1 -> {
+                    String relativeJarPath = document1.select(".fileList").get(0).child(0).child(0).child(1).child(0).attr("href");
+                    try {
+                        Main.WINDOW.statusPanel.saveFileFromUrl(new URL("https://ci.pufferfish.host/job/Pufferfish-%s/%s/%s".formatted(shortMcVersion, finalBuild, relativeJarPath)), new File(destination.getAbsolutePath() + "/pufferfish.jar"));
+                    } catch (MalformedURLException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
             });
             ModLoader.writeEula(destination);
         }
 
         @Override
-        public String getStartCommand(int mbMemory) {
+        public String getStartCommand(int mbMemory, Server server) {
             return "java -Xmx%sM -jar pufferfish.jar nogui".formatted(mbMemory);
+        }
+
+        @Override
+        public boolean supportsVersion(String version) {
+            return MinecraftUtils.compareVersions(version, "1.17") >= 0;
         }
     };
 
@@ -198,8 +234,13 @@ public enum ModLoader {
         throw new RuntimeException("Mod loader not supported!");
     }
 
-    public String getStartCommand(int mbMemory) {
+    public String getStartCommand(int mbMemory, Server server) {
         throw new RuntimeException("Mod loader not supported!");
+    }
+
+    // Will only be tested back to 1.8.9
+    public boolean supportsVersion(String version) {
+        return true;
     }
 
     @Override

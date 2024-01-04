@@ -118,6 +118,11 @@ public enum ModLoader {
         public boolean supportsVersion(String version) {
             return !BLACKLIST.contains(version);
         }
+
+        @Override
+        public boolean supportsMods() {
+            return true;
+        }
     },
     FABRIC {
         @Override
@@ -136,6 +141,11 @@ public enum ModLoader {
         @Override
         public boolean supportsVersion(String version) {
             return MinecraftUtils.compareVersions(version, "1.14") >= 0;
+        }
+
+        @Override
+        public boolean supportsMods() {
+            return true;
         }
     },
     PUFFERFISH {
@@ -236,6 +246,10 @@ public enum ModLoader {
 
     public String getStartCommand(int mbMemory, Server server) {
         throw new RuntimeException("Mod loader not supported!");
+    }
+
+    public boolean supportsMods() {
+        return false;
     }
 
     // Will only be tested back to 1.8.9

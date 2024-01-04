@@ -21,6 +21,7 @@ public class ServerConfigPanel extends JPanel implements Card {
     private final JLabel serverNameLbl;
     private final JTabbedPane tabbedPane = new JTabbedPane();
     private final BasicPanel basicPanel;
+    private final ModsPanel modsPanel;
     private final AdvancedPanel[] advancedPanels = {
             new AdvancedPanel(ServerPropertiesManager::new, "Vanilla", s -> true),
             new AdvancedPanel(SpigotConfigManager::new, "Spigot", s -> s.modLoader == ModLoader.PUFFERFISH),
@@ -46,6 +47,8 @@ public class ServerConfigPanel extends JPanel implements Card {
         for (AdvancedPanel panel : advancedPanels) {
             tabbedPane.add(panel.name, panel);
         }
+        modsPanel = new ModsPanel();
+        tabbedPane.add("Mods", modsPanel);
         this.add(tabbedPane, new GridBagConstraints(1, 2, 3, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(10, 10, 10, 10), 0, 0));
     }
 
@@ -115,6 +118,9 @@ public class ServerConfigPanel extends JPanel implements Card {
         }
         // Set sliders on basic panel
         basicPanel.setServer(server);
+        // Mods panel
+        tabbedPane.setEnabledAt(advancedPanels.length + 1, server.modLoader.supportsMods());
+        modsPanel.setServer(server);
     }
 
     @Override

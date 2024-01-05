@@ -2,6 +2,9 @@ package me.jsedwards.mod;
 
 import me.jsedwards.modloader.ModLoader;
 
+import java.io.File;
+import java.io.IOException;
+
 public abstract class Project {
 
     public final String title;
@@ -17,6 +20,8 @@ public abstract class Project {
     }
 
     public abstract ModFile getFile(String mcVersion, ModLoader loader);
+
+    public abstract void downloadFile(ModFile file, File out) throws IOException;
 
     @Override
     public String toString() {

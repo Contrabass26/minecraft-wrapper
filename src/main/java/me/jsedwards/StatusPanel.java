@@ -10,10 +10,7 @@ import org.jsoup.nodes.Document;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicReference;
@@ -77,6 +74,54 @@ public class StatusPanel extends JPanel {
             setProgress(0);
         });
         thread.start();
+    }
+
+    public void curlToFile(URL in, File out) {
+        new Thread(() -> {
+            try {
+                String command = "curl -s -H \"User-Agent: Mozilla\" \"%s\" >> %s".formatted(in.toString(), out.getAbsolutePath());
+                Process process = Runtime.getRuntime().exec(command);
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    try (BufferedWriter writer = new BufferedWriter(new FileWriter(out))) {
+                        reader.transferTo(writer);
+                    }
+                }
+                process.waitFor();
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+    }
+
+    public Document curlToJsoup(URL in) {
+        String command = "curl -s -H \"User-Agent: Mozilla\" \"%s\"".formatted(in.toString());
+        try {
+            Process process = Runtime.getRuntime().exec(command);
+            StringBuilder content = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                reader.lines().forEachOrdered(content::append);
+            }
+            process.waitFor();
+            return Jsoup.parse(content.toString());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public JsonNode curlToJson(URL in) {
+        String command = "curl -s -H \"User-Agent: Mozilla\" \"%s\"".formatted(in.toString());
+        try {
+            Process process = Runtime.getRuntime().exec(command);
+            StringBuilder content = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                reader.lines().forEachOrdered(content::append);
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            process.waitFor();
+            return mapper.readTree(content.toString());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void innerSaveFileFromUrl(URL in, File out) throws IOException {

@@ -1,7 +1,12 @@
 package me.jsedwards.mod;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import me.jsedwards.Main;
 import me.jsedwards.modloader.ModLoader;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 
 public class ModrinthProject extends Project {
 
@@ -14,6 +19,11 @@ public class ModrinthProject extends Project {
 
     public ModFile getFile(String mcVersion, ModLoader loader) {
         return Modrinth.getVersionFile(id, loader, mcVersion);
+    }
+
+    @Override
+    public void downloadFile(ModFile file, File out) throws IOException {
+        Main.WINDOW.statusPanel.saveFileFromUrl(new URL(file.url()), out);
     }
 
     @Override

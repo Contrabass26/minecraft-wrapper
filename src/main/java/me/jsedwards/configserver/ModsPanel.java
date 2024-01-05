@@ -15,7 +15,6 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,13 +77,16 @@ public class ModsPanel extends JPanel {
         searchResults.addListSelectionListener(e -> infoPanel.setSelected(searchResults.getSelectedValue()));
         // Add button listener
         addBtn.addActionListener(e -> {
-            Project.ModFile file = searchResults.getSelectedValue().getFile(server.mcVersion, server.modLoader);
+            Project selectedValue = searchResults.getSelectedValue();
+            Project.ModFile file = selectedValue.getFile(server.mcVersion, server.modLoader);
             try {
-                Main.WINDOW.statusPanel.saveFileFromUrl(new URL(file.url()), new File(server.serverLocation + "/mods/" + file.filename()));
-                currentModsModel.addElement(file.filename());
-            } catch (MalformedURLException ex) {
+                String modsFolder = server.serverLocation + "/mods/";
+                new File(modsFolder).mkdir();
+                selectedValue.downloadFile(file, new File(modsFolder + file.filename()));
+            } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
+            currentModsModel.addElement(file.filename());
         });
     }
 

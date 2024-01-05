@@ -24,6 +24,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.MatchResult;
@@ -111,7 +112,9 @@ public enum ModLoader {
                     }
                 }
             }
-            return "java -Xmx" + mbMemory + "M @libraries/net/minecraftforge/forge/1.20.2-48.1.0/win_args.txt nogui %*";
+            String libsPath = server.serverLocation + "/libraries/net/minecraftforge/forge";
+            String version = Objects.requireNonNull(new File(libsPath).listFiles())[0].getName();
+            return "java -Xmx" + mbMemory + "M @libraries/net/minecraftforge/forge/" + version + "/win_args.txt nogui %*";
         }
 
         @Override

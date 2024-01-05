@@ -2,6 +2,7 @@ package me.jsedwards;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -79,15 +80,8 @@ public class StatusPanel extends JPanel {
     public void curlToFile(URL in, File out) {
         new Thread(() -> {
             try {
-                String command = "curl -s -H \"User-Agent: Mozilla\" \"%s\" >> %s".formatted(in.toString(), out.getAbsolutePath());
-                Process process = Runtime.getRuntime().exec(command);
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                    try (BufferedWriter writer = new BufferedWriter(new FileWriter(out))) {
-                        reader.transferTo(writer);
-                    }
-                }
-                process.waitFor();
-            } catch (IOException | InterruptedException e) {
+                FileUtils.copyURLToFile(in, out);
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }).start();

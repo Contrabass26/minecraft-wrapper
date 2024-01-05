@@ -10,7 +10,7 @@ import java.lang.management.ManagementFactory;
 
 public class OSUtils {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger("OSUtils");
 
     public static final String settingsLocation;
     public static final String dataDir;

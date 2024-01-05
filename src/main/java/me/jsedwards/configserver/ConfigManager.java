@@ -10,7 +10,7 @@ import java.util.function.Function;
 
 public interface ConfigManager extends ListModel<String> {
 
-    Logger LOGGER = LogManager.getLogger();
+    Logger LOGGER = LogManager.getLogger("ConfigManager");
     Function<Integer, Integer> VIEW_DISTANCE_OPTIMISATION = slider -> (int) Math.round(MathUtils.quadraticFunction(slider, 0.0022, 0.07, 3));
     Function<Integer, Integer> SIMULATION_DISTANCE_OPTIMISATION = slider -> (int) Math.round(MathUtils.quadraticFunction(slider, 0.0014, 0.13, 5));
 

@@ -32,7 +32,7 @@ import java.util.Map;
 @JsonDeserialize(using = ServerDeserialiser.class)
 public class Server extends JPanel {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger("Server");
     private static final List<Server> servers = new ArrayList<>();
     private static final TypeReference<List<Server>> SERVER_LIST_TYPE_REFERENCE = new TypeReference<>() {};
 

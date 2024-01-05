@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 
 public class ConsoleWrapper {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger("ConsoleWrapper");
 
     private final BufferedReader outReader;
     private final BufferedReader errReader;

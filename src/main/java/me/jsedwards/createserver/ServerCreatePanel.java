@@ -17,7 +17,7 @@ import java.util.List;
 
 public class ServerCreatePanel extends JPanel implements Card {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger("ServerCreatePanel");
 
     private final List<ValidatedStage> stages = new ArrayList<>();
 

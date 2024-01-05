@@ -16,7 +16,7 @@ import java.io.IOException;
 
 public class Window extends JFrame {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger("Window");
 
     public final CardPanel cardPanel;
     public final StatusPanel statusPanel;

@@ -2,6 +2,7 @@ package me.jsedwards;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,10 +11,7 @@ import org.jsoup.nodes.Document;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicReference;
@@ -77,6 +75,47 @@ public class StatusPanel extends JPanel {
             setProgress(0);
         });
         thread.start();
+    }
+
+    public void curlToFile(URL in, File out) {
+        new Thread(() -> {
+            try {
+                FileUtils.copyURLToFile(in, out);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+    }
+
+    public Document curlToJsoup(URL in) {
+        String command = "curl -s -H \"User-Agent: Mozilla\" \"%s\"".formatted(in.toString());
+        try {
+            Process process = Runtime.getRuntime().exec(command);
+            StringBuilder content = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                reader.lines().forEachOrdered(content::append);
+            }
+            process.waitFor();
+            return Jsoup.parse(content.toString());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public JsonNode curlToJson(URL in) {
+        String command = "curl -s -H \"User-Agent: Mozilla\" \"%s\"".formatted(in.toString());
+        try {
+            Process process = Runtime.getRuntime().exec(command);
+            StringBuilder content = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                reader.lines().forEachOrdered(content::append);
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            process.waitFor();
+            return mapper.readTree(content.toString());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void innerSaveFileFromUrl(URL in, File out) throws IOException {

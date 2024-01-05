@@ -211,7 +211,7 @@ public enum ModLoader {
     private static String FABRIC_LOADER_VERSION;
     private static String FABRIC_INSTALLER_VERSION;
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger("ModLoader");
 
     private static final TypeReference<ArrayList<FabricLoaderData>> FABRIC_LOADER_DATA_LIST_TYPE = new TypeReference<>() {};
     private static final TypeReference<ArrayList<FabricInstallerData>> FABRIC_INSTALLER_DATA_LIST_TYPE = new TypeReference<>() {};

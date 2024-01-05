@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 
 public class StatusPanel extends JPanel {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger("StatusPanel");
 
     private final JProgressBar progressBar; // Should only be accessed on event thread, use setMax and setProgress
     private final JLabel statusLbl; // Should only be accessed on event thread

@@ -15,7 +15,7 @@ import java.util.Set;
 
 public class ServerConfigPanel extends JPanel implements Card {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger("ServerConfigPanel");
 
     private String server = null;
     private final JLabel serverNameLbl;

@@ -24,7 +24,7 @@ public final class Main {
     public static final Font MAIN_FONT;
     public static final Font MONOSPACED_FONT = new Font("Monospaced", Font.PLAIN, 13);
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger("Main");
 
     static {
         GraphicsEnvironment environment = GraphicsEnvironment.getLocalGraphicsEnvironment();

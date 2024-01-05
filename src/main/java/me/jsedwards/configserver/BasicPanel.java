@@ -23,7 +23,7 @@ import java.util.List;
 
 class BasicPanel extends JPanel {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger("BasicPanel");
 
     private final ServerConfigPanel serverConfigPanel;
     private final JSlider memorySlider;

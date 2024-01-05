@@ -2,6 +2,7 @@ version = "1.0-SNAPSHOT"
 
 plugins {
     id("java")
+    id("io.ktor.plugin") version "2.3.7"
     application
 }
 
@@ -9,6 +10,12 @@ group = "com.contrabass"
 
 application {
     mainClass.set("me.jsedwards.Main")
+}
+
+ktor {
+    fatJar {
+        archiveFileName.set("${project.name}-${project.version}-fat.jar")
+    }
 }
 
 // LWJGL stuff

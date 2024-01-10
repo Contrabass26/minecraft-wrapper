@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class LocationStagePanel extends ValidatedStage {
@@ -48,10 +49,15 @@ public class LocationStagePanel extends ValidatedStage {
                     return;
                 }
                 try (Stream<Path> files = Files.list(path))  {
-                    if (files.findFirst().isPresent()) {
-                        LocationStagePanel.this.validationLabel.setText("Directory is not empty - files may be overwritten");
-                        LocationStagePanel.this.validationLabel.setForeground(Color.ORANGE);
-                        return;
+                    List<Path> children = files.toList();
+                    if (!children.isEmpty()) {
+                        for (Path child : children) {
+                            if (!child.endsWith(".DS_Store")) {
+                                LocationStagePanel.this.validationLabel.setText("Directory is not empty - files may be overwritten");
+                                LocationStagePanel.this.validationLabel.setForeground(Color.ORANGE);
+                                return;
+                            }
+                        }
                     }
                 } catch (IOException e) {
                     LocationStagePanel.this.validationLabel.setText("Unable to parse path");

@@ -163,7 +163,9 @@ public class Server extends JPanel {
 
     public void start() {
         try {
-            consoleWrapper = new ConsoleWrapper(modLoader.getStartCommand(mbMemory, this), new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log, topPanel.startStopButton::stop);
+            String startCommand = modLoader.getStartCommand(mbMemory, this);
+            LOGGER.info("Starting %s with command: %s".formatted(serverName, startCommand));
+            consoleWrapper = new ConsoleWrapper(startCommand, new File(this.serverLocation), this.consolePanel::log, this.consolePanel::log, topPanel.startStopButton::stop);
         } catch (IOException e) {
             consolePanel.log("Failed to start server: " + e.getMessage());
             LOGGER.error("Failed to start server", e);

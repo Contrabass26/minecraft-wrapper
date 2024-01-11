@@ -15,13 +15,14 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -166,7 +167,8 @@ public enum ModLoader {
         public void downloadFiles(File destination, String mcVersion) throws IOException {
             // Pufferfish files
             String shortMcVersion = StringUtils.countMatches(mcVersion, '.') == 1 ? mcVersion : StringUtils.substringBeforeLast(mcVersion, ".");
-            Main.WINDOW.statusPanel.getJsoupFromUrl("https://ci.pufferfish.host/job/Pufferfish-%s/changes".formatted(shortMcVersion), document -> {
+            String changelogUrl = "https://ci.pufferfish.host/job/Pufferfish-%s/changes".formatted(shortMcVersion);
+            Main.WINDOW.statusPanel.getJsoupFromUrl(changelogUrl, document -> {
                 Elements children = document.select("#main-panel").get(0).children();
                 String chosenBuild = null;
                 for (int i = 0; i < children.size(); i++) {
@@ -181,8 +183,22 @@ public enum ModLoader {
                     }
                 }
                 // Confirm manually
-                String message = chosenBuild == null ? "No relevant build was detected in https://ci.pufferfish.host/job/Pufferfish-%s/changes".formatted(shortMcVersion) : "Detected build %s in https://ci.pufferfish.host/job/Pufferfish-%s/changes".formatted(chosenBuild, shortMcVersion);
-                chosenBuild = (String) JOptionPane.showInputDialog(Main.WINDOW, message + " - enter the build to use:", "Enter build to use", JOptionPane.QUESTION_MESSAGE, null, null, chosenBuild == null ? "" : chosenBuild);
+                String message = chosenBuild == null ? ("No relevant build was detected on <a href=" + changelogUrl + ">changelog</a>") : ("Detected build %s in <a href=" + changelogUrl + ">changelog</a>").formatted(chosenBuild, shortMcVersion);
+                final JTextPane messageLabel = new JTextPane();
+                messageLabel.setContentType("text/html");
+                messageLabel.setText("<html>" + message + " - enter the build to use:</html>");
+                messageLabel.setEditable(false);
+                messageLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseReleased(MouseEvent e) {
+                        try {
+                            Desktop.getDesktop().browse(new URI(changelogUrl));
+                        } catch (IOException | URISyntaxException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                });
+                chosenBuild = (String) JOptionPane.showInputDialog(Main.WINDOW, messageLabel, "Enter build to use", JOptionPane.QUESTION_MESSAGE, null, null, chosenBuild == null ? "" : chosenBuild);
                 // Download jar
                 String finalBuild = chosenBuild;
                 Main.WINDOW.statusPanel.getJsoupFromUrl("https://ci.pufferfish.host/job/Pufferfish-%s/%s".formatted(shortMcVersion, finalBuild), document1 -> {

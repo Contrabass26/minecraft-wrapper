@@ -16,7 +16,7 @@ public class MemoryStagePanel extends ValidatedStage {
         super();
         setLayout(new GridBagLayout());
         // Title label
-        JLabel titleLbl = new JLabel("Server name:");
+        JLabel titleLbl = new JLabel("Memory allocation:");
         titleLbl.setFont(Main.MAIN_FONT.deriveFont(18f));
         this.add(titleLbl, new GridBagConstraints(1, 1, 1, 1, 0, 0, GridBagConstraints.NORTHWEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 20), 0, 0));
         // Snap checkbox

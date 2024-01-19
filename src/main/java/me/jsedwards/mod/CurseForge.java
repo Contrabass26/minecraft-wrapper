@@ -86,7 +86,7 @@ public class CurseForge {
         try {
             Document document = Main.WINDOW.statusPanel.curlToJsoup(new URL(projectUrl));
             Element detailsBox = document.select(".project-details-box").get(0);
-            return detailsBox.child(0).child(1).child(5).text();
+            return detailsBox.child(1).child(1).child(5).text();
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

@@ -9,6 +9,7 @@ import me.jsedwards.dashboard.Server;
 import me.jsedwards.util.JsonUtils;
 import me.jsedwards.util.MinecraftUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.nodes.Element;
@@ -115,7 +116,8 @@ public enum ModLoader {
             }
             String libsPath = server.serverLocation + "/libraries/net/minecraftforge/forge";
             String version = Objects.requireNonNull(new File(libsPath).listFiles())[0].getName();
-            return "java -Xmx" + mbMemory + "M @libraries/net/minecraftforge/forge/" + version + "/win_args.txt nogui %*";
+            String argsName = SystemUtils.IS_OS_WINDOWS ? "win_args.txt" : "unix_args.txt";
+            return "java -Xmx" + mbMemory + "M @libraries/net/minecraftforge/forge/" + version + "/" + argsName + " nogui %*";
         }
 
         @Override

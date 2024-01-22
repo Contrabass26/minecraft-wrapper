@@ -25,7 +25,8 @@ public class ServerConfigPanel extends JPanel implements Card {
     private final AdvancedPanel[] advancedPanels = {
             new AdvancedPanel(ServerPropertiesManager::new, "Vanilla", s -> true),
             new AdvancedPanel(SpigotConfigManager::new, "Spigot", s -> s.modLoader == ModLoader.PUFFERFISH),
-            new AdvancedPanel(BukkitConfigManager::new, "Bukkit", s -> s.modLoader == ModLoader.PUFFERFISH)
+            new AdvancedPanel(BukkitConfigManager::new, "Bukkit", s -> s.modLoader == ModLoader.PUFFERFISH),
+            new AdvancedPanel(PufferfishConfigManager::new, "Pufferfish", s -> s.modLoader == ModLoader.PUFFERFISH)
     };
 
     public ServerConfigPanel() {

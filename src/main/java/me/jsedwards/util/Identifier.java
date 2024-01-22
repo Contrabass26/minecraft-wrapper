@@ -17,6 +17,13 @@ public class Identifier implements Comparable<Identifier> {
         this.path = StringUtils.substringAfter(s, ':');
     }
 
+    public static String getShortPath(String path) {
+        if (path.contains("/")) {
+            return StringUtils.substringAfterLast(path, '/');
+        }
+        return path;
+    }
+
     @Override
     public String toString() {
         return namespace + ":" + path;

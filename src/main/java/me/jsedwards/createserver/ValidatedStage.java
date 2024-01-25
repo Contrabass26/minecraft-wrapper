@@ -4,5 +4,5 @@ import javax.swing.*;
 
 public abstract class ValidatedStage extends JPanel {
 
-    public abstract boolean isStageValid();
+    public abstract boolean validateStage();
 }

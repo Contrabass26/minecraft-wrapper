@@ -51,8 +51,16 @@ public class NameStagePanel extends ValidatedStage {
         return textField.getText().strip();
     }
 
-    public boolean isStageValid() {
+    public boolean validateStage() {
         String text = textField.getText();
-        return !text.isEmpty() && !Server.exists(text);
+        if (text.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No server name entered", "Invalid options", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        if (Server.exists(text)) {
+            JOptionPane.showMessageDialog(null, "A server with this name already exists", "Invalid options", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        return true;
     }
 }

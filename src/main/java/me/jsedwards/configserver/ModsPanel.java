@@ -66,7 +66,9 @@ public class ModsPanel extends JPanel {
         // Remove button
         JButton removeBtn = new JButton("Remove");
         removeBtn.addActionListener(e -> {
-            new File(server.serverLocation + "/mods/" + currentMods.getSelectedValue()).delete();
+            String selected = currentMods.getSelectedValue();
+            if (selected == null) return;
+            new File(server.serverLocation + "/mods/" + selected).delete();
             currentModsModel.remove(currentMods.getSelectedIndex());
         });
         this.add(removeBtn, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 4, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
@@ -78,6 +80,7 @@ public class ModsPanel extends JPanel {
         // Add button listener
         addBtn.addActionListener(e -> {
             Project selectedValue = searchResults.getSelectedValue();
+            if (selectedValue == null) return;
             Project.ModFile file = selectedValue.getFile(server.mcVersion, server.modLoader);
             try {
                 String modsFolder = server.serverLocation + "/mods/";

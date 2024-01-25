@@ -3,6 +3,7 @@ package me.jsedwards.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.net.URL;
 
@@ -13,7 +14,8 @@ public class MinecraftUtils {
             JsonNode root = mapper.readTree(new URL("https://api.mojang.com/users/profiles/minecraft/" + username));
             return formatUuid(root.get("id").textValue());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            JOptionPane.showMessageDialog(null, "Player username has no associated UUID", "Invalid player name", JOptionPane.ERROR_MESSAGE);
+            return null;
         }
     }
 

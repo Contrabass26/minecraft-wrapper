@@ -17,6 +17,7 @@ public class WhitelistedPlayer {
         WhitelistedPlayer player = new WhitelistedPlayer();
         player.name = name;
         player.uuid = MinecraftUtils.getPlayerUuid(name);
+        if (player.uuid == null) return null;
         return player;
     }
 }

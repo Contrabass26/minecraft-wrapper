@@ -19,6 +19,7 @@ public class OperatorPlayer {
         OperatorPlayer player = new OperatorPlayer();
         player.name = name;
         player.uuid = MinecraftUtils.getPlayerUuid(name);
+        if (player.uuid == null) return null;
         player.level = 4;
         player.bypassesPlayerLimit = false;
         return player;

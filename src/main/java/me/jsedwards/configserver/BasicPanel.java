@@ -146,7 +146,7 @@ class BasicPanel extends JPanel {
             whitelistAddBtn.addActionListener(e -> {
                 String username = JOptionPane.showInputDialog(Main.WINDOW, "Enter player name:", "Add to whitelist", JOptionPane.QUESTION_MESSAGE);
                 WhitelistedPlayer player = WhitelistedPlayer.create(username);
-                whitelistModel.addElement(player);
+                if (player != null) whitelistModel.addElement(player);
             });
             JButton whitelistRemoveBtn = new JButton("Remove selected");
             whitelistRemoveBtn.addActionListener(e -> {
@@ -169,7 +169,7 @@ class BasicPanel extends JPanel {
             opsAddBtn.addActionListener(e -> {
                 String username = JOptionPane.showInputDialog(Main.WINDOW, "Enter player name:", "Add operator", JOptionPane.QUESTION_MESSAGE);
                 OperatorPlayer player = OperatorPlayer.create(username);
-                opsModel.addElement(player);
+                if (player != null) opsModel.addElement(player);
             });
             JButton opsRemoveBtn = new JButton("Remove selected");
             opsRemoveBtn.addActionListener(e -> {

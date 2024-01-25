@@ -27,7 +27,7 @@ public class Modrinth {
             }
             return projects;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return new ArrayList<>();
         }
     }
 

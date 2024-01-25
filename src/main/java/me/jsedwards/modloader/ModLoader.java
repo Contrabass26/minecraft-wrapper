@@ -37,7 +37,7 @@ public enum ModLoader {
 
     VANILLA {
         @Override
-        public void downloadFiles(File destination, String mcVersion) throws IOException {
+        public void downloadFiles(File destination, String mcVersion, Runnable doAfter) throws IOException {
             Main.WINDOW.statusPanel.getJsonNodeFromUrl(new URL("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"), node -> {
                 JsonNode versions = node.get("versions");
                 if (versions instanceof ArrayNode list) {
@@ -47,7 +47,7 @@ public enum ModLoader {
                                 Main.WINDOW.statusPanel.getJsonNodeFromUrl(new URL(version.get("url").textValue()), node1 -> {
                                     String url = node1.get("downloads").get("server").get("url").textValue();
                                     try {
-                                        Main.WINDOW.statusPanel.saveFileFromUrl(new URL(url), new File(destination.getAbsolutePath() + "/server.jar"));
+                                        Main.WINDOW.statusPanel.saveFileFromUrl(new URL(url), new File(destination.getAbsolutePath() + "/server.jar"), doAfter);
                                     } catch (MalformedURLException e) {
                                         throw new RuntimeException(e);
                                     }
@@ -71,7 +71,7 @@ public enum ModLoader {
         private static final Set<String> BLACKLIST = Set.of("1.14", "1.14.1", "1.16", "1.17");
 
         @Override
-        public void downloadFiles(File destination, String mcVersion) throws IOException {
+        public void downloadFiles(File destination, String mcVersion, Runnable doAfter) throws IOException {
             Main.WINDOW.statusPanel.getJsoupFromUrl("https://files.minecraftforge.net/net/minecraftforge/forge/index_%s.html".formatted(mcVersion), document -> {
                 String messyUrl = document.select("div.link.link-boosted").get(0).child(0).attr("href");
                 Pattern pattern = Pattern.compile("url=(https://maven\\.minecraftforge\\.net/.*)");
@@ -91,6 +91,7 @@ public enum ModLoader {
                                 LOGGER.info("Forge installer for %s finished, outputting %s lines".formatted(mcVersion, lineCount.get()));
                                 Main.WINDOW.statusPanel.setStatus("Ready");
                                 Main.WINDOW.statusPanel.setProgress(0);
+                                doAfter.run();
                             });
                         } catch (IOException e) {
                             throw new RuntimeException(e);
@@ -137,9 +138,9 @@ public enum ModLoader {
     },
     FABRIC {
         @Override
-        public void downloadFiles(File destination, String mcVersion) throws IOException {
+        public void downloadFiles(File destination, String mcVersion, Runnable onSuccess) throws IOException {
             // Get fabric-server-launch.jar
-            Main.WINDOW.statusPanel.saveFileFromUrl(new URL("https://meta.fabricmc.net/v2/versions/loader/%s/%s/%s/server/jar".formatted(mcVersion, FABRIC_LOADER_VERSION, FABRIC_INSTALLER_VERSION)), new File(destination.getAbsolutePath() + "/fabric-server-launch.jar"));
+            Main.WINDOW.statusPanel.saveFileFromUrl(new URL("https://meta.fabricmc.net/v2/versions/loader/%s/%s/%s/server/jar".formatted(mcVersion, FABRIC_LOADER_VERSION, FABRIC_INSTALLER_VERSION)), new File(destination.getAbsolutePath() + "/fabric-server-launch.jar"), onSuccess);
             // eula.txt
             ModLoader.writeEula(destination);
         }
@@ -166,7 +167,7 @@ public enum ModLoader {
     },
     PUFFERFISH {
         @Override
-        public void downloadFiles(File destination, String mcVersion) throws IOException {
+        public void downloadFiles(File destination, String mcVersion, Runnable doAfter) throws IOException {
             // Pufferfish files
             String shortMcVersion = StringUtils.countMatches(mcVersion, '.') == 1 ? mcVersion : StringUtils.substringBeforeLast(mcVersion, ".");
             String changelogUrl = "https://ci.pufferfish.host/job/Pufferfish-%s/changes".formatted(shortMcVersion);
@@ -206,7 +207,7 @@ public enum ModLoader {
                 Main.WINDOW.statusPanel.getJsoupFromUrl("https://ci.pufferfish.host/job/Pufferfish-%s/%s".formatted(shortMcVersion, finalBuild), document1 -> {
                     String relativeJarPath = document1.select(".fileList").get(0).child(0).child(0).child(1).child(0).attr("href");
                     try {
-                        Main.WINDOW.statusPanel.saveFileFromUrl(new URL("https://ci.pufferfish.host/job/Pufferfish-%s/%s/%s".formatted(shortMcVersion, finalBuild, relativeJarPath)), new File(destination.getAbsolutePath() + "/pufferfish.jar"));
+                        Main.WINDOW.statusPanel.saveFileFromUrl(new URL("https://ci.pufferfish.host/job/Pufferfish-%s/%s/%s".formatted(shortMcVersion, finalBuild, relativeJarPath)), new File(destination.getAbsolutePath() + "/pufferfish.jar"), doAfter);
                     } catch (MalformedURLException e) {
                         throw new RuntimeException(e);
                     }
@@ -271,7 +272,7 @@ public enum ModLoader {
         return ModLoader.values().length;
     }
 
-    public void downloadFiles(File destination, String mcVersion) throws IOException {
+    public void downloadFiles(File destination, String mcVersion, Runnable doAfter) throws IOException {
         throw new RuntimeException("Mod loader not supported!");
     }
 

@@ -106,7 +106,7 @@ public class LocationStagePanel extends ValidatedStage {
             if (!children.isEmpty()) {
                 for (Path child : children) {
                     if (!child.endsWith(".DS_Store")) {
-                        return JOptionPane.showConfirmDialog(null, "Server location is not empty - files may be overwritten", "Questionable options", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE) == 0;
+                        return JOptionPane.showConfirmDialog(null, "Server location is not empty - files may be overwritten", "Questionable options", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.OK_OPTION;
                     }
                 }
             }

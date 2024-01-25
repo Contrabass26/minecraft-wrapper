@@ -53,7 +53,7 @@ public class ServerCreatePanel extends JPanel implements Card {
         JButton createButton = new JButton("Create server");
         createButton.setFont(Main.MAIN_FONT);
         createButton.addActionListener(e -> {
-            if (stages.stream().allMatch(ValidatedStage::isStageValid)) {
+            if (stages.stream().allMatch(ValidatedStage::validateStage)) {
                 if (!modLoaderStagePanel.getSelectedModLoader().supportsVersion(mcVersionStagePanel.getSelectedVersion())) {
                     JOptionPane.showMessageDialog(Main.WINDOW, "Mod loader %s does not support Minecraft version %s".formatted(modLoaderStagePanel.getSelectedModLoader().toString(), mcVersionStagePanel.getSelectedVersion()), "Minecraft version not supported", JOptionPane.ERROR_MESSAGE);
                 } else {

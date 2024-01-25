@@ -62,7 +62,12 @@ public class MemoryStagePanel extends ValidatedStage {
     }
 
     @Override
-    public boolean isStageValid() {
+    public boolean validateStage() {
+        if (slider.getValue() < 2048) {
+            return JOptionPane.showConfirmDialog(null, "You probably need more memory than that", "Questionable options", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.OK_OPTION;
+        } else if (slider.getMaximum() - slider.getValue() < 1024) {
+            return JOptionPane.showConfirmDialog(null, "Other programs will probably need more memory", "Questionable options", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.OK_OPTION;
+        }
         return true;
     }
 

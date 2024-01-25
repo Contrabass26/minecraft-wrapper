@@ -86,7 +86,34 @@ public class LocationStagePanel extends ValidatedStage {
     }
 
     @Override
-    public boolean isStageValid() {
-        return !this.textField.getText().isEmpty();
+    public boolean validateStage() {
+        String text = LocationStagePanel.this.textField.getText();
+        if (text.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No server location entered", "Invalid options", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        final Path path = new File(text).toPath();
+        if (!Files.exists(path)) {
+            JOptionPane.showMessageDialog(null, "Server location does not exist", "Invalid options", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        if (!Files.isDirectory(path)) {
+            JOptionPane.showMessageDialog(null, "Server location is not a directory", "Invalid options", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        try (Stream<Path> files = Files.list(path))  {
+            List<Path> children = files.toList();
+            if (!children.isEmpty()) {
+                for (Path child : children) {
+                    if (!child.endsWith(".DS_Store")) {
+                        return JOptionPane.showConfirmDialog(null, "Server location is not empty - files may be overwritten", "Questionable options", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.OK_OPTION;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Server location is not valid", "Invalid options", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        return true;
     }
 }

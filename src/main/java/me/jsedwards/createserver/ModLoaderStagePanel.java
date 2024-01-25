@@ -45,7 +45,7 @@ public class ModLoaderStagePanel extends ValidatedStage {
     }
 
     @Override
-    public boolean isStageValid() {
+    public boolean validateStage() {
         return true;
     }
 }

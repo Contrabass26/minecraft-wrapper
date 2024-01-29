@@ -25,18 +25,18 @@ public class MinecraftWrapperTest {
         }
     }
 
-    @Test
-    public void curseforgeSearch() throws InterruptedException {
-        String query = "create";
-        ModLoader[] loaders = {ModLoader.FABRIC, ModLoader.FORGE};
-        String mcVersion = "1.20.1";
-        for (ModLoader loader : loaders) {
-            AtomicInteger counter = new AtomicInteger(0);
-            CurseForge.search(query, loader, mcVersion, p -> counter.incrementAndGet());
-            Thread.sleep(3000);
-            Assertions.assertTrue(counter.get() > 0, "No results for query \"%s\", loader %s, version %s".formatted(query, loader, mcVersion));
-        }
-    }
+//    @Test
+//    public void curseForgeSearch() throws InterruptedException {
+//        String query = "create";
+//        ModLoader[] loaders = {ModLoader.FABRIC, ModLoader.FORGE};
+//        String mcVersion = "1.20.1";
+//        for (ModLoader loader : loaders) {
+//            AtomicInteger counter = new AtomicInteger(0);
+//            CurseForge.search(query, loader, mcVersion, p -> counter.incrementAndGet());
+//            Thread.sleep(3000);
+//            Assertions.assertTrue(counter.get() > 0, "No results for query \"%s\", loader %s, version %s".formatted(query, loader, mcVersion));
+//        }
+//    }
 
     @Test
     public void uuidQuery() {

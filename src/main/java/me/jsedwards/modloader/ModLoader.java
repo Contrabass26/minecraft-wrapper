@@ -227,8 +227,8 @@ public enum ModLoader {
         }
     };
 
-    private static String FABRIC_LOADER_VERSION;
-    private static String FABRIC_INSTALLER_VERSION;
+    public static String FABRIC_LOADER_VERSION;
+    public static String FABRIC_INSTALLER_VERSION;
 
     private static final Logger LOGGER = LogManager.getLogger("ModLoader");
 

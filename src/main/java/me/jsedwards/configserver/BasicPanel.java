@@ -31,6 +31,7 @@ class BasicPanel extends JPanel {
     private final List<JCheckBox> checkBoxes;
     private final JsonConfigPanel jsonConfigPanel;
     private Server server = null;
+    private boolean applicationModifyingOptimisation = true;
 
     public BasicPanel(ServerConfigPanel serverConfigPanel) {
         super();
@@ -98,6 +99,8 @@ class BasicPanel extends JPanel {
         this.add(optimisationPanel, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
         // Padding
         this.add(new JPanel(), new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+        // Allow optimisation slider listening
+        applicationModifyingOptimisation = false;
     }
 
     public void save() {
@@ -241,7 +244,9 @@ class BasicPanel extends JPanel {
     public void setServer(Server server) {
         this.server = server;
         memorySlider.setValue(server.mbMemory);
+        applicationModifyingOptimisation = true;
         optimiseSlider.setValue(server.optimisationLevel);
+        applicationModifyingOptimisation = false;
         for (JCheckBox checkBox : checkBoxes) {
             Identifier key = new Identifier(checkBox.getText());
             checkBox.setSelected(serverConfigPanel.isKeyOptimised(key));
@@ -253,6 +258,7 @@ class BasicPanel extends JPanel {
     private JSlider createSlider() {
         JSlider slider = new JSlider(0, 100);
         slider.addChangeListener(e -> {
+            if (applicationModifyingOptimisation) return;
             int sliderValue = slider.getValue();
             serverConfigPanel.optimiseConfigs(sliderValue);
             server.optimisationLevel = sliderValue;

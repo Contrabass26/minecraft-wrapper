@@ -100,7 +100,7 @@ public class ServerPropertiesManager extends DefaultListModel<String> implements
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(propertiesFile))) {
             properties.store(writer, "");
             LOGGER.info("Saved properties to " + propertiesFile.getAbsolutePath());
-            saved = false;
+            saved = true;
         } catch (IOException e) {
             LOGGER.error("Failed to save properties to " + propertiesFile.getAbsolutePath(), e);
         }

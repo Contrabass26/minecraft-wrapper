@@ -60,7 +60,7 @@ public class SpigotConfigManager extends YamlConfigManager {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Failed to get Spigot property descriptions", e);
         }
         OPTIMISATION_FUNCTIONS.put("world-settings/default/view-distance", ConfigManager.VIEW_DISTANCE_OPTIMISATION);
         OPTIMISATION_FUNCTIONS.put("world-settings/default/simulation-distance", ConfigManager.SIMULATION_DISTANCE_OPTIMISATION);

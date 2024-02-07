@@ -3,20 +3,14 @@ package me.jsedwards;
 import com.formdev.flatlaf.util.SystemInfo;
 import me.jsedwards.about.AboutWindow;
 import me.jsedwards.dashboard.Server;
-import me.jsedwards.menubar.ConfiguredMenuBar;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.desktop.AboutEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
 
 public class Window extends JFrame {
-
-    private static final Logger LOGGER = LogManager.getLogger("Window");
 
     public final CardPanel cardPanel;
     public final StatusPanel statusPanel;
@@ -37,13 +31,6 @@ public class Window extends JFrame {
         this.add(statusPanel, BorderLayout.SOUTH);
         // Add servers to GUI elements
         Server.addToGUI(this.cardPanel);
-        // Menu bar - native if macOS, otherwise at the top
-        try {
-            ConfiguredMenuBar menuBar = new ConfiguredMenuBar("main");
-            this.setJMenuBar(menuBar);
-        } catch (IOException e) {
-            LOGGER.error("Failed to load menu bar config", e);
-        }
         // Transparent title bar and full window content (macOS)
         if (SystemInfo.isMacFullWindowContentSupported) {
             this.getRootPane().putClientProperty("apple.awt.transparentTitleBar", true);

@@ -1,51 +1,68 @@
 package me.jsedwards.mod;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import me.jsedwards.Main;
-import me.jsedwards.dashboard.ConsoleWrapper;
 import me.jsedwards.modloader.ModLoader;
-import me.jsedwards.util.OSUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
+import me.jsedwards.util.MinecraftUtils;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class CurseForge {
 
-    public static void search(String query, ModLoader loader, String mcVersion, Consumer<CurseForgeProject> onSuccess) { // onSuccess will be executed on a different thread
-        int gameFlavour = loader.getGameFlavour();
-        if (gameFlavour == -1) return;
-        String url = "https://www.curseforge.com/minecraft/search?page=1&pageSize=20&sortType=1&class=mc-mods&search=%s&gameVersion=%s&gameFlavorsIds=%s".formatted(query, mcVersion, gameFlavour);
+    private static InputStream apiQuery(String query) {
         try {
-            new ConsoleWrapper("curl -s -H \"User-Agent: Mozilla\" \"%s\"".formatted(url), new File(OSUtils.userHome), s -> {
-                Document document = Jsoup.parse(s);
-                Elements results = document.select(".results-container").get(0).children();
-                for (Element result : results) {
-                    if (!result.hasClass(" project-card")) continue;
-                    CurseForgeProject.Builder builder = CurseForgeProject.builder();
-                    for (Element child : result.children()) {
-                        if (child.hasClass("name")) builder.title = child.text();
-                        else if (child.hasClass("description")) builder.description = child.text();
-                        else if (child.hasClass("art")) builder.icon = child.child(0).attr("src");
-                        else if (child.hasClass("author")) builder.author = child.child(0).child(0).text();
-                        else if (child.hasClass("overlay-link")) {
-                            builder.numericId = getNumericProjectId("https://www.curseforge.com" + child.attr("href"));
-                            builder.stringId = StringUtils.substringAfterLast(child.attr("href"), '/');
-                        }
-                    }
-                    onSuccess.accept(builder.build());
-                }
-            }, s -> {}, () -> {});
+            String apiKey = System.getenv("CF_API_KEY");
+            String url_str = "https://api.curseforge.com/" + query;
+            System.out.println(url_str);
+            System.out.println(apiKey);
+            URL url = URI.create(url_str).toURL();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("x-api-key", apiKey);
+            return connection.getInputStream();
         } catch (IOException e) {
+            return null;
+        }
+    }
+
+    public static void search(String query, ModLoader loader, String mcVersion, Consumer<CurseForgeProject> onSuccess) { // onSuccess will be executed on a different thread
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(apiQuery("v1/mods/search?gameId=432&gameVersion=%s&searchFilter=%s".formatted(mcVersion, query.replace(" ", "%20")))))) {
+            reader.lines().forEach(System.out::println);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static MinecraftData getMinecraftData(String version) {
+        try (InputStream stream = apiQuery("v1/minecraft/version/" + version)) {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode data = mapper.readTree(stream).get("data");
+            return new MinecraftData(data);
+        } catch (IOException | NullPointerException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static ModLoaderData getModLoaderData(ModLoader loader) {
+        try (InputStream stream = apiQuery("v1/minecraft/modloader/" + loader.toString().toLowerCase())) {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode data = mapper.readTree(stream).get("data");
+            return new ModLoaderData(data);
+        } catch (IOException | NullPointerException e) {
             throw new RuntimeException(e);
         }
     }
@@ -89,6 +106,20 @@ public class CurseForge {
             return detailsBox.child(1).child(1).child(5).text();
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private record MinecraftData(int id) {
+
+        public MinecraftData(JsonNode node) {
+            this(node.get("id").intValue());
+        }
+    }
+
+    private record ModLoaderData() {
+
+        public ModLoaderData(JsonNode node) {
+            this();
         }
     }
 }

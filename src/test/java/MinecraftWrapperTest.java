@@ -12,7 +12,7 @@ public class MinecraftWrapperTest {
     @Test
     public void fabricVersions() {
         Assertions.assertEquals("0.15.11", ModLoader.FABRIC_LOADER_VERSION, "Wrong Fabric loader version");
-        Assertions.assertEquals("1.0.0", ModLoader.FABRIC_INSTALLER_VERSION, "Wrong Fabric installer version");
+        Assertions.assertEquals("1.0.1", ModLoader.FABRIC_INSTALLER_VERSION, "Wrong Fabric installer version");
     }
 
     @Test

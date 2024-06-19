@@ -76,7 +76,8 @@ public class CurseForge {
         InputStream stream = apiQuery("v1/mods/%s/files?gameVersion=%s&modLoaderType=%s".formatted(modId, mcVersion, loader.getCfModLoaderType()));
         ObjectMapper mapper = new ObjectMapper();
         try {
-            JsonNode file = mapper.readTree(stream).get("data").get(0);
+            JsonNode intermediate = mapper.readTree(stream);
+            JsonNode file = intermediate.get("data").get(0);
             String filename = file.get("fileName").textValue();
             String url = file.get("downloadUrl").textValue();
             return new Project.ModFile(url, filename);

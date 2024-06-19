@@ -17,9 +17,9 @@ public class MinecraftWrapperTest {
 
     @Test
     public void modrinthSearch() {
-        String query = "create";
-        ModLoader[] loaders = {ModLoader.FABRIC, ModLoader.FORGE};
-        String mcVersion = "1.20.1";
+        String query = "jei";
+        ModLoader[] loaders = {ModLoader.FABRIC, ModLoader.FORGE, ModLoader.NEOFORGE};
+        String mcVersion = "1.20.4";
         for (ModLoader loader : loaders) {
             Assertions.assertTrue(Modrinth.search(query, loader, mcVersion).size() > 0, "No results for query \"%s\", loader %s, version %s".formatted(query, loader, mcVersion));
         }

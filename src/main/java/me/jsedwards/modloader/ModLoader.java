@@ -17,6 +17,9 @@ import org.apache.logging.log4j.Logger;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
 import javax.swing.*;
@@ -283,26 +286,46 @@ public enum ModLoader {
         private static final Logger LOGGER = LogManager.getLogger("Neoforge");
         static {
             SUPPORTED_VERSIONS = new HashSet<>();
-            StatusPanel.getJsoupFromUrl("https://maven.neoforged.net/#/releases/net/neoforged/neoforge", document -> {
-                Element root = document.select("#browser-list").first().child(1);
-                for (Element child : root.children()) {
-                    String version = child.firstChild().attr("href").substring(34);
-                    SUPPORTED_VERSIONS.add("1." + StringUtils.substringBeforeLast(version, "."));
-                }
-                LOGGER.info("Detected %s supported Neoforge versions".formatted(SUPPORTED_VERSIONS.size()));
-            });
+            List<String> versions = getVersions();
+            for (String version : versions) {
+                SUPPORTED_VERSIONS.add(normaliseVersion(version));
+            }
+            LOGGER.info("Detected %s versions supported by Neoforge".formatted(SUPPORTED_VERSIONS.size()));
         }
 
-        private static List<String> getVersions() {
+        private static String normaliseVersion(String version) {
+            version = "1." + StringUtils.substringBeforeLast(version, ".");
+            if (version.endsWith(".0")) return version.substring(0, version.length() - 2);
+            return version;
+        }
+
+        private static List<String> getVersions() { // Starting with the latest version
+            List<String> versions = new ArrayList<>();
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             try {
                 factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 Document document = builder.parse("https://maven.neoforged.net/releases/net/neoforged/neoforge/maven-metadata.xml");
-
+                org.w3c.dom.Element root = document.getDocumentElement();
+                root.normalize();
+                NodeList nodes = document.getElementsByTagName("version");
+                for (int i = nodes.getLength() - 1; i >= 0; i--) {
+                    Node node = nodes.item(i).getFirstChild();
+                    if (node instanceof Text textNode) {
+                        versions.add(textNode.getWholeText());
+                    } else {
+                        LOGGER.warn("Suspicious node found of type %s".formatted(node.getClass().getName()));
+                    }
+                }
             } catch (ParserConfigurationException | IOException | SAXException e) {
-                throw new RuntimeException(e);
+                LOGGER.warn("Failed to detect Neoforge versions", e);
             }
+            return versions;
+        }
+
+        @Override
+        public int getCfModLoaderType() {
+            return 6;
         }
 
         @Override
@@ -312,39 +335,37 @@ public enum ModLoader {
 
         @Override
         public void downloadFiles(File destination, String mcVersion, Runnable doAfter) throws IOException {
-            StatusPanel.getJsoupFromUrl("https://maven.neoforged.net/#/releases/net/neoforged/neoforge", document -> {
-                Element root = document.select("#browser-list").first().child(1);
-                for (Element child : root.children().reversed()) {
-                    String messyVersion = child.firstChild().attr("href").substring(34);
-                    String version = "1." + StringUtils.substringBeforeLast(messyVersion, ".");
-                    if (version.equals(mcVersion)) {
-                        // Found the highest one
-                        String url = "https://maven.neoforged.net/releases/net/neoforged/neoforge/%s/neoforge-%s-installer.jar".formatted(messyVersion, messyVersion);
-                        try {
-                            Main.WINDOW.statusPanel.saveFileFromUrl(new URL(url), new File(destination.getAbsolutePath() + "/installer.jar"), () -> {
-                                try {
-                                    Main.WINDOW.statusPanel.setMax(22507); // Heuristic value based on 1.20.2 install
-                                    final AtomicInteger lineCount = new AtomicInteger();
-                                    new ConsoleWrapper("java -jar installer.jar -installServer", destination, s -> {
-                                        int currentCount = lineCount.incrementAndGet();
-                                        Main.WINDOW.statusPanel.setProgress(currentCount);
-                                        Main.WINDOW.statusPanel.setStatus(s);
-                                    }, LOGGER::error, () -> {
-                                        LOGGER.info("Neoforge installer for %s finished, outputting %s lines".formatted(mcVersion, lineCount.get()));
-                                        Main.WINDOW.statusPanel.setStatus("Ready");
-                                        Main.WINDOW.statusPanel.setProgress(0);
-                                        doAfter.run();
-                                    });
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            });
-                        } catch (MalformedURLException e) {
-                            throw new RuntimeException(e);
-                        }
+            List<String> versions = getVersions();
+            for (String messyVersion : versions) {
+                String version = normaliseVersion(messyVersion);
+                if (MinecraftUtils.compareVersions(version, mcVersion) == 0) {
+                    // Found the highest one
+                    String url = "https://maven.neoforged.net/releases/net/neoforged/neoforge/%s/neoforge-%s-installer.jar".formatted(messyVersion, messyVersion);
+                    try {
+                        Main.WINDOW.statusPanel.saveFileFromUrl(new URL(url), new File(destination.getAbsolutePath() + "/installer.jar"), () -> {
+                            try {
+                                Main.WINDOW.statusPanel.setMax(22507); // Heuristic value based on 1.20.2 install
+                                final AtomicInteger lineCount = new AtomicInteger();
+                                new ConsoleWrapper("java -jar installer.jar -installServer", destination, s -> {
+                                    int currentCount = lineCount.incrementAndGet();
+                                    Main.WINDOW.statusPanel.setProgress(currentCount);
+                                    Main.WINDOW.statusPanel.setStatus(s);
+                                }, LOGGER::error, () -> {
+                                    LOGGER.info("Neoforge installer for %s finished, outputting %s lines".formatted(mcVersion, lineCount.get()));
+                                    Main.WINDOW.statusPanel.setStatus("Ready");
+                                    Main.WINDOW.statusPanel.setProgress(0);
+                                    doAfter.run();
+                                });
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                    } catch (MalformedURLException e) {
+                        throw new RuntimeException(e);
                     }
+                    break;
                 }
-            });
+            }
             ModLoader.writeEula(destination);
         }
 
@@ -362,7 +383,7 @@ public enum ModLoader {
             String libsPath = server.serverLocation + "/libraries/net/neoforged/neoforge";
             String version = Objects.requireNonNull(new File(libsPath).listFiles())[0].getName();
             String argsName = SystemUtils.IS_OS_WINDOWS ? "win_args.txt" : "unix_args.txt";
-            return "java -Xmx" + mbMemory + "M @libraries/net/minecraftforge/forge/" + version + "/" + argsName + " nogui %*";
+            return "java -Xmx" + mbMemory + "M @libraries/net/neoforged/neoforge/" + version + "/" + argsName + " nogui %*";
         }
 
         @Override

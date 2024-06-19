@@ -23,15 +23,44 @@ public class SpigotConfigManager extends YamlConfigManager {
             String content = reader.lines().collect(Collectors.joining());
             Pattern pattern = Pattern.compile("const i='(advancements.+[^\\\\])'");
             pattern.matcher(content).results().findFirst().ifPresentOrElse(matchResult -> {
-                String[] lines = matchResult.group(1).split("\n");
-                Stack<String> currentPath = new Stack<>();
-                for (int i = 0; i < lines.length; i++) {
-                    String line = lines[i];
-                    if (line.startsWith("default:")) {
-                        // This line and the next form a description of the current path
-                        String defaultValue = line.
+                String[] lines = matchResult.group(1).split("\\\\n(?!\")");
+                List<String> currentPath = new ArrayList<>();
+                int lastIndent = -2;
+                StringBuilder description = null;
+                for (String line : lines) {
+                    if (line.isEmpty()) continue;
+                    String path = StringUtils.join(currentPath, "/");
+                    int indent = StringUtils.indexOfAnyBut(line, ' ');
+                    String propertyName = line.substring(indent, line.length() - 1);
+                    if (indent - lastIndent == 2) {
+                        if (description != null) {
+                            description.append(line.substring(indent));
+                        } else if (line.stripLeading().startsWith("default: ")) {
+                            PROPERTY_DEFAULTS.put(path, line.substring(indent + 9)); // After "default: "
+                        } else {
+                            currentPath.add(propertyName);
+                        }
+                    } else if (indent == lastIndent) {
+                        if (description != null) {
+                            description.append(line.substring(indent));
+                        } else if (line.stripLeading().equals("description: >-")) {
+                            description = new StringBuilder();
+                        } else if (line.stripLeading().startsWith("description: ")) {
+                            PROPERTY_DESCRIPTIONS.put(path, line.substring(indent + 13)); // After "description: "
+                        }
+                    } else if (indent < lastIndent) {
+                        for (int j = description == null ? 0 : 1; j < (lastIndent - indent) / 2; j++) { // The path won't actually be that long because one indent comes from "description: ", so start at 1
+                            currentPath.removeLast();
+                        }
+                        if (description != null) {
+                            PROPERTY_DESCRIPTIONS.put(path, description.toString());
+                            description = null;
+                        }
+                        currentPath.add(propertyName);
                     }
+                    lastIndent = indent;
                 }
+                LOGGER.info("Loaded spigot.yml property descriptions");
             }, () -> {throw new IllegalStateException("No descriptions found in https://docs.papermc.io/assets/js/281a9c5e.2220deb7.js");});
         } catch (IOException | IllegalStateException e) {
             LOGGER.warn("Failed to get property descriptions for spigot.yml", e);

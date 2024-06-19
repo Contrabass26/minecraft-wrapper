@@ -89,7 +89,7 @@ public class ServerConfigPanel extends JPanel implements Card {
                     String newVersion = versions.get(table.getSelectedRow());
                     LOGGER.info("Updating server %s to version %s".formatted(server.serverName, newVersion));
                     // Update mod loader
-                    server.modLoader.updateFiles(server.mcVersion, newVersion, server);
+                    server.modLoader.updateFiles(newVersion, server);
                 }
             }
         });

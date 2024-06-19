@@ -64,7 +64,7 @@ public enum ModLoader {
 
         @Override
         public String getStartCommand(int mbMemory, Server server) {
-            return "java -Xmx%sM -jar server.jar nogui".formatted(mbMemory);
+            return "%s -Xmx%sM -jar server.jar nogui".formatted(server.javaVersion, mbMemory);
         }
     },
     FORGE {
@@ -111,7 +111,7 @@ public enum ModLoader {
                 for (File file : children) {
                     String name = file.getName();
                     if (name.matches("minecraft_server.*\\.jar")) {
-                        return "java -Xmx%sM -jar %s nogui".formatted(mbMemory, name);
+                        return "%s -Xmx%sM -jar %s nogui".formatted(server.javaVersion, mbMemory, name);
                     }
                 }
             }
@@ -147,7 +147,7 @@ public enum ModLoader {
 
         @Override
         public String getStartCommand(int mbMemory, Server server) {
-            return "java -Xmx%sM -jar fabric-server-launch.jar nogui".formatted(mbMemory);
+            return "%s -Xmx%sM -jar fabric-server-launch.jar nogui".formatted(server.javaVersion, mbMemory);
         }
 
         @Override
@@ -218,7 +218,7 @@ public enum ModLoader {
 
         @Override
         public String getStartCommand(int mbMemory, Server server) {
-            return "java -Xmx%sM -jar pufferfish.jar nogui".formatted(mbMemory);
+            return "%s -Xmx%sM -jar pufferfish.jar nogui".formatted(server.javaVersion, mbMemory);
         }
 
         @Override

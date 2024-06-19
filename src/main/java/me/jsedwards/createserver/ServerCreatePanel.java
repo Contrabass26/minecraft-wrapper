@@ -4,6 +4,7 @@ import me.jsedwards.Card;
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.modloader.ModLoader;
+import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -68,7 +69,7 @@ public class ServerCreatePanel extends JPanel implements Card {
                     try {
                         modLoader.downloadFiles(destination, mcVersion, () -> {
                             // Register server
-                            Server server = Server.create(serverName, serverLocation, modLoader, mcVersion, mbMemory, 50, new HashMap<>(), true);
+                            Server server = Server.create(serverName, serverLocation, modLoader, mcVersion, mbMemory, OSUtils.javaVersions.getFirst(), 50, new HashMap<>(), true);
                             // Add new button to server select panel
                             Main.WINDOW.cardPanel.serverSelectPanel.addServer(server);
                             // Switch to new server dashboard

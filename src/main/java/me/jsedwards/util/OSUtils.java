@@ -21,6 +21,7 @@ public class OSUtils {
     public static final String serversLocation;
     public static final String userHome;
     public static final long totalMemoryBytes;
+    public static final List<String> javaVersions = Collections.synchronizedList(new ArrayList<>());
 
     static {
         String username = System.getProperty("user.name");
@@ -28,6 +29,7 @@ public class OSUtils {
         settingsLocation = dataDir + File.separator + "settings.json";
         serversLocation = dataDir + File.separator + "servers.json";
         userHome = getUserHome().formatted(username);
+        getJavaVersions();
         // Memory
         totalMemoryBytes = getSystemMemory();
         LOGGER.info("System memory detected as %s bytes".formatted(totalMemoryBytes));
@@ -91,23 +93,24 @@ public class OSUtils {
         return 8589934592L; // Default to 8GB
     }
 
-    private static String getJavaDirectory() {
+    private static void getJavaVersions() {
         if (SystemUtils.IS_OS_WINDOWS) {
-            Set<String> paths = Collections.synchronizedSet(new HashSet<>());
             try {
-                ConsoleWrapper wrapper = new ConsoleWrapper("where java", new File("C:/"), paths::add, s -> {}, () -> {});
-                wrapper.waitFor();
-                paths.forEach(System.out::println);
+                new ConsoleWrapper("where java", new File("C:/"), javaVersions::add, s -> {}, () -> LOGGER.info("Found %s Java versions on Windows".formatted(javaVersions.size())));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-        return null;
+        if (SystemUtils.IS_OS_MAC) {
+            File root = new File("/Library/Java/JavaVirtualMachines");
+            File[] children = root.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    if (child.isDirectory()) {
+                        javaVersions.add(child.getAbsolutePath() + "/Contents/Home/bin/java");
+                    }
+                }
+            }
+        }
     }
-
-    public static List<JavaVersion> getJavaVersions() {
-        String javaDir = getJavaDirectory();
-    }
-
-    public record JavaVersion(String executablePath, String version) {}
 }

@@ -70,8 +70,6 @@ class BasicPanel extends JPanel {
         memorySlider.setLabelTable(labelTable);
         memorySlider.setPaintLabels(true);
         memorySlider.addChangeListener(e -> server.mbMemory = memorySlider.getValue());
-        // Select Java version
-
         // Finalise checkbox, then add checkbox and slider
         memorySnapCheckbox.addChangeListener(e -> {
             memorySlider.setSnapToTicks(memorySnapCheckbox.isSelected());
@@ -81,6 +79,13 @@ class BasicPanel extends JPanel {
         });
         this.add(memorySnapCheckbox, new GridBagConstraints(2, 4, 1, 1, 0, 0, GridBagConstraints.EAST, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
         this.add(memorySlider, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+        // Select Java version
+        JLabel javaVersionLabel = new JLabel("Java version:");
+        javaVersionLabel.setFont(Main.MAIN_FONT.deriveFont(18f));
+        this.add(javaVersionLabel, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+        JComboBox<String> javaVersionCombo = new JComboBox<>(OSUtils.javaVersions.toArray(new String[0]));
+        javaVersionCombo.addActionListener(e -> server.javaVersion = (String) javaVersionCombo.getSelectedItem());
+        this.add(javaVersionCombo, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
         // Whitelist and ops
         jsonConfigPanel = new JsonConfigPanel();
         this.add(jsonConfigPanel, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));

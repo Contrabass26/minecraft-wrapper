@@ -28,6 +28,7 @@ public class ServerSerialiser extends StdSerializer<Server> {
         generator.writeStringField("modLoader", server.modLoader.toString().toUpperCase());
         generator.writeStringField("mcVersion", server.mcVersion);
         generator.writeNumberField("mbMemory", server.mbMemory);
+        generator.writeStringField("javaVersion", server.javaVersion);
         generator.writeNumberField("optimisationLevel", server.optimisationLevel);
         generator.writeObjectFieldStart("keysToOptimise");
         for (Map.Entry<Identifier, Boolean> entry : server.keysToOptimise.entrySet()) {

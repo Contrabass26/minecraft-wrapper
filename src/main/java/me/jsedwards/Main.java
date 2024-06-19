@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -40,8 +41,6 @@ public final class Main {
     }
 
     public static void main(String[] args) {
-        OSUtils.getJavaVersions();
-        System.exit(0);
         // Mac-specific properties - must happen before any AWT classes are loaded
         if (System.getProperty("os.name").toLowerCase().contains("mac")) {
             LOGGER.info("MacOS detected - setting system properties");

@@ -31,6 +31,7 @@ public class ServerDeserialiser extends StdDeserializer<Server> {
         ModLoader modLoader = ModLoader.valueOf(root.get("modLoader").textValue());
         String mcVersion = root.get("mcVersion").textValue();
         int mbMemory = root.get("mbMemory").intValue();
+        String javaVersion = root.get("javaVersion").textValue();
         int optimisationLevel = root.get("optimisationLevel").intValue();
         Map<Identifier, Boolean> keysToOptimise = new HashMap<>();
         root.get("keysToOptimise").fields().forEachRemaining(entry -> {
@@ -38,6 +39,6 @@ public class ServerDeserialiser extends StdDeserializer<Server> {
             boolean value = entry.getValue().booleanValue();
             keysToOptimise.put(key, value);
         });
-        return Server.create(name, location, modLoader, mcVersion, mbMemory, optimisationLevel, keysToOptimise, false);
+        return Server.create(name, location, modLoader, mcVersion, mbMemory, javaVersion, optimisationLevel, keysToOptimise, false);
     }
 }

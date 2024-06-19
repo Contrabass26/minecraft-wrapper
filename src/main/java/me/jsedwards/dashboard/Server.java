@@ -42,18 +42,20 @@ public class Server extends JPanel {
     public final String mcVersion;
     private final TopPanel topPanel;
     public int mbMemory;
+    public String javaVersion;
     public int optimisationLevel;
     public Map<Identifier, Boolean> keysToOptimise; // Only stores keys that have been changed - all others will have their default value
     private final ConsolePanel consolePanel;
     private ConsoleWrapper consoleWrapper = null;
 
-    private Server(String serverName, String serverLocation, ModLoader modLoader, String mcVersion, int mbMemory, int optimisationLevel, Map<Identifier, Boolean> keysToOptimise) {
+    private Server(String serverName, String serverLocation, ModLoader modLoader, String mcVersion, int mbMemory, String javaVersion, int optimisationLevel, Map<Identifier, Boolean> keysToOptimise) {
         super();
         this.serverName = serverName;
         this.serverLocation = serverLocation;
         this.modLoader = modLoader;
         this.mcVersion = mcVersion;
         this.mbMemory = mbMemory;
+        this.javaVersion = javaVersion;
         this.optimisationLevel = optimisationLevel;
         this.keysToOptimise = keysToOptimise;
         // Layout
@@ -92,8 +94,8 @@ public class Server extends JPanel {
      * @param mcVersion The Minecraft version of the server, e.g. 1.20.1
      * @return The new server object with the specified properties
      */
-    public static Server create(String name, String location, ModLoader modLoader, String mcVersion, int mbMemory, int optimisationLevel, Map<Identifier, Boolean> keysToOptimise, boolean addCard) {
-        Server server = new Server(name, location, modLoader, mcVersion, mbMemory, optimisationLevel, keysToOptimise);
+    public static Server create(String name, String location, ModLoader modLoader, String mcVersion, int mbMemory, String javaVersion, int optimisationLevel, Map<Identifier, Boolean> keysToOptimise, boolean addCard) {
+        Server server = new Server(name, location, modLoader, mcVersion, mbMemory, javaVersion, optimisationLevel, keysToOptimise);
         servers.add(server);
         if (addCard) Main.WINDOW.cardPanel.addServerCard(server);
         return server;

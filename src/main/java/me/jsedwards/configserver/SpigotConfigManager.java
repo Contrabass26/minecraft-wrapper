@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 public class SpigotConfigManager extends YamlConfigManager {
 
     private static final HashMap<String, String> PROPERTY_DESCRIPTIONS = new HashMap<>();
-    private static final HashMap<String, String> PROPERTY_DATA_TYPES = new HashMap<>();
     private static final HashMap<String, String> PROPERTY_DEFAULTS = new HashMap<>();
     private static final Map<String, Function<Integer, Integer>> OPTIMISATION_FUNCTIONS = new HashMap<>();
     private static final Map<String, Boolean> KEYS_ENABLED = new HashMap<>();
@@ -42,7 +41,7 @@ public class SpigotConfigManager extends YamlConfigManager {
                         }
                     } else if (indent == lastIndent) {
                         if (description != null) {
-                            description.append(line.substring(indent));
+                            description.append(" ").append(line.substring(indent));
                         } else if (line.stripLeading().equals("description: >-")) {
                             description = new StringBuilder();
                         } else if (line.stripLeading().startsWith("description: ")) {
@@ -78,17 +77,20 @@ public class SpigotConfigManager extends YamlConfigManager {
 
     @Override
     public String getDescription(String key) {
-        return PROPERTY_DESCRIPTIONS.getOrDefault(StringUtils.substringAfterLast(key, '/'), "Not found");
+        String description = PROPERTY_DESCRIPTIONS.getOrDefault(key, "Not found");
+        if (description.startsWith("\"")) return description.substring(1, description.length() - 1);
+        return description;
     }
 
     @Override
     public String getDataType(String key) {
-        return PROPERTY_DATA_TYPES.getOrDefault(StringUtils.substringAfterLast(key, '/'), "Not found");
+        return "Not found";
     }
 
     @Override
     public String getDefaultValue(String key) {
-        return PROPERTY_DEFAULTS.getOrDefault(StringUtils.substringAfterLast(key, '/'), "Not found");
+        String defaultValue = PROPERTY_DEFAULTS.getOrDefault(key, "Not found");
+        return defaultValue.substring(1, defaultValue.length() - 1);
     }
 
     @Override

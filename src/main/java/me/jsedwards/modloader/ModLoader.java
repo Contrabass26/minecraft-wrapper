@@ -196,6 +196,22 @@ public enum ModLoader {
         }
     },
     PUFFERFISH {
+        private static final Set<String> GH_BRANCHES;
+        private static final Logger LOGGER = LogManager.getLogger("Pufferfish");
+        static {
+            GH_BRANCHES = new HashSet<>();
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                ArrayNode branches = (ArrayNode) mapper.readTree(new URL("https://api.github.com/repos/pufferfish-gg/Pufferfish/branches"));
+                for (JsonNode branch : branches) {
+                    GH_BRANCHES.add(branch.get("name").textValue());
+                }
+            } catch (IOException e) {
+                LOGGER.warn("Failed to get supported Pufferfish versions");
+            }
+            LOGGER.info("Detected %s GitHub branches for Pufferfish".formatted(GH_BRANCHES.size()));
+        }
+
         @Override
         public void downloadFiles(File destination, String mcVersion, Runnable doAfter) throws IOException {
             // Pufferfish files
@@ -253,7 +269,7 @@ public enum ModLoader {
 
         @Override
         public boolean supportsVersion(String version) {
-            return MinecraftUtils.compareVersions(version, "1.17") >= 0;
+            return GH_BRANCHES.contains("ver/" + MinecraftUtils.getMajorVersion(version));
         }
     };
 

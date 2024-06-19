@@ -2,10 +2,7 @@ package me.jsedwards.configserver;
 
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
-import me.jsedwards.mod.CurseForge;
-import me.jsedwards.mod.Modrinth;
-import me.jsedwards.mod.ModrinthProject;
-import me.jsedwards.mod.Project;
+import me.jsedwards.mod.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -17,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ModsPanel extends JPanel {
@@ -95,8 +93,9 @@ public class ModsPanel extends JPanel {
 
     private void search() {
         String query = searchBox.getText();
-        List<ModrinthProject> results = new ArrayList<>(Modrinth.search(query, server.modLoader, server.mcVersion));
-        CurseForge.search(query, server.modLoader, server.mcVersion, searchResultsModel::addElement);
+        List<Project> results = new ArrayList<>(Modrinth.search(query, server.modLoader, server.mcVersion));
+        results.addAll(CurseForge.search(query, server.modLoader, server.mcVersion));
+        Collections.sort(results);
         searchResultsModel.clear();
         results.forEach(searchResultsModel::addElement);
     }

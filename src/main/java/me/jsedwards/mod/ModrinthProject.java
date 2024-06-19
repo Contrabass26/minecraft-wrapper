@@ -13,7 +13,12 @@ public class ModrinthProject extends Project {
     public final String id;
 
     public ModrinthProject(JsonNode root) {
-        super(root.get("title").textValue(), root.get("description").textValue(), root.get("author").textValue(), root.get("icon_url").textValue());
+        super(
+                root.get("title").textValue(),
+                root.get("description").textValue(),
+                root.get("author").textValue(),
+                root.get("icon_url").textValue(),
+                root.get("downloads").intValue());
         this.id = root.get("project_id").textValue();
     }
 

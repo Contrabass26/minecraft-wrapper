@@ -5,18 +5,20 @@ import me.jsedwards.modloader.ModLoader;
 import java.io.File;
 import java.io.IOException;
 
-public abstract class Project {
+public abstract class Project implements Comparable<Project> {
 
     public final String title;
     public final String description;
     public final String author;
     public final String icon;
+    public final int downloads;
 
-    public Project(String title, String description, String author, String icon) {
+    public Project(String title, String description, String author, String icon, int downloads) {
         this.title = title;
         this.description = description;
         this.author = author;
         this.icon = icon;
+        this.downloads = downloads;
     }
 
     public abstract ModFile getFile(String mcVersion, ModLoader loader);
@@ -28,6 +30,13 @@ public abstract class Project {
         return title;
     }
 
+    @Override
+    public int compareTo(Project o) {
+        // Descending sort by download count
+        return Integer.compare(o.downloads, this.downloads);
+    }
+
+    // TODO: Include file size
     public record ModFile(String url, String filename) {
 
         @Override

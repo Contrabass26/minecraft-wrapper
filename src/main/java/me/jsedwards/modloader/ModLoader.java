@@ -2,8 +2,10 @@ package me.jsedwards.modloader;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import me.jsedwards.Main;
+import me.jsedwards.StatusPanel;
 import me.jsedwards.dashboard.ConsoleWrapper;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.util.JsonUtils;
@@ -24,10 +26,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -68,7 +68,19 @@ public enum ModLoader {
         }
     },
     FORGE {
-        private static final Set<String> BLACKLIST = Set.of("1.14", "1.14.1", "1.16", "1.17");
+        private static final Set<String> SUPPORTED_VERSIONS;
+        private static final Logger LOGGER = LogManager.getLogger("Forge");
+        static {
+            SUPPORTED_VERSIONS = new HashSet<>();
+            StatusPanel.getJsoupFromUrl("https://files.minecraftforge.net/net/minecraftforge/forge/", document -> {
+                document.select("a")
+                        .stream()
+                        .map(Element::text)
+                        .filter(MinecraftUtils::looksLikeVersion)
+                        .forEach(SUPPORTED_VERSIONS::add);
+                LOGGER.info("Detected %s supported Forge versions".formatted(SUPPORTED_VERSIONS.size()));
+            });
+        }
 
         @Override
         public void downloadFiles(File destination, String mcVersion, Runnable doAfter) throws IOException {
@@ -123,7 +135,7 @@ public enum ModLoader {
 
         @Override
         public boolean supportsVersion(String version) {
-            return !BLACKLIST.contains(version);
+            return SUPPORTED_VERSIONS.contains(version);
         }
 
         @Override
@@ -137,6 +149,24 @@ public enum ModLoader {
         }
     },
     FABRIC {
+        private static final Set<String> SUPPORTED_VERSIONS;
+        private static final Logger LOGGER = LogManager.getLogger("Fabric");
+        static {
+            SUPPORTED_VERSIONS = new HashSet<>();
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                ArrayNode versions = (ArrayNode) mapper.readTree(new URL("https://meta.fabricmc.net/v2/versions/game"));
+                for (JsonNode version : versions) {
+                    if (version.get("stable").booleanValue()) {
+                        SUPPORTED_VERSIONS.add(version.get("version").textValue());
+                    }
+                }
+            } catch (IOException e) {
+                LOGGER.warn("Failed to get supported Fabric versions", e);
+            }
+            LOGGER.info("Detected %s supported Fabric versions".formatted(SUPPORTED_VERSIONS.size()));
+        }
+
         @Override
         public void downloadFiles(File destination, String mcVersion, Runnable onSuccess) throws IOException {
             // Get fabric-server-launch.jar
@@ -152,7 +182,7 @@ public enum ModLoader {
 
         @Override
         public boolean supportsVersion(String version) {
-            return MinecraftUtils.compareVersions(version, "1.14") >= 0;
+            return SUPPORTED_VERSIONS.contains(version);
         }
 
         @Override
@@ -166,6 +196,22 @@ public enum ModLoader {
         }
     },
     PUFFERFISH {
+        private static final Set<String> GH_BRANCHES;
+        private static final Logger LOGGER = LogManager.getLogger("Pufferfish");
+        static {
+            GH_BRANCHES = new HashSet<>();
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                ArrayNode branches = (ArrayNode) mapper.readTree(new URL("https://api.github.com/repos/pufferfish-gg/Pufferfish/branches"));
+                for (JsonNode branch : branches) {
+                    GH_BRANCHES.add(branch.get("name").textValue());
+                }
+            } catch (IOException e) {
+                LOGGER.warn("Failed to get supported Pufferfish versions");
+            }
+            LOGGER.info("Detected %s GitHub branches for Pufferfish".formatted(GH_BRANCHES.size()));
+        }
+
         @Override
         public void downloadFiles(File destination, String mcVersion, Runnable doAfter) throws IOException {
             // Pufferfish files
@@ -223,7 +269,7 @@ public enum ModLoader {
 
         @Override
         public boolean supportsVersion(String version) {
-            return MinecraftUtils.compareVersions(version, "1.17") >= 0;
+            return GH_BRANCHES.contains("ver/" + MinecraftUtils.getMajorVersion(version));
         }
     };
 

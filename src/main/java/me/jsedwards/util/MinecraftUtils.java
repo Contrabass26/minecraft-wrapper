@@ -52,4 +52,13 @@ public class MinecraftUtils {
         }
         return nums;
     }
+
+    public static boolean looksLikeVersion(String s) {
+        return s.matches("[0-9]+\\.[0-9]+(?:\\.[0-9]+)?");
+    }
+
+    public static String getMajorVersion(String version) {
+        int[] components = convertVersion(version);
+        return "%s.%s".formatted(components[0], components[1]);
+    }
 }

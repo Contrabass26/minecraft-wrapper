@@ -170,7 +170,7 @@ public class StatusPanel extends JPanel {
         thread.start();
     }
 
-    public void getJsoupFromUrl(String in, Consumer<Document> onSuccess) {
+    public static void getJsoupFromUrl(String in, Consumer<Document> onSuccess) {
         Thread thread = new Thread(() -> {
             try {
                 Document document = Jsoup.connect(in).userAgent("Mozilla").get();

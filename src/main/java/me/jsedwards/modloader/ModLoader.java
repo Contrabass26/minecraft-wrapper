@@ -2,6 +2,7 @@ package me.jsedwards.modloader;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import me.jsedwards.Main;
 import me.jsedwards.StatusPanel;
@@ -148,6 +149,24 @@ public enum ModLoader {
         }
     },
     FABRIC {
+        private static final Set<String> SUPPORTED_VERSIONS;
+        private static final Logger LOGGER = LogManager.getLogger("Fabric");
+        static {
+            SUPPORTED_VERSIONS = new HashSet<>();
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                ArrayNode versions = (ArrayNode) mapper.readTree(new URL("https://meta.fabricmc.net/v2/versions/game"));
+                for (JsonNode version : versions) {
+                    if (version.get("stable").booleanValue()) {
+                        SUPPORTED_VERSIONS.add(version.get("version").textValue());
+                    }
+                }
+            } catch (IOException e) {
+                LOGGER.warn("Failed to get supported Fabric versions", e);
+            }
+            LOGGER.info("Detected %s supported Fabric versions".formatted(SUPPORTED_VERSIONS.size()));
+        }
+
         @Override
         public void downloadFiles(File destination, String mcVersion, Runnable onSuccess) throws IOException {
             // Get fabric-server-launch.jar
@@ -163,7 +182,7 @@ public enum ModLoader {
 
         @Override
         public boolean supportsVersion(String version) {
-            return MinecraftUtils.compareVersions(version, "1.14") >= 0;
+            return SUPPORTED_VERSIONS.contains(version);
         }
 
         @Override

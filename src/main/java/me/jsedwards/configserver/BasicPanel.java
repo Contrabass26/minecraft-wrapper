@@ -70,6 +70,8 @@ class BasicPanel extends JPanel {
         memorySlider.setLabelTable(labelTable);
         memorySlider.setPaintLabels(true);
         memorySlider.addChangeListener(e -> server.mbMemory = memorySlider.getValue());
+        // Select Java version
+
         // Finalise checkbox, then add checkbox and slider
         memorySnapCheckbox.addChangeListener(e -> {
             memorySlider.setSnapToTicks(memorySnapCheckbox.isSelected());

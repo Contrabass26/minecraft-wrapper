@@ -1,12 +1,16 @@
 package me.jsedwards.util;
 
+import me.jsedwards.dashboard.ConsoleWrapper;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.management.*;
 import java.io.File;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class OSUtils {
 
@@ -86,4 +90,24 @@ public class OSUtils {
         }
         return 8589934592L; // Default to 8GB
     }
+
+    private static String getJavaDirectory() {
+        if (SystemUtils.IS_OS_WINDOWS) {
+            Set<String> paths = Collections.synchronizedSet(new HashSet<>());
+            try {
+                ConsoleWrapper wrapper = new ConsoleWrapper("where java", new File("C:/"), paths::add, s -> {}, () -> {});
+                wrapper.waitFor();
+                paths.forEach(System.out::println);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return null;
+    }
+
+    public static List<JavaVersion> getJavaVersions() {
+        String javaDir = getJavaDirectory();
+    }
+
+    public record JavaVersion(String executablePath, String version) {}
 }

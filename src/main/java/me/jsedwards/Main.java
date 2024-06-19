@@ -40,9 +40,8 @@ public final class Main {
     }
 
     public static void main(String[] args) {
-//        CurseForge.search("create", ModLoader.FORGE, "1.20.1", null);
-//        CurseForge.getCategories();
-//        System.exit(0);
+        OSUtils.getJavaVersions();
+        System.exit(0);
         // Mac-specific properties - must happen before any AWT classes are loaded
         if (System.getProperty("os.name").toLowerCase().contains("mac")) {
             LOGGER.info("MacOS detected - setting system properties");

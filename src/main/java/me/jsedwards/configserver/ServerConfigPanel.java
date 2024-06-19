@@ -6,17 +6,18 @@ import me.jsedwards.createserver.McVersionStagePanel;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.Identifier;
+import me.jsedwards.util.ColouredCellRenderer;
 import me.jsedwards.util.MinecraftUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
+import javax.swing.table.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ServerConfigPanel extends JPanel implements Card {
 
@@ -49,9 +50,46 @@ public class ServerConfigPanel extends JPanel implements Card {
         updateBtn.addActionListener(e -> {
             Server server = Server.get(this.server);
             assert server != null;
-            List<String> versions = new ArrayList<>(McVersionStagePanel.VERSIONS.stream().filter(server.modLoader::supportsVersion).toList());
-            versions.remove(server.mcVersion);
-            JOptionPane.showInputDialog(Main.WINDOW, "Choose a Minecraft version to update to:", "Select version", JOptionPane.QUESTION_MESSAGE, null, versions.toArray(), versions.getFirst());
+            List<String> versions = new ArrayList<>(McVersionStagePanel.VERSIONS.stream().filter(version -> MinecraftUtils.compareVersions(version, server.mcVersion) > 0).toList());
+            if (versions.isEmpty()) {
+                JOptionPane.showMessageDialog(Main.WINDOW, "There are no later versions to upgrade to.", "No available versions", JOptionPane.ERROR_MESSAGE);
+            } else {
+//                JOptionPane.showInputDialog(Main.WINDOW, "Choose a Minecraft version to update to:", "Select version", JOptionPane.QUESTION_MESSAGE, null, versions.toArray(), versions.getFirst());
+                // Create table showing which components are upgradable
+                String[] headings = {"Version", server.modLoader.toString()};
+                DefaultTableModel model = new DefaultTableModel(0, 2) {
+                    @Override
+                    public String getColumnName(int column) {
+                        return headings[column];
+                    }
+                };
+                for (String version : versions) {
+                    model.addRow(new Object[]{version, server.modLoader.supportsVersion(version) ? Color.GREEN : Color.RED});
+                }
+                ColouredCellRenderer renderer = new ColouredCellRenderer();
+                JTable table = new JTable(model) {
+                    @Override
+                    public TableCellRenderer getCellRenderer(int row, int column) {
+                        if (column == 0) {
+                            return super.getCellRenderer(row, column);
+                        }
+                        return renderer;
+                    }
+
+                    @Override
+                    public boolean isCellEditable(int row, int column) {
+                        return false;
+                    }
+                };
+                table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                table.setPreferredScrollableViewportSize(new Dimension(500, 300));
+                table.setFillsViewportHeight(true);
+                JScrollPane scrollPane = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+                int result = JOptionPane.showConfirmDialog(Main.WINDOW, scrollPane, "Select version", JOptionPane.OK_CANCEL_OPTION);
+                if (result == 0) {
+                    System.out.printf("Updating to %s%n", versions.get(table.getSelectedRow()));
+                }
+            }
         });
         this.add(updateBtn, new GridBagConstraints(3, 1, 1, 1, 0, 0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(30, 0, 0, 5), 0, 0));
         // Delete button

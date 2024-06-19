@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import me.jsedwards.Main;
 import me.jsedwards.modloader.ModLoader;
-import me.jsedwards.util.MinecraftUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
@@ -17,7 +17,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class CurseForge {
@@ -39,32 +40,51 @@ public class CurseForge {
         }
     }
 
-    public static void search(String query, ModLoader loader, String mcVersion, Consumer<CurseForgeProject> onSuccess) { // onSuccess will be executed on a different thread
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(apiQuery("v1/mods/search?gameId=432&gameVersion=%s&searchFilter=%s".formatted(mcVersion, query.replace(" ", "%20")))))) {
+    public static void getCategories() {
+        InputStream stream = apiQuery("v1/categories?gameId=432");
+        assert stream != null;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
             reader.lines().forEach(System.out::println);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static MinecraftData getMinecraftData(String version) {
-        try (InputStream stream = apiQuery("v1/minecraft/version/" + version)) {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode data = mapper.readTree(stream).get("data");
-            return new MinecraftData(data);
-        } catch (IOException | NullPointerException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    public static List<CurseForgeProject> search(String query, ModLoader loader, String mcVersion) { // onSuccess will be executed on a different thread
+        List<CurseForgeProject> mods = new ArrayList<>();
+        // Minecraft: gameId=432
+        // Sort by popularity: sortField=2
+        String url = "v1/mods/search?gameId=432&gameVersion=%s&searchFilter=%s&modLoaderType=%s&sortField=2&sortOrder=desc".formatted(mcVersion, query.replace(" ", "%20"), loader.toString());
+        InputStream stream = apiQuery(url);
+        assert stream != null;
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            ArrayNode data = (ArrayNode) mapper.readTree(stream).get("data");
+            for (JsonNode datum : data) {
+                String website = datum.get("links").get("websiteUrl").textValue();
+                if (website.contains("mc-mods")) {
+                    // Authors
+                    List<String> authors = new ArrayList<>();
+                    for (JsonNode author : datum.get("authors")) {
+                        authors.add(author.get("name").textValue());
+                    }
+                    String authorsStr = StringUtils.join(authors, ", ");
+                    // Latest file
 
-    private static ModLoaderData getModLoaderData(ModLoader loader) {
-        try (InputStream stream = apiQuery("v1/minecraft/modloader/" + loader.toString().toLowerCase())) {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode data = mapper.readTree(stream).get("data");
-            return new ModLoaderData(data);
-        } catch (IOException | NullPointerException e) {
+                    mods.add(new CurseForgeProject(
+                            datum.get("name").textValue(),
+                            datum.get("summary").textValue(),
+                            authorsStr,
+                            datum.get("logo").get("url").textValue(),
+                            datum.get("id").intValue(),
+                            datum.get("downloadCount").intValue(),
+                            datum.get("latestFiles").get(0).get("id").intValue()));
+                }
+            }
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        return mods;
     }
 
     private static boolean contains(ArrayNode array, Predicate<JsonNode> predicate) {
@@ -74,31 +94,6 @@ public class CurseForge {
         return false;
     }
 
-    public static Project.ModFile getFile(String numericId, String mcVersion, ModLoader loader) {
-        int gameFlavour = loader.getGameFlavour();
-        if (gameFlavour == -1) return null;
-        String url = "https://www.curseforge.com/api/v1/mods/%s/files?pageIndex=0&pageSize=20&sort=dateCreated&sortDescending=true&gameFlavorId=%s&removeAlphas=true".formatted(numericId, gameFlavour);
-        System.out.println(url);
-        try {
-            ArrayNode root = (ArrayNode) Main.WINDOW.statusPanel.curlToJson(new URL(url)).get("data");
-            for (JsonNode file : root) {
-                ArrayNode versions = (ArrayNode) file.get("gameVersions");
-                if (contains(versions, n -> n.textValue().equals(mcVersion))) {
-                    // Use this file
-                    String filename = file.get("fileName").textValue();
-                    String fileId = String.valueOf(file.get("id").intValue());
-                    String id1 = fileId.substring(0, 4);
-                    String id2 = fileId.substring(4);
-                    String fileUrl = "https://mediafilez.forgecdn.net/files/%s/%s/%s".formatted(id1, id2, filename);
-                    return new Project.ModFile(fileUrl, filename);
-                }
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return null;
-    }
-
     public static String getNumericProjectId(String projectUrl) {
         try {
             Document document = Main.WINDOW.statusPanel.curlToJsoup(new URL(projectUrl));
@@ -106,20 +101,6 @@ public class CurseForge {
             return detailsBox.child(1).child(1).child(5).text();
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    private record MinecraftData(int id) {
-
-        public MinecraftData(JsonNode node) {
-            this(node.get("id").intValue());
-        }
-    }
-
-    private record ModLoaderData() {
-
-        public ModLoaderData(JsonNode node) {
-            this();
         }
     }
 }

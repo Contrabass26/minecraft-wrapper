@@ -82,9 +82,6 @@ public enum ModLoader {
 
         @Override
         public void updateFiles(String oldVersion, String newVersion, Server server) {
-            OSUtils.deleteDirectory(server, "libraries");
-            OSUtils.deleteDirectory(server, "versions");
-            OSUtils.deleteDirectory(server, "server.jar");
             try {
                 downloadFiles(new File(server.serverLocation), newVersion, () -> {});
             } catch (IOException e) {

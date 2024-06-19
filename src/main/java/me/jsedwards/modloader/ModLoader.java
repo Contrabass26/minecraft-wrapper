@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import me.jsedwards.Main;
+import me.jsedwards.StatusPanel;
 import me.jsedwards.dashboard.ConsoleWrapper;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.util.JsonUtils;
@@ -24,10 +25,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -68,7 +67,19 @@ public enum ModLoader {
         }
     },
     FORGE {
-        private static final Set<String> BLACKLIST = Set.of("1.14", "1.14.1", "1.16", "1.17");
+        private static final Set<String> SUPPORTED_VERSIONS;
+        private static final Logger LOGGER = LogManager.getLogger("Forge");
+        static {
+            SUPPORTED_VERSIONS = new HashSet<>();
+            StatusPanel.getJsoupFromUrl("https://files.minecraftforge.net/net/minecraftforge/forge/", document -> {
+                document.select("a")
+                        .stream()
+                        .map(Element::text)
+                        .filter(MinecraftUtils::looksLikeVersion)
+                        .forEach(SUPPORTED_VERSIONS::add);
+                LOGGER.info("Detected %s supported Forge versions".formatted(SUPPORTED_VERSIONS.size()));
+            });
+        }
 
         @Override
         public void downloadFiles(File destination, String mcVersion, Runnable doAfter) throws IOException {
@@ -123,7 +134,7 @@ public enum ModLoader {
 
         @Override
         public boolean supportsVersion(String version) {
-            return !BLACKLIST.contains(version);
+            return SUPPORTED_VERSIONS.contains(version);
         }
 
         @Override

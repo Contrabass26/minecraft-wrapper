@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.mod.CurseForgeProject;
+import me.jsedwards.mod.Project;
 import me.jsedwards.util.Identifier;
 
 import java.io.IOException;
@@ -35,6 +37,16 @@ public class ServerSerialiser extends StdSerializer<Server> {
             generator.writeBooleanField(entry.getKey().toString(), entry.getValue());
         }
         generator.writeEndObject();
+        // Mods
+        generator.writeStartArray("mods");
+        for (Project mod : server.mods) {
+            generator.writeStartObject();
+            if (mod instanceof CurseForgeProject) {
+
+            }
+            generator.writeEndObject();
+        }
+        generator.writeEndArray();
         generator.writeEndObject();
     }
 }

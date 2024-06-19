@@ -4,12 +4,16 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.mod.Project;
 import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.Identifier;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ServerDeserialiser extends StdDeserializer<Server> {
@@ -39,6 +43,10 @@ public class ServerDeserialiser extends StdDeserializer<Server> {
             boolean value = entry.getValue().booleanValue();
             keysToOptimise.put(key, value);
         });
+        List<Project> mods = new ArrayList<>();
+        for (JsonNode mod : root.get("mods")) {
+            mods.add();
+        }
         return Server.create(name, location, modLoader, mcVersion, mbMemory, javaVersion, optimisationLevel, keysToOptimise, false);
     }
 }

@@ -25,6 +25,8 @@ public abstract class Project implements Comparable<Project> {
 
     public abstract void downloadFile(ModFile file, File out) throws IOException;
 
+    
+
     @Override
     public String toString() {
         return title;

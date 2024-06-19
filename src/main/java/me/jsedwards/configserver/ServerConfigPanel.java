@@ -2,16 +2,21 @@ package me.jsedwards.configserver;
 
 import me.jsedwards.Card;
 import me.jsedwards.Main;
+import me.jsedwards.createserver.McVersionStagePanel;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.Identifier;
+import me.jsedwards.util.MinecraftUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ServerConfigPanel extends JPanel implements Card {
 
@@ -39,9 +44,19 @@ public class ServerConfigPanel extends JPanel implements Card {
         serverNameLbl = new JLabel();
         serverNameLbl.setFont(Main.MAIN_FONT);
         this.add(serverNameLbl, new GridBagConstraints(2, 1, 1, 1, 1, 0, GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(30, 0, 0, 0), 0, 0));
+        // Update button
+        JButton updateBtn = new JButton("Update");
+        updateBtn.addActionListener(e -> {
+            Server server = Server.get(this.server);
+            assert server != null;
+            List<String> versions = new ArrayList<>(McVersionStagePanel.VERSIONS.stream().filter(server.modLoader::supportsVersion).toList());
+            versions.remove(server.mcVersion);
+            JOptionPane.showInputDialog(Main.WINDOW, "Choose a Minecraft version to update to:", "Select version", JOptionPane.QUESTION_MESSAGE, null, versions.toArray(), versions.getFirst());
+        });
+        this.add(updateBtn, new GridBagConstraints(3, 1, 1, 1, 0, 0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(30, 0, 0, 5), 0, 0));
         // Delete button
         JButton deleteBtn = createDeleteBtn();
-        this.add(deleteBtn, new GridBagConstraints(3, 1, 1, 1, 0, 0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(30, 0, 0, 10), 0, 0));
+        this.add(deleteBtn, new GridBagConstraints(4, 1, 1, 1, 0, 0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(30, 0, 0, 10), 0, 0));
         // Tabbed pane
         basicPanel = new BasicPanel(this);
         tabbedPane.add("General", basicPanel);
@@ -50,7 +65,7 @@ public class ServerConfigPanel extends JPanel implements Card {
         }
         modsPanel = new ModsPanel();
         tabbedPane.add("Mods", modsPanel);
-        this.add(tabbedPane, new GridBagConstraints(1, 2, 3, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(10, 10, 10, 10), 0, 0));
+        this.add(tabbedPane, new GridBagConstraints(1, 2, 4, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(10, 10, 10, 10), 0, 0));
     }
 
     private JButton createDeleteBtn() {

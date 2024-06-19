@@ -2,65 +2,67 @@ package me.jsedwards.configserver;
 
 import me.jsedwards.dashboard.Server;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
-import org.jsoup.nodes.TextNode;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
-import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class SpigotConfigManager extends YamlConfigManager {
 
     private static final HashMap<String, String> PROPERTY_DESCRIPTIONS = new HashMap<>();
-    private static final HashMap<String, String> PROPERTY_DATA_TYPES = new HashMap<>();
     private static final HashMap<String, String> PROPERTY_DEFAULTS = new HashMap<>();
     private static final Map<String, Function<Integer, Integer>> OPTIMISATION_FUNCTIONS = new HashMap<>();
     private static final Map<String, Boolean> KEYS_ENABLED = new HashMap<>();
 
     static {
-        // Property descriptions
-        Pattern pattern = Pattern.compile("Default: ((?:.(?!Type:))*) Type: ((?:.(?!Description:))*) Description: ((?:.(?!Default:))*)");
-        try {
-            Document document = Jsoup.connect("https://www.spigotmc.org/wiki/spigot-configuration/").userAgent("Mozilla").get();
-            List<Node> children = document.select(".page-content").get(0).childNodes();
-            for (int i = 0; i < children.size(); i++) {
-                Node node = children.get(i);
-                if (node instanceof Element child && child.is("span")) {
-                    String key = child.text();
-                    if (PROPERTY_DESCRIPTIONS.containsKey(key)) {
-                        PROPERTY_DESCRIPTIONS.put(key, "Not found");
-                    } else {
-                        StringBuilder text = new StringBuilder();
-                        for (int j = i + 1; j < children.size(); j++) {
-                            Node candidate = children.get(j);
-                            if (candidate instanceof Element element) {
-                                if (element.is("style")) continue;
-                                if (element.is("span")) {
-                                    Optional<MatchResult> matcher = pattern.matcher(text).results().findFirst();
-                                    if (matcher.isPresent()) {
-                                        MatchResult matchResult = matcher.get();
-                                        PROPERTY_DEFAULTS.put(key, matchResult.group(1));
-                                        PROPERTY_DATA_TYPES.put(key, matchResult.group(2));
-                                        PROPERTY_DESCRIPTIONS.put(key, matchResult.group(3));
-                                    }
-                                    break;
-                                }
-                                text.append(element.text());
-                            } else if (candidate instanceof TextNode textNode) {
-                                text.append(textNode.text());
-                            }
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL("https://docs.papermc.io/assets/js/281a9c5e.2220deb7.js").openStream()))) {
+            String content = reader.lines().collect(Collectors.joining());
+            Pattern pattern = Pattern.compile("const i='(advancements.+[^\\\\])'");
+            pattern.matcher(content).results().findFirst().ifPresentOrElse(matchResult -> {
+                String[] lines = matchResult.group(1).split("\\\\n(?!\")");
+                List<String> currentPath = new ArrayList<>();
+                int lastIndent = -2;
+                StringBuilder description = null;
+                for (String line : lines) {
+                    if (line.isEmpty()) continue;
+                    String path = StringUtils.join(currentPath, "/");
+                    int indent = StringUtils.indexOfAnyBut(line, ' ');
+                    String propertyName = line.substring(indent, line.length() - 1);
+                    if (indent - lastIndent == 2) {
+                        if (description != null) {
+                            description.append(line.substring(indent));
+                        } else if (line.stripLeading().startsWith("default: ")) {
+                            PROPERTY_DEFAULTS.put(path, line.substring(indent + 9)); // After "default: "
+                        } else {
+                            currentPath.add(propertyName);
                         }
+                    } else if (indent == lastIndent) {
+                        if (description != null) {
+                            description.append(" ").append(line.substring(indent));
+                        } else if (line.stripLeading().equals("description: >-")) {
+                            description = new StringBuilder();
+                        } else if (line.stripLeading().startsWith("description: ")) {
+                            PROPERTY_DESCRIPTIONS.put(path, line.substring(indent + 13)); // After "description: "
+                        }
+                    } else if (indent < lastIndent) {
+                        for (int j = description == null ? 0 : 1; j < (lastIndent - indent) / 2; j++) { // The path won't actually be that long because one indent comes from "description: ", so start at 1
+                            currentPath.removeLast();
+                        }
+                        if (description != null) {
+                            PROPERTY_DESCRIPTIONS.put(path, description.toString());
+                            description = null;
+                        }
+                        currentPath.add(propertyName);
                     }
+                    lastIndent = indent;
                 }
-            }
-        } catch (IOException e) {
-            LOGGER.error("Failed to get Spigot property descriptions", e);
+                LOGGER.info("Loaded spigot.yml property descriptions");
+            }, () -> {throw new IllegalStateException("No descriptions found in https://docs.papermc.io/assets/js/281a9c5e.2220deb7.js");});
+        } catch (IOException | IllegalStateException e) {
+            LOGGER.warn("Failed to get property descriptions for spigot.yml", e);
         }
         OPTIMISATION_FUNCTIONS.put("world-settings/default/view-distance", ConfigManager.VIEW_DISTANCE_OPTIMISATION);
         OPTIMISATION_FUNCTIONS.put("world-settings/default/simulation-distance", ConfigManager.SIMULATION_DISTANCE_OPTIMISATION);
@@ -75,17 +77,20 @@ public class SpigotConfigManager extends YamlConfigManager {
 
     @Override
     public String getDescription(String key) {
-        return PROPERTY_DESCRIPTIONS.getOrDefault(StringUtils.substringAfterLast(key, '/'), "Not found");
+        String description = PROPERTY_DESCRIPTIONS.getOrDefault(key, "Not found");
+        if (description.startsWith("\"")) return description.substring(1, description.length() - 1);
+        return description;
     }
 
     @Override
     public String getDataType(String key) {
-        return PROPERTY_DATA_TYPES.getOrDefault(StringUtils.substringAfterLast(key, '/'), "Not found");
+        return "Not found";
     }
 
     @Override
     public String getDefaultValue(String key) {
-        return PROPERTY_DEFAULTS.getOrDefault(StringUtils.substringAfterLast(key, '/'), "Not found");
+        String defaultValue = PROPERTY_DEFAULTS.getOrDefault(key, "Not found");
+        return defaultValue.substring(1, defaultValue.length() - 1);
     }
 
     @Override

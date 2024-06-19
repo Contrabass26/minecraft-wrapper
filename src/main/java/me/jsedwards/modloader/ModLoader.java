@@ -6,10 +6,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import me.jsedwards.Main;
 import me.jsedwards.StatusPanel;
+import me.jsedwards.createserver.McVersionStagePanel;
 import me.jsedwards.dashboard.ConsoleWrapper;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.util.JsonUtils;
 import me.jsedwards.util.MinecraftUtils;
+import me.jsedwards.util.OSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
@@ -35,6 +37,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -74,6 +78,23 @@ public enum ModLoader {
         @Override
         public String getStartCommand(int mbMemory, Server server) {
             return "%s -Xmx%sM -jar server.jar nogui".formatted(server.javaVersion, mbMemory);
+        }
+
+        @Override
+        public void updateFiles(String oldVersion, String newVersion, Server server) {
+            OSUtils.deleteDirectory(server, "libraries");
+            OSUtils.deleteDirectory(server, "versions");
+            OSUtils.deleteDirectory(server, "server.jar");
+            try {
+                downloadFiles(new File(server.serverLocation), newVersion, () -> {});
+            } catch (IOException e) {
+                LOGGER.error("Failed to download new files", e);
+            }
+        }
+
+        @Override
+        public boolean supportsVersion(String version) {
+            return McVersionStagePanel.VERSIONS.contains(version);
         }
     },
     FORGE {
@@ -439,6 +460,10 @@ public enum ModLoader {
 
     public void downloadFiles(File destination, String mcVersion, Runnable doAfter) throws IOException {
         throw new RuntimeException("Mod loader not supported!");
+    }
+
+    public void updateFiles(String oldVersion, String newVersion, Server server) {
+        throw new IllegalStateException("Mod loader not supported!");
     }
 
     public String getStartCommand(int mbMemory, Server server) {

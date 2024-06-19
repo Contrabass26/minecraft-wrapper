@@ -54,7 +54,6 @@ public class ServerConfigPanel extends JPanel implements Card {
             if (versions.isEmpty()) {
                 JOptionPane.showMessageDialog(Main.WINDOW, "There are no later versions to upgrade to.", "No available versions", JOptionPane.ERROR_MESSAGE);
             } else {
-//                JOptionPane.showInputDialog(Main.WINDOW, "Choose a Minecraft version to update to:", "Select version", JOptionPane.QUESTION_MESSAGE, null, versions.toArray(), versions.getFirst());
                 // Create table showing which components are upgradable
                 String[] headings = {"Version", server.modLoader.toString()};
                 DefaultTableModel model = new DefaultTableModel(0, 2) {
@@ -85,9 +84,12 @@ public class ServerConfigPanel extends JPanel implements Card {
                 table.setPreferredScrollableViewportSize(new Dimension(500, 300));
                 table.setFillsViewportHeight(true);
                 JScrollPane scrollPane = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-                int result = JOptionPane.showConfirmDialog(Main.WINDOW, scrollPane, "Select version", JOptionPane.OK_CANCEL_OPTION);
+                int result = JOptionPane.showConfirmDialog(Main.WINDOW, scrollPane, "Select a version to update to", JOptionPane.OK_CANCEL_OPTION);
                 if (result == 0) {
-                    System.out.printf("Updating to %s%n", versions.get(table.getSelectedRow()));
+                    String newVersion = versions.get(table.getSelectedRow());
+                    LOGGER.info("Updating server %s to version %s".formatted(server.serverName, newVersion));
+                    // Update mod loader
+                    server.modLoader.updateFiles(server.mcVersion, newVersion, server);
                 }
             }
         });

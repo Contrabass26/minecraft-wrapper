@@ -1,6 +1,7 @@
 package me.jsedwards.util;
 
 import me.jsedwards.dashboard.ConsoleWrapper;
+import me.jsedwards.dashboard.Server;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -84,6 +85,10 @@ public class OSUtils {
             }
         }
         file.delete();
+    }
+
+    public static void deleteDirectory(Server server, String relativePath) {
+        deleteDirectory(new File(server.serverLocation + "/" + relativePath));
     }
 
     private static long getSystemMemory() {

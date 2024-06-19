@@ -23,7 +23,7 @@ public final class CurseForgeProject extends Project {
 
     @Override
     public void downloadFile(ModFile file, File out) throws IOException {
-        Main.WINDOW.statusPanel.curlToFile(new URL(file.url()), out);
+        Main.WINDOW.statusPanel.saveFileFromUrl(new URL(file.url()), out);
     }
 
     @Override

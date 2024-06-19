@@ -10,11 +10,14 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class OSUtils {
 
     private static final Logger LOGGER = LogManager.getLogger("OSUtils");
+    public static final Pattern JAVA_VERSION_REGEX = Pattern.compile("[^.0-9]([0-9]+)");
 
     public static final String settingsLocation;
     public static final String dataDir;
@@ -96,7 +99,10 @@ public class OSUtils {
     private static void getJavaVersions() {
         if (SystemUtils.IS_OS_WINDOWS) {
             try {
-                new ConsoleWrapper("where java", new File("C:/"), javaVersions::add, s -> {}, () -> LOGGER.info("Found %s Java versions on Windows".formatted(javaVersions.size())));
+                new ConsoleWrapper("where java", new File("C:/"), javaVersions::add, s -> {}, () -> {
+                    sortJavaVersions();
+                    LOGGER.info("Found %s Java versions on Windows".formatted(javaVersions.size()));
+                });
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -111,6 +117,27 @@ public class OSUtils {
                     }
                 }
             }
+            sortJavaVersions();
+        }
+    }
+
+    private static void sortJavaVersions() {
+        synchronized (javaVersions) {
+            javaVersions.sort(new Comparator<>() {
+                @Override
+                public int compare(String o1, String o2) {
+                    int v1 = getValue(o1);
+                    int v2 = getValue(o2);
+                    return Integer.compare(v2, v1); // Reverse order
+                }
+
+                private int getValue(String version) {
+                    AtomicInteger value = new AtomicInteger(0);
+                    Matcher matcher = JAVA_VERSION_REGEX.matcher(version);
+                    matcher.results().findFirst().ifPresent(matchResult -> value.set(Integer.parseInt(matchResult.group(1))));
+                    return value.get();
+                }
+            });
         }
     }
 }

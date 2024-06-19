@@ -132,7 +132,7 @@ public enum ModLoader {
         }
 
         @Override
-        public int getGameFlavour() {
+        public int getCfModLoaderType() {
             return 1;
         }
     },
@@ -161,7 +161,7 @@ public enum ModLoader {
         }
 
         @Override
-        public int getGameFlavour() {
+        public int getCfModLoaderType() {
             return 4;
         }
     },
@@ -284,7 +284,7 @@ public enum ModLoader {
         return false;
     }
 
-    public int getGameFlavour() {
+    public int getCfModLoaderType() {
         return -1; // Signifies no game flavour
     }
 

@@ -69,22 +69,32 @@ public class CurseForge {
                         authors.add(author.get("name").textValue());
                     }
                     String authorsStr = StringUtils.join(authors, ", ");
-                    // Latest file
-
                     mods.add(new CurseForgeProject(
                             datum.get("name").textValue(),
                             datum.get("summary").textValue(),
                             authorsStr,
-                            datum.get("logo").get("url").textValue(),
+                            datum.get("logo").get("thumbnailUrl").textValue(),
                             datum.get("id").intValue(),
-                            datum.get("downloadCount").intValue(),
-                            datum.get("latestFiles").get(0).get("id").intValue()));
+                            datum.get("downloadCount").intValue()));
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return mods;
+    }
+
+    public static Project.ModFile getModFile(int modId, String mcVersion, ModLoader loader) {
+        InputStream stream = apiQuery("v1/mods/%s/files?gameVersion=%s&modLoaderType=%s".formatted(modId, mcVersion, loader.getCfModLoaderType()));
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode file = mapper.readTree(stream).get("data").get(0);
+            String filename = file.get("fileName").textValue();
+            String url = file.get("downloadUrl").textValue();
+            return new Project.ModFile(url, filename);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static boolean contains(ArrayNode array, Predicate<JsonNode> predicate) {

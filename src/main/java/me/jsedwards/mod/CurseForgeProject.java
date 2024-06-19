@@ -11,14 +11,14 @@ public final class CurseForgeProject extends Project {
 
     private final int numericId;
 
-    public CurseForgeProject(String title, String description, String author, String icon, int numericId, int downloads, int latestFileId) {
+    public CurseForgeProject(String title, String description, String author, String icon, int numericId, int downloads) {
         super(title, description, author, icon, downloads);
         this.numericId = numericId;
     }
 
     @Override
     public ModFile getFile(String mcVersion, ModLoader loader) {
-        return CurseForge.getFileId(numericId, mcVersion, loader);
+        return CurseForge.getModFile(numericId, mcVersion, loader);
     }
 
     @Override

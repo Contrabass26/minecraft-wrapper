@@ -36,6 +36,7 @@ public abstract class Project implements Comparable<Project> {
         return Integer.compare(o.downloads, this.downloads);
     }
 
+    // TODO: Include file size
     public record ModFile(String url, String filename) {
 
         @Override

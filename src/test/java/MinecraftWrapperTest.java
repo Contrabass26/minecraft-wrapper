@@ -1,11 +1,7 @@
-import me.jsedwards.mod.CurseForge;
-import me.jsedwards.mod.Modrinth;
 import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.MinecraftUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class MinecraftWrapperTest {
 

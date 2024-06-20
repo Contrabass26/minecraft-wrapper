@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import me.jsedwards.dashboard.Server;
-import me.jsedwards.mod.CurseForgeProject;
 import me.jsedwards.mod.Project;
 import me.jsedwards.util.Identifier;
 
@@ -40,8 +39,8 @@ public class ServerSerialiser extends StdSerializer<Server> {
         // Mods
         generator.writeFieldName("mods");
         generator.writeStartArray();
-        for (Project mod : server.mods) {
-            mod.serialise(generator);
+        for (Project.ModFile modFile : server.mods) {
+            generator.writeObject(modFile);
         }
         generator.writeEndArray();
         generator.writeEndObject();

@@ -3,11 +3,9 @@ package me.jsedwards.data;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import me.jsedwards.dashboard.Server;
-import me.jsedwards.mod.CurseForgeProject;
-import me.jsedwards.mod.ModrinthProject;
 import me.jsedwards.mod.Project;
 import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.Identifier;
@@ -45,13 +43,10 @@ public class ServerDeserialiser extends StdDeserializer<Server> {
             boolean value = entry.getValue().booleanValue();
             keysToOptimise.put(key, value);
         });
-        List<Project> mods = new ArrayList<>();
+        ObjectMapper mapper = new ObjectMapper();
+        List<Project.ModFile> mods = new ArrayList<>();
         for (JsonNode mod : root.get("mods")) {
-            if (mod.get("source").textValue().equals("curseforge")) {
-                mods.add(new CurseForgeProject(mod.get("id").intValue()));
-            } else {
-                mods.add(new ModrinthProject(mod.get("id").textValue()));
-            }
+            mods.add(mapper.treeToValue(mod, Project.ModFile.class));
         }
         return Server.create(name, location, modLoader, mcVersion, mbMemory, javaVersion, optimisationLevel, keysToOptimise, mods, false);
     }

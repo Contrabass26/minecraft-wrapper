@@ -38,13 +38,10 @@ public class ServerSerialiser extends StdSerializer<Server> {
         }
         generator.writeEndObject();
         // Mods
-        generator.writeStartArray("mods");
+        generator.writeFieldName("mods");
+        generator.writeStartArray();
         for (Project mod : server.mods) {
-            generator.writeStartObject();
-            if (mod instanceof CurseForgeProject) {
-
-            }
-            generator.writeEndObject();
+            mod.serialise(generator);
         }
         generator.writeEndArray();
         generator.writeEndObject();

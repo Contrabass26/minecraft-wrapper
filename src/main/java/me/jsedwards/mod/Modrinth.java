@@ -42,6 +42,14 @@ public class Modrinth {
         return mapper.readTree(content);
     }
 
+    public static JsonNode getProjectNode(String id) {
+        try {
+            return doApiCall("project/%s".formatted(id));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static Project.ModFile getVersionFile(String id, ModLoader loader, String mcVersion) {
         try {
             String path = "project/%s/version?loaders=[\"%s\"]&game_versions=[\"%s\"]".formatted(id, loader.toString().toLowerCase(), mcVersion);

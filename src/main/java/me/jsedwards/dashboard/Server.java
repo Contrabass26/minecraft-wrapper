@@ -40,7 +40,7 @@ public class Server extends JPanel {
     public final String serverName;
     public final String serverLocation;
     public final ModLoader modLoader;
-    public final String mcVersion;
+    public String mcVersion;
     private final TopPanel topPanel;
     public int mbMemory;
     public String javaVersion;

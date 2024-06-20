@@ -52,11 +52,7 @@ public class CurseForge {
                 String website = datum.get("links").get("websiteUrl").textValue();
                 if (website.contains("mc-mods")) {
                     // Authors
-                    List<String> authors = new ArrayList<>();
-                    for (JsonNode author : datum.get("authors")) {
-                        authors.add(author.get("name").textValue());
-                    }
-                    String authorsStr = StringUtils.join(authors, ", ");
+                    String authorsStr = getAuthorString(datum.get("authors"));
                     mods.add(new CurseForgeProject(
                             datum.get("name").textValue(),
                             datum.get("summary").textValue(),
@@ -70,6 +66,24 @@ public class CurseForge {
             throw new RuntimeException(e);
         }
         return mods;
+    }
+
+    public static String getAuthorString(JsonNode authorsNode) {
+        List<String> authors = new ArrayList<>();
+        for (JsonNode author : authorsNode) {
+            authors.add(author.get("name").textValue());
+        }
+        return StringUtils.join(authors, ", ");
+    }
+
+    public static JsonNode getProjectNode(int id) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            InputStream stream = apiQuery("v1/mods/%s".formatted(id));
+            return mapper.readTree(stream).get("data");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static Project.ModFile getModFile(int modId, String mcVersion, ModLoader loader) {

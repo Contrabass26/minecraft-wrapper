@@ -1,5 +1,6 @@
 package me.jsedwards.mod;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import me.jsedwards.modloader.ModLoader;
 
 import java.io.File;
@@ -25,7 +26,7 @@ public abstract class Project implements Comparable<Project> {
 
     public abstract void downloadFile(ModFile file, File out) throws IOException;
 
-    
+    public abstract void serialise(JsonGenerator generator) throws IOException;
 
     @Override
     public String toString() {

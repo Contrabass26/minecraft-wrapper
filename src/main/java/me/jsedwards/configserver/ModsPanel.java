@@ -88,6 +88,7 @@ public class ModsPanel extends JPanel {
                 throw new RuntimeException(ex);
             }
             currentModsModel.addElement(file.filename());
+            server.mods.add(selectedValue);
         });
     }
 

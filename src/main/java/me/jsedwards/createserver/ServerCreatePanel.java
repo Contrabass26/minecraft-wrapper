@@ -69,7 +69,7 @@ public class ServerCreatePanel extends JPanel implements Card {
                     try {
                         modLoader.downloadFiles(destination, mcVersion, () -> {
                             // Register server
-                            Server server = Server.create(serverName, serverLocation, modLoader, mcVersion, mbMemory, OSUtils.javaVersions.getFirst(), 50, new HashMap<>(), true);
+                            Server server = Server.create(serverName, serverLocation, modLoader, mcVersion, mbMemory, OSUtils.javaVersions.getFirst(), 50, new HashMap<>(), new ArrayList<>(), true);
                             // Add new button to server select panel
                             Main.WINDOW.cardPanel.serverSelectPanel.addServer(server);
                             // Switch to new server dashboard

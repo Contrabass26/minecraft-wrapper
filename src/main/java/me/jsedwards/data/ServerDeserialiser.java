@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.mod.CurseForgeProject;
+import me.jsedwards.mod.ModrinthProject;
 import me.jsedwards.mod.Project;
 import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.Identifier;
@@ -45,8 +47,12 @@ public class ServerDeserialiser extends StdDeserializer<Server> {
         });
         List<Project> mods = new ArrayList<>();
         for (JsonNode mod : root.get("mods")) {
-            mods.add();
+            if (mod.get("source").textValue().equals("curseforge")) {
+                mods.add(new CurseForgeProject(mod.get("id").intValue()));
+            } else {
+                mods.add(new ModrinthProject(mod.get("id").textValue()));
+            }
         }
-        return Server.create(name, location, modLoader, mcVersion, mbMemory, javaVersion, optimisationLevel, keysToOptimise, false);
+        return Server.create(name, location, modLoader, mcVersion, mbMemory, javaVersion, optimisationLevel, keysToOptimise, mods, false);
     }
 }

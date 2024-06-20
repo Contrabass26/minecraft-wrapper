@@ -10,13 +10,14 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import me.jsedwards.Main;
-import me.jsedwards.util.OSUtils;
+import me.jsedwards.modloader.ModLoader;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
 
 @JsonSerialize(using = Project.Serialiser.class)
 @JsonDeserialize(using = Project.Deserialiser.class)
@@ -29,8 +30,9 @@ public class Project implements Comparable<Project> {
     public final String icon;
     public final int downloads;
     public final ModProvider source;
+    private final List<String> supportedVersions;
 
-    public Project(String id, String title, String description, String author, String icon, int downloads, ModProvider source) {
+    public Project(String id, String title, String description, String author, String icon, int downloads, List<String> supportedVersions, ModProvider source) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -38,10 +40,19 @@ public class Project implements Comparable<Project> {
         this.icon = icon;
         this.downloads = downloads;
         this.source = source;
+        this.supportedVersions = supportedVersions;
     }
 
     public static Project create(ModProvider source, String id) {
         return source.createProject(id);
+    }
+
+    public boolean supportsVersion(String mcVersion) {
+        return supportedVersions.contains(mcVersion);
+    }
+
+    public ModFile getFile(ModLoader modLoader, String mcVersion) {
+        return source.getFile(this, modLoader, mcVersion);
     }
 
     @Override

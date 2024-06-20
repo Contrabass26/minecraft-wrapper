@@ -16,7 +16,10 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 
 public enum ModProvider {
 
@@ -82,13 +85,28 @@ public enum ModProvider {
 
         @Override
         public Project createProject(JsonNode data) {
+            String id = String.valueOf(data.get("id").intValue());
+            ObjectMapper mapper = new ObjectMapper();
+            Set<String> supportedVersions = new HashSet<>();
+            InputStream stream = apiQuery("v1/mods/%s/files".formatted(id));
+            try {
+                JsonNode files = mapper.readTree(stream).get("data");
+                for (JsonNode file : files) {
+                    for (JsonNode version : file.get("gameVersions")) {
+                        supportedVersions.add(version.textValue());
+                    }
+                }
+            } catch (IOException e) {
+                LOGGER.warn("Failed to get supported versions", e);
+            }
             return new Project(
-                    String.valueOf(data.get("id").intValue()),
+                    id,
                     data.get("name").textValue(),
                     data.get("summary").textValue(),
                     getAuthorString(data.get("authors")),
                     data.get("logo").get("thumbnailUrl").textValue(),
                     data.get("downloadCount").intValue(),
+                    new ArrayList<>(supportedVersions),
                     CURSEFORGE
             );
         }
@@ -156,6 +174,11 @@ public enum ModProvider {
 
         @Override
         public Project createProject(JsonNode data) {
+            JsonNode versions = getGameVersions(data);
+            Set<String> supportedVersions = new HashSet<>();
+            for (JsonNode version : versions) {
+                supportedVersions.add(version.textValue());
+            }
             return new Project(
                     getId(data),
                     data.get("title").textValue(),
@@ -163,8 +186,16 @@ public enum ModProvider {
                     getAuthorString(data),
                     data.get("icon_url").textValue(),
                     data.get("downloads").intValue(),
+                    new ArrayList<>(supportedVersions),
                     MODRINTH
             );
+        }
+
+        private static JsonNode getGameVersions(JsonNode root) {
+            if (root.has("game_versions")) {
+                return root.get("game_versions");
+            }
+            return root.get("versions");
         }
 
         private static String getId(JsonNode root) {

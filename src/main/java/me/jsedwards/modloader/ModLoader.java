@@ -137,7 +137,7 @@ public enum ModLoader {
             if (children != null) {
                 for (File file : children) {
                     String name = file.getName();
-                    if (name.matches("minecraft_server.*\\.jar")) {
+                    if (name.matches("minecraft_server.*\\.jar") && name.contains(server.mcVersion)) {
                         return "%s -Xmx%sM -jar %s nogui".formatted(server.javaVersion, mbMemory, name);
                     }
                 }

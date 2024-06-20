@@ -79,7 +79,7 @@ public class ModsPanel extends JPanel {
         addBtn.addActionListener(e -> {
             Project selectedValue = searchResults.getSelectedValue();
             if (selectedValue == null) return;
-            Project.ModFile file = selectedValue.source.getFile(selectedValue, server.modLoader, server.mcVersion);
+            Project.ModFile file = selectedValue.getFile(server.modLoader, server.mcVersion);
             String modsFolder = server.serverLocation + "/mods/";
             new File(modsFolder).mkdir();
             file.download(modsFolder);

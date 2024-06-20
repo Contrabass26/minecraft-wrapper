@@ -4,10 +4,12 @@ import me.jsedwards.Card;
 import me.jsedwards.Main;
 import me.jsedwards.createserver.McVersionStagePanel;
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.mod.Project;
 import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.Identifier;
 import me.jsedwards.util.ColouredCellRenderer;
 import me.jsedwards.util.MinecraftUtils;
+import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -55,15 +57,27 @@ public class ServerConfigPanel extends JPanel implements Card {
                 JOptionPane.showMessageDialog(Main.WINDOW, "There are no later versions to upgrade to.", "No available versions", JOptionPane.ERROR_MESSAGE);
             } else {
                 // Create table showing which components are upgradable
-                String[] headings = {"Version", server.modLoader.toString()};
-                DefaultTableModel model = new DefaultTableModel(0, 2) {
+                int columnCount = 2 + server.mods.size();
+                String[] headings = new String[columnCount];
+                headings[0] = "Version";
+                headings[1] = server.modLoader.toString();
+                for (int i = 0; i < server.mods.size(); i++) {
+                    headings[i + 2] = server.mods.get(i).parent().title;
+                }
+                DefaultTableModel model = new DefaultTableModel(0, columnCount) {
                     @Override
                     public String getColumnName(int column) {
                         return headings[column];
                     }
                 };
                 for (String version : versions) {
-                    model.addRow(new Object[]{version, server.modLoader.supportsVersion(version) ? Color.GREEN : Color.RED});
+                    Object[] values = new Object[columnCount];
+                    values[0] = version;
+                    values[1] = server.modLoader.supportsVersion(version) ? Color.GREEN : Color.RED;
+                    for (int i = 0; i < server.mods.size(); i++) {
+                        values[i + 2] = server.mods.get(i).parent().supportsVersion(version) ? Color.GREEN : Color.RED;
+                    }
+                    model.addRow(values);
                 }
                 ColouredCellRenderer renderer = new ColouredCellRenderer();
                 JTable table = new JTable(model) {
@@ -92,6 +106,19 @@ public class ServerConfigPanel extends JPanel implements Card {
                     server.modLoader.updateFiles(newVersion, server);
                     // Update server version
                     server.mcVersion = newVersion;
+                    // Update mods
+                    List<Project.ModFile> mods = server.mods;
+                    for (int i = 0; i < mods.size(); i++) {
+                        Project.ModFile modFile = mods.get(i);
+                        if (modFile.parent().supportsVersion(newVersion)) {
+                            OSUtils.deleteDirectory(server, "mods/" + modFile.filename());
+                            Project.ModFile newFile = modFile.parent().getFile(server.modLoader, newVersion);
+                            mods.set(i, newFile);
+                            newFile.download(server.serverLocation + "/mods/");
+                        } else {
+                            JOptionPane.showMessageDialog(Main.WINDOW, "%s does not support version %s".formatted(modFile.parent().title, newVersion), "Skipped", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
                 }
             }
         });

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.mod.Project;
-import me.jsedwards.util.Identifier;
 
 import java.io.IOException;
 import java.util.Map;

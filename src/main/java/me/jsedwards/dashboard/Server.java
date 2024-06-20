@@ -10,7 +10,6 @@ import me.jsedwards.data.ServerDeserialiser;
 import me.jsedwards.data.ServerSerialiser;
 import me.jsedwards.mod.Project;
 import me.jsedwards.modloader.ModLoader;
-import me.jsedwards.util.Identifier;
 import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

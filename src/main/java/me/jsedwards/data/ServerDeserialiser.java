@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.mod.Project;
 import me.jsedwards.modloader.ModLoader;
-import me.jsedwards.util.Identifier;
 
 import java.io.IOException;
 import java.util.ArrayList;

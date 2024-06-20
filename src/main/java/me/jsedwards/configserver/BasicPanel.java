@@ -6,7 +6,6 @@ import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.data.OperatorPlayer;
 import me.jsedwards.data.WhitelistedPlayer;
-import me.jsedwards.util.Identifier;
 import me.jsedwards.util.MathUtils;
 import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;

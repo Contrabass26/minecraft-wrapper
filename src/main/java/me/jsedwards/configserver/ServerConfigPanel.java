@@ -6,7 +6,6 @@ import me.jsedwards.createserver.McVersionStagePanel;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.mod.Project;
 import me.jsedwards.modloader.ModLoader;
-import me.jsedwards.util.Identifier;
 import me.jsedwards.util.ColouredCellRenderer;
 import me.jsedwards.util.MinecraftUtils;
 import me.jsedwards.util.OSUtils;

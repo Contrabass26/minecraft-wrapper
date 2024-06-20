@@ -7,13 +7,12 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Function;
 
-public class ServerPropertiesManager extends DefaultListModel<String> implements ConfigManager {
+public class ServerPropertiesManager extends ConfigManager {
 
     private static final HashMap<String, String> PROPERTY_DESCRIPTIONS = new HashMap<>();
     private static final HashMap<String, String> PROPERTY_DATA_TYPES = new HashMap<>();
@@ -25,7 +24,7 @@ public class ServerPropertiesManager extends DefaultListModel<String> implements
         // Property descriptions
         try {
             Document document = Jsoup.connect("https://minecraft.wiki/w/Server.properties").userAgent("Mozilla").get();
-            Element table = document.select("table[data-description=Server properties]").get(0);
+            Element table = document.select("table[data-description=Server properties]").getFirst();
             Elements rows = table.select("tr");
             for (int i = 1; i < rows.size(); i++) {
                 Element row = rows.get(i);

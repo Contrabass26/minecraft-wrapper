@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public abstract class YamlConfigManager extends DefaultListModel<String> implements ConfigManager {
+public abstract class YamlConfigManager extends DefaultListModel<String>, ConfigManager {
 
     protected final File yamlFile;
     protected final List<String> keys = new ArrayList<>();

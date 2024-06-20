@@ -8,29 +8,29 @@ import javax.swing.*;
 import java.util.Set;
 import java.util.function.Function;
 
-public interface ConfigManager extends ListModel<String> {
+public abstract class ConfigManager extends DefaultListModel<ConfigProperty> {
 
-    Logger LOGGER = LogManager.getLogger("ConfigManager");
-    Function<Integer, Integer> VIEW_DISTANCE_OPTIMISATION = slider -> (int) Math.round(MathUtils.quadraticFunction(slider, 0.0022, 0.07, 3));
-    Function<Integer, Integer> SIMULATION_DISTANCE_OPTIMISATION = slider -> (int) Math.round(MathUtils.quadraticFunction(slider, 0.0014, 0.13, 5));
+    public static final Logger LOGGER = LogManager.getLogger("ConfigManager");
+    public static final Function<Integer, Integer> VIEW_DISTANCE_OPTIMISATION = slider -> (int) Math.round(MathUtils.quadraticFunction(slider, 0.0022, 0.07, 3));
+    public static final Function<Integer, Integer> SIMULATION_DISTANCE_OPTIMISATION = slider -> (int) Math.round(MathUtils.quadraticFunction(slider, 0.0014, 0.13, 5));
 
-    void updateSearch(String query);
+    public abstract void updateSearch(String query);
 
-    void save();
+    public abstract void save();
 
-    void set(String key, String value);
+    public abstract void set(String key, String value);
 
-    String getDescription(String key);
+    public abstract String getDescription(String key);
 
-    String getDataType(String key);
+    public abstract String getDataType(String key);
 
-    String getDefaultValue(String key);
+    public abstract String getDefaultValue(String key);
 
-    Set<String> getKeysToOptimise();
+    public abstract Set<String> getKeysToOptimise();
 
-    boolean isKeyOptimised(String key);
+    public abstract boolean isKeyOptimised(String key);
 
-    void setKeyOptimised(String key, boolean enabled);
+    public abstract void setKeyOptimised(String key, boolean enabled);
 
-    void optimise(int sliderValue);
+    public abstract void optimise(int sliderValue);
 }

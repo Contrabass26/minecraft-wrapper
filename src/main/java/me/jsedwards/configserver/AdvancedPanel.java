@@ -19,7 +19,7 @@ public class AdvancedPanel extends JPanel {
     private final Function<Server, ConfigManager> configManagerCreator;
     private final Predicate<Server> enabled;
     private ConfigManager properties;
-    private final JList<String> propertiesList;
+    private final JList<ConfigProperty> propertiesList;
     public final String name;
 
     public AdvancedPanel(Function<Server, ConfigManager> configManagerCreator, String name, Predicate<Server> enabled) {
@@ -126,7 +126,7 @@ public class AdvancedPanel extends JPanel {
         private JButton createEditButton() {
             JButton editBtn = new JButton("Edit");
             editBtn.addActionListener(e -> {
-                String selected = AdvancedPanel.this.propertiesList.getSelectedValue();
+                ConfigProperty selected = AdvancedPanel.this.propertiesList.getSelectedValue();
                 int splitIndex = selected.indexOf(':');
                 String key = selected.substring(0, splitIndex);
                 String value = JOptionPane.showInputDialog(editBtn, "Enter new value for %s:".formatted(key), "Edit value", JOptionPane.QUESTION_MESSAGE);
@@ -137,7 +137,7 @@ public class AdvancedPanel extends JPanel {
         }
 
         private void update() {
-            String selectedItem = AdvancedPanel.this.propertiesList.getSelectedValue();
+            ConfigProperty selectedItem = AdvancedPanel.this.propertiesList.getSelectedValue();
             if (selectedItem != null) {
                 String key = selectedItem.substring(0, selectedItem.indexOf(':'));
                 this.nameLbl.setText(key);

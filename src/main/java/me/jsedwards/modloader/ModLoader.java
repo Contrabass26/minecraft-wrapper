@@ -143,9 +143,17 @@ public enum ModLoader {
                 }
             }
             String libsPath = server.serverLocation + "/libraries/net/minecraftforge/forge";
-            String version = Objects.requireNonNull(new File(libsPath).listFiles())[0].getName();
-            String argsName = SystemUtils.IS_OS_WINDOWS ? "win_args.txt" : "unix_args.txt";
-            return "java -Xmx" + mbMemory + "M @libraries/net/minecraftforge/forge/" + version + "/" + argsName + " nogui %*";
+            File[] libsChildren = new File(libsPath).listFiles();
+            if (libsChildren != null) {
+                String argsName = SystemUtils.IS_OS_WINDOWS ? "win_args.txt" : "unix_args.txt";
+                for (File file : libsChildren) {
+                    String name = file.getName();
+                    if (name.contains(server.mcVersion)) {
+                        return server.javaVersion + " -Xmx" + mbMemory + "M @libraries/net/minecraftforge/forge/" + name + "/" + argsName + " nogui %*";
+                    }
+                }
+            }
+            throw new IllegalStateException("No JAR files found for server start");
         }
 
         @Override

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import me.jsedwards.Main;
 import me.jsedwards.StatusPanel;
+import me.jsedwards.createserver.McVersionStagePanel;
 import me.jsedwards.dashboard.ConsoleWrapper;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.util.JsonUtils;
@@ -75,6 +76,11 @@ public enum ModLoader {
         public String getStartCommand(int mbMemory, Server server) {
             return "%s -Xmx%sM -jar server.jar nogui".formatted(server.javaVersion, mbMemory);
         }
+
+        @Override
+        public boolean supportsVersion(String version) {
+            return McVersionStagePanel.VERSIONS.contains(version);
+        }
     },
     FORGE {
         private static final Set<String> SUPPORTED_VERSIONS;
@@ -131,15 +137,23 @@ public enum ModLoader {
             if (children != null) {
                 for (File file : children) {
                     String name = file.getName();
-                    if (name.matches("minecraft_server.*\\.jar")) {
+                    if (name.matches("minecraft_server.*\\.jar") && name.contains(server.mcVersion)) {
                         return "%s -Xmx%sM -jar %s nogui".formatted(server.javaVersion, mbMemory, name);
                     }
                 }
             }
             String libsPath = server.serverLocation + "/libraries/net/minecraftforge/forge";
-            String version = Objects.requireNonNull(new File(libsPath).listFiles())[0].getName();
-            String argsName = SystemUtils.IS_OS_WINDOWS ? "win_args.txt" : "unix_args.txt";
-            return "java -Xmx" + mbMemory + "M @libraries/net/minecraftforge/forge/" + version + "/" + argsName + " nogui %*";
+            File[] libsChildren = new File(libsPath).listFiles();
+            if (libsChildren != null) {
+                String argsName = SystemUtils.IS_OS_WINDOWS ? "win_args.txt" : "unix_args.txt";
+                for (File file : libsChildren) {
+                    String name = file.getName();
+                    if (name.contains(server.mcVersion)) {
+                        return server.javaVersion + " -Xmx" + mbMemory + "M @libraries/net/minecraftforge/forge/" + name + "/" + argsName + " nogui %*";
+                    }
+                }
+            }
+            throw new IllegalStateException("No JAR files found for server start");
         }
 
         @Override
@@ -439,6 +453,14 @@ public enum ModLoader {
 
     public void downloadFiles(File destination, String mcVersion, Runnable doAfter) throws IOException {
         throw new RuntimeException("Mod loader not supported!");
+    }
+
+    public void updateFiles(String newVersion, Server server) {
+        try {
+            downloadFiles(new File(server.serverLocation), newVersion, () -> {});
+        } catch (IOException e) {
+            LOGGER.error("Failed to download new files", e);
+        }
     }
 
     public String getStartCommand(int mbMemory, Server server) {

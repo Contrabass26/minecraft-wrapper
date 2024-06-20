@@ -1,11 +1,8 @@
-import me.jsedwards.mod.CurseForge;
-import me.jsedwards.mod.Modrinth;
+import me.jsedwards.mod.ModProvider;
 import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.MinecraftUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class MinecraftWrapperTest {
 
@@ -14,29 +11,6 @@ public class MinecraftWrapperTest {
         Assertions.assertEquals("0.15.11", ModLoader.FABRIC_LOADER_VERSION, "Wrong Fabric loader version");
         Assertions.assertEquals("1.0.1", ModLoader.FABRIC_INSTALLER_VERSION, "Wrong Fabric installer version");
     }
-
-    @Test
-    public void modrinthSearch() {
-        String query = "jei";
-        ModLoader[] loaders = {ModLoader.FABRIC, ModLoader.FORGE, ModLoader.NEOFORGE};
-        String mcVersion = "1.20.4";
-        for (ModLoader loader : loaders) {
-            Assertions.assertTrue(Modrinth.search(query, loader, mcVersion).size() > 0, "No results for query \"%s\", loader %s, version %s".formatted(query, loader, mcVersion));
-        }
-    }
-
-//    @Test
-//    public void curseForgeSearch() throws InterruptedException {
-//        String query = "create";
-//        ModLoader[] loaders = {ModLoader.FABRIC, ModLoader.FORGE};
-//        String mcVersion = "1.20.1";
-//        for (ModLoader loader : loaders) {
-//            AtomicInteger counter = new AtomicInteger(0);
-//            CurseForge.search(query, loader, mcVersion, p -> counter.incrementAndGet());
-//            Thread.sleep(3000);
-//            Assertions.assertTrue(counter.get() > 0, "No results for query \"%s\", loader %s, version %s".formatted(query, loader, mcVersion));
-//        }
-//    }
 
     @Test
     public void uuidQuery() {

@@ -79,22 +79,21 @@ public class ModsPanel extends JPanel {
         addBtn.addActionListener(e -> {
             Project selectedValue = searchResults.getSelectedValue();
             if (selectedValue == null) return;
-            Project.ModFile file = selectedValue.getFile(server.mcVersion, server.modLoader);
-            try {
-                String modsFolder = server.serverLocation + "/mods/";
-                new File(modsFolder).mkdir();
-                selectedValue.downloadFile(file, new File(modsFolder + file.filename()));
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
+            Project.ModFile file = selectedValue.getFile(server.modLoader, server.mcVersion);
+            String modsFolder = server.serverLocation + "/mods/";
+            new File(modsFolder).mkdir();
+            file.download(modsFolder);
             currentModsModel.addElement(file.filename());
+            server.mods.add(file);
         });
     }
 
     private void search() {
         String query = searchBox.getText();
-        List<Project> results = new ArrayList<>(Modrinth.search(query, server.modLoader, server.mcVersion));
-        results.addAll(CurseForge.search(query, server.modLoader, server.mcVersion));
+        List<Project> results = new ArrayList<>();
+        for (ModProvider provider : ModProvider.values()) {
+            results.addAll(provider.search(query, server.modLoader, server.mcVersion));
+        }
         Collections.sort(results);
         searchResultsModel.clear();
         results.forEach(searchResultsModel::addElement);

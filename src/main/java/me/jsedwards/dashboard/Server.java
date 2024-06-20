@@ -8,6 +8,7 @@ import me.jsedwards.CardPanel;
 import me.jsedwards.Main;
 import me.jsedwards.data.ServerDeserialiser;
 import me.jsedwards.data.ServerSerialiser;
+import me.jsedwards.mod.Project;
 import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.Identifier;
 import me.jsedwards.util.OSUtils;
@@ -39,16 +40,17 @@ public class Server extends JPanel {
     public final String serverName;
     public final String serverLocation;
     public final ModLoader modLoader;
-    public final String mcVersion;
+    public String mcVersion;
     private final TopPanel topPanel;
     public int mbMemory;
     public String javaVersion;
     public int optimisationLevel;
     public Map<Identifier, Boolean> keysToOptimise; // Only stores keys that have been changed - all others will have their default value
+    public List<Project.ModFile> mods;
     private final ConsolePanel consolePanel;
     private ConsoleWrapper consoleWrapper = null;
 
-    private Server(String serverName, String serverLocation, ModLoader modLoader, String mcVersion, int mbMemory, String javaVersion, int optimisationLevel, Map<Identifier, Boolean> keysToOptimise) {
+    private Server(String serverName, String serverLocation, ModLoader modLoader, String mcVersion, int mbMemory, String javaVersion, int optimisationLevel, Map<Identifier, Boolean> keysToOptimise, List<Project.ModFile> mods) {
         super();
         this.serverName = serverName;
         this.serverLocation = serverLocation;
@@ -58,6 +60,7 @@ public class Server extends JPanel {
         this.javaVersion = javaVersion;
         this.optimisationLevel = optimisationLevel;
         this.keysToOptimise = keysToOptimise;
+        this.mods = mods;
         // Layout
         this.setLayout(new GridBagLayout());
         // Top panel
@@ -94,8 +97,8 @@ public class Server extends JPanel {
      * @param mcVersion The Minecraft version of the server, e.g. 1.20.1
      * @return The new server object with the specified properties
      */
-    public static Server create(String name, String location, ModLoader modLoader, String mcVersion, int mbMemory, String javaVersion, int optimisationLevel, Map<Identifier, Boolean> keysToOptimise, boolean addCard) {
-        Server server = new Server(name, location, modLoader, mcVersion, mbMemory, javaVersion, optimisationLevel, keysToOptimise);
+    public static Server create(String name, String location, ModLoader modLoader, String mcVersion, int mbMemory, String javaVersion, int optimisationLevel, Map<Identifier, Boolean> keysToOptimise, List<Project.ModFile> mods, boolean addCard) {
+        Server server = new Server(name, location, modLoader, mcVersion, mbMemory, javaVersion, optimisationLevel, keysToOptimise, mods);
         servers.add(server);
         if (addCard) Main.WINDOW.cardPanel.addServerCard(server);
         return server;

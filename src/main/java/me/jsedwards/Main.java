@@ -4,15 +4,12 @@ import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.jthemedetecor.OsThemeDetector;
 import me.jsedwards.dashboard.Server;
-import me.jsedwards.mod.CurseForge;
-import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 

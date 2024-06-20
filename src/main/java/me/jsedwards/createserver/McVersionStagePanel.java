@@ -14,7 +14,7 @@ import java.util.List;
 
 public class McVersionStagePanel extends ValidatedStage {
 
-    private static final List<String> VERSIONS;
+    public static final List<String> VERSIONS;
     static {
         VERSIONS = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();

@@ -3,13 +3,17 @@ package me.jsedwards.data;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.mod.Project;
 import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.Identifier;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ServerDeserialiser extends StdDeserializer<Server> {
@@ -39,6 +43,11 @@ public class ServerDeserialiser extends StdDeserializer<Server> {
             boolean value = entry.getValue().booleanValue();
             keysToOptimise.put(key, value);
         });
-        return Server.create(name, location, modLoader, mcVersion, mbMemory, javaVersion, optimisationLevel, keysToOptimise, false);
+        ObjectMapper mapper = new ObjectMapper();
+        List<Project.ModFile> mods = new ArrayList<>();
+        for (JsonNode mod : root.get("mods")) {
+            mods.add(mapper.treeToValue(mod, Project.ModFile.class));
+        }
+        return Server.create(name, location, modLoader, mcVersion, mbMemory, javaVersion, optimisationLevel, keysToOptimise, mods, false);
     }
 }

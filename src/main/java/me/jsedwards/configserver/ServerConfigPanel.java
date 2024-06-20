@@ -2,15 +2,23 @@ package me.jsedwards.configserver;
 
 import me.jsedwards.Card;
 import me.jsedwards.Main;
+import me.jsedwards.createserver.McVersionStagePanel;
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.mod.Project;
 import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.Identifier;
+import me.jsedwards.util.ColouredCellRenderer;
+import me.jsedwards.util.MinecraftUtils;
+import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
+import javax.swing.table.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class ServerConfigPanel extends JPanel implements Card {
@@ -39,9 +47,85 @@ public class ServerConfigPanel extends JPanel implements Card {
         serverNameLbl = new JLabel();
         serverNameLbl.setFont(Main.MAIN_FONT);
         this.add(serverNameLbl, new GridBagConstraints(2, 1, 1, 1, 1, 0, GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(30, 0, 0, 0), 0, 0));
+        // Update button
+        JButton updateBtn = new JButton("Update");
+        updateBtn.addActionListener(e -> {
+            Server server = Server.get(this.server);
+            assert server != null;
+            List<String> versions = new ArrayList<>(McVersionStagePanel.VERSIONS.stream().filter(version -> MinecraftUtils.compareVersions(version, server.mcVersion) > 0).toList());
+            if (versions.isEmpty()) {
+                JOptionPane.showMessageDialog(Main.WINDOW, "There are no later versions to upgrade to.", "No available versions", JOptionPane.ERROR_MESSAGE);
+            } else {
+                // Create table showing which components are upgradable
+                int columnCount = 2 + server.mods.size();
+                String[] headings = new String[columnCount];
+                headings[0] = "Version";
+                headings[1] = server.modLoader.toString();
+                for (int i = 0; i < server.mods.size(); i++) {
+                    headings[i + 2] = server.mods.get(i).parent().title;
+                }
+                DefaultTableModel model = new DefaultTableModel(0, columnCount) {
+                    @Override
+                    public String getColumnName(int column) {
+                        return headings[column];
+                    }
+                };
+                for (String version : versions) {
+                    Object[] values = new Object[columnCount];
+                    values[0] = version;
+                    values[1] = server.modLoader.supportsVersion(version) ? Color.GREEN : Color.RED;
+                    for (int i = 0; i < server.mods.size(); i++) {
+                        values[i + 2] = server.mods.get(i).parent().supportsVersion(version) ? Color.GREEN : Color.RED;
+                    }
+                    model.addRow(values);
+                }
+                ColouredCellRenderer renderer = new ColouredCellRenderer();
+                JTable table = new JTable(model) {
+                    @Override
+                    public TableCellRenderer getCellRenderer(int row, int column) {
+                        if (column == 0) {
+                            return super.getCellRenderer(row, column);
+                        }
+                        return renderer;
+                    }
+
+                    @Override
+                    public boolean isCellEditable(int row, int column) {
+                        return false;
+                    }
+                };
+                table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                table.setPreferredScrollableViewportSize(new Dimension(500, 300));
+                table.setFillsViewportHeight(true);
+                JScrollPane scrollPane = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+                int result = JOptionPane.showConfirmDialog(Main.WINDOW, scrollPane, "Select a version to update to", JOptionPane.OK_CANCEL_OPTION);
+                if (result == 0) {
+                    String newVersion = versions.get(table.getSelectedRow());
+                    LOGGER.info("Updating server %s to version %s".formatted(server.serverName, newVersion));
+                    // Update mod loader
+                    server.modLoader.updateFiles(newVersion, server);
+                    // Update server version
+                    server.mcVersion = newVersion;
+                    // Update mods
+                    List<Project.ModFile> mods = server.mods;
+                    for (int i = 0; i < mods.size(); i++) {
+                        Project.ModFile modFile = mods.get(i);
+                        if (modFile.parent().supportsVersion(newVersion)) {
+                            OSUtils.deleteDirectory(server, "mods/" + modFile.filename());
+                            Project.ModFile newFile = modFile.parent().getFile(server.modLoader, newVersion);
+                            mods.set(i, newFile);
+                            newFile.download(server.serverLocation + "/mods/");
+                        } else {
+                            JOptionPane.showMessageDialog(Main.WINDOW, "%s does not support version %s".formatted(modFile.parent().title, newVersion), "Skipped", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                }
+            }
+        });
+        this.add(updateBtn, new GridBagConstraints(3, 1, 1, 1, 0, 0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(30, 0, 0, 5), 0, 0));
         // Delete button
         JButton deleteBtn = createDeleteBtn();
-        this.add(deleteBtn, new GridBagConstraints(3, 1, 1, 1, 0, 0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(30, 0, 0, 10), 0, 0));
+        this.add(deleteBtn, new GridBagConstraints(4, 1, 1, 1, 0, 0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(30, 0, 0, 10), 0, 0));
         // Tabbed pane
         basicPanel = new BasicPanel(this);
         tabbedPane.add("General", basicPanel);
@@ -50,7 +134,7 @@ public class ServerConfigPanel extends JPanel implements Card {
         }
         modsPanel = new ModsPanel();
         tabbedPane.add("Mods", modsPanel);
-        this.add(tabbedPane, new GridBagConstraints(1, 2, 3, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(10, 10, 10, 10), 0, 0));
+        this.add(tabbedPane, new GridBagConstraints(1, 2, 4, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(10, 10, 10, 10), 0, 0));
     }
 
     private JButton createDeleteBtn() {

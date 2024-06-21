@@ -240,7 +240,12 @@ public enum ConfigManager {
 
         @Override
         public String getDefaultValue(String key) {
-            return PROPERTY_DEFAULTS.get(key);
+            String candidate = PROPERTY_DEFAULTS.get(key);
+            if (candidate == null)
+                return null;
+            if (candidate.startsWith("\"") && candidate.endsWith("\""))
+                return candidate.substring(1, candidate.length() - 1);
+            return candidate;
         }
 
         @Override
@@ -348,7 +353,7 @@ public enum ConfigManager {
         if (Files.exists(yamlFile.toPath())) {
             try (InputStream stream = new FileInputStream(yamlFile)) {
                 Map<?, ?> map = yaml.load(stream);
-                explore(list, map);
+                exploreYaml(list, map, new ArrayList<>());
                 LOGGER.info("Loaded config from %s".formatted(yamlFile.getAbsolutePath()));
             } catch (IOException e) {
                 LOGGER.error("Failed to load config from %s".formatted(yamlFile.getAbsolutePath()), e);
@@ -356,25 +361,42 @@ public enum ConfigManager {
         }
     }
 
-    private void explore(List<ConfigProperty> list, Map<?, ?> map) {
-        map.forEach((key, value) -> {
-            if (value instanceof Map<?, ?>) {
-                explore(list, (Map<?, ?>) value);
+    private void exploreYaml(List<ConfigProperty> list, Map<?, ?> map, List<String> currentPath) {
+        map.forEach((k, v) -> {
+            String key = (String) k;
+            currentPath.add(key);
+            if (v instanceof Map<?, ?> value) {
+                exploreYaml(list, value, currentPath);
             } else {
-                list.add(new ConfigProperty((String) key, (String) value, this));
+                String fullPath = StringUtils.join(currentPath, "/");
+                list.add(new ConfigProperty(fullPath, String.valueOf(v), PropertyType.get(v), this));
             }
+            currentPath.removeLast();
         });
     }
 
     protected void saveYaml(List<ConfigProperty> properties, Server server) {
-//        File yamlFile = new File(getPath(server));
-//        try (BufferedWriter writer = new BufferedWriter(new FileWriter(yamlFile))) {
-//            Yaml yaml = new Yaml();
-//            String dump = yaml.dumpAsMap(map);
-//            writer.write(dump);
-//            LOGGER.info("Saved config to %s".formatted(yamlFile.getAbsolutePath()));
-//        } catch (IOException e) {
-//            LOGGER.error("Failed to save config to %s".formatted(yamlFile.getAbsolutePath()), e);
-//        }
+        File yamlFile = new File(getPath(server));
+        Map<Object, Object> map = new HashMap<>();
+        for (ConfigProperty property : properties) {
+            Map<Object, Object> current = map;
+            String[] keySplits = property.key.split("/");
+            for (int i = 0; i < keySplits.length - 1; i++) {
+                String split = keySplits[i];
+                if (!current.containsKey(split)) {
+                    current.put(split, new HashMap<>());
+                }
+                current = (Map<Object, Object>) current.get(split);
+            }
+            current.put(keySplits[keySplits.length - 1], property.type.convert(property.value));
+        }
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(yamlFile))) {
+            Yaml yaml = new Yaml();
+            String dump = yaml.dumpAsMap(map);
+            writer.write(dump);
+            LOGGER.info("Saved config to %s".formatted(yamlFile.getAbsolutePath()));
+        } catch (IOException e) {
+            LOGGER.error("Failed to save config to %s".formatted(yamlFile.getAbsolutePath()), e);
+        }
     }
 }

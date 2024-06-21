@@ -4,6 +4,8 @@ import me.jsedwards.Main;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
+import java.util.Arrays;
+import java.util.List;
 
 public enum PropertyType {
 
@@ -23,11 +25,31 @@ public enum PropertyType {
             }
             return property.value;
         }
+
+        @Override
+        protected boolean isApplicable(Object example) {
+            return example instanceof Boolean;
+        }
+
+        @Override
+        public Object convert(String s) {
+            return Boolean.parseBoolean(s);
+        }
     },
     INTEGER {
         @Override
         protected boolean isApplicable(String type, String defaultValue) {
             return type != null && type.toLowerCase().contains("int") || StringUtils.isNumeric(defaultValue);
+        }
+
+        @Override
+        protected boolean isApplicable(Object example) {
+            return example instanceof Integer;
+        }
+
+        @Override
+        public Object convert(String s) {
+            return Integer.parseInt(s);
         }
     },
     DOUBLE {
@@ -39,21 +61,68 @@ public enum PropertyType {
             }
             return defaultValue != null && defaultValue.matches("[0-9.]+");
         }
+
+        @Override
+        protected boolean isApplicable(Object example) {
+            return example instanceof Float || example instanceof Double;
+        }
+
+        @Override
+        public Object convert(String s) {
+            return Double.parseDouble(s);
+        }
+    },
+    LIST {
+        // String format: [item1, item2, item3]
+
+        @Override
+        protected boolean isApplicable(String type, String defaultValue) {
+            return false;
+        }
+
+        @Override
+        protected boolean isApplicable(Object example) {
+            return example instanceof List;
+        }
+
+        @Override
+        public Object convert(String s) {
+            return Arrays.stream(s.substring(1, s.length() - 1).split(", ")).toList();
+        }
     },
     STRING;
 
     public String inputValue(ConfigProperty property) {
-        return (String) JOptionPane.showInputDialog(Main.WINDOW, "Enter new value for %s:".formatted(property.key), "Edit value", JOptionPane.QUESTION_MESSAGE, null, null, property.value);
+        String input = (String) JOptionPane.showInputDialog(Main.WINDOW, "Enter new value for %s:".formatted(property.key), "Edit value", JOptionPane.QUESTION_MESSAGE, null, null, property.value);
+        if (input == null) return property.value;
+        return input;
     }
 
     protected boolean isApplicable(String type, String defaultValue) {
         return true;
     }
 
+    protected boolean isApplicable(Object example) {
+        return true;
+    }
+
+    public Object convert(String s) {
+        return String.valueOf(s);
+    }
+
     public static PropertyType get(String type, String defaultValue) {
         for (PropertyType value : values()) {
             if (value.isApplicable(type, defaultValue)) {
                 return value;
+            }
+        }
+        throw new IllegalStateException("No property type found");
+    }
+
+    public static PropertyType get(Object example) {
+        for (PropertyType type : values()) {
+            if (type.isApplicable(example)) {
+                return type;
             }
         }
         throw new IllegalStateException("No property type found");

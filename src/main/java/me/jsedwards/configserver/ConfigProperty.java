@@ -35,6 +35,10 @@ public class ConfigProperty implements Comparable<ConfigProperty> {
         return defaultValue == null ? "Not found" : defaultValue;
     }
 
+    public String serialise() {
+        return "%s:%s".formatted(configFile, key);
+    }
+
     @Override
     public int compareTo(ConfigProperty o) {
         return this.key.compareTo(o.key);

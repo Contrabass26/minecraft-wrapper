@@ -1,6 +1,7 @@
 package me.jsedwards.configserver;
 
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.modloader.ModLoader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
@@ -14,8 +15,6 @@ public class SpigotConfigManager extends YamlConfigManager {
 
     private static final HashMap<String, String> PROPERTY_DESCRIPTIONS = new HashMap<>();
     private static final HashMap<String, String> PROPERTY_DEFAULTS = new HashMap<>();
-    private static final Map<String, Function<Integer, Integer>> OPTIMISATION_FUNCTIONS = new HashMap<>();
-    private static final Map<String, Boolean> KEYS_ENABLED = new HashMap<>();
 
     static {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL("https://docs.papermc.io/assets/js/281a9c5e.2220deb7.js").openStream()))) {
@@ -64,56 +63,47 @@ public class SpigotConfigManager extends YamlConfigManager {
         } catch (IOException | IllegalStateException e) {
             LOGGER.warn("Failed to get property descriptions for spigot.yml", e);
         }
-        OPTIMISATION_FUNCTIONS.put("world-settings/default/view-distance", ConfigManager.VIEW_DISTANCE_OPTIMISATION);
-        OPTIMISATION_FUNCTIONS.put("world-settings/default/simulation-distance", ConfigManager.SIMULATION_DISTANCE_OPTIMISATION);
-        OPTIMISATION_FUNCTIONS.put("world-settings/default/merge-radius/exp", slider -> (int) Math.round(5 - 0.04 * slider));
-        OPTIMISATION_FUNCTIONS.put("world-settings/default/merge-radius/item", slider -> (int) Math.round(5 - 0.04 * slider));
-        OPTIMISATION_FUNCTIONS.put("world-settings/default/item-despawn-rate", slider -> (int) Math.min(Math.round(6100 - 5000 * Math.pow(Math.E, -0.05 * slider)), 6000));
     }
 
-    public SpigotConfigManager(Server server) {
-        super(server, s -> s.serverLocation + File.separator + "spigot.yml");
+    public SpigotConfigManager() {
+        super("spigot.yml", s -> s.modLoader == ModLoader.PUFFERFISH);
+    }
+
+    @Override
+    protected String getPath(Server server) {
+        return server.serverLocation + "/" + name;
     }
 
     @Override
     public String getDescription(String key) {
-        String description = PROPERTY_DESCRIPTIONS.getOrDefault(key, "Not found");
+        String description = PROPERTY_DESCRIPTIONS.get(key);
         if (description.startsWith("\"")) return description.substring(1, description.length() - 1);
         return description;
     }
 
     @Override
     public String getDataType(String key) {
-        return "Not found";
+        return null;
     }
 
     @Override
     public String getDefaultValue(String key) {
-        String defaultValue = PROPERTY_DEFAULTS.getOrDefault(key, "Not found");
+        String defaultValue = PROPERTY_DEFAULTS.get(key);
         return defaultValue.substring(1, defaultValue.length() - 1);
     }
 
     @Override
-    public Set<String> getKeysToOptimise() {
-        return OPTIMISATION_FUNCTIONS.keySet();
-    }
-
-    @Override
-    public boolean isKeyOptimised(String key) {
-        return KEYS_ENABLED.getOrDefault(key, true);
-    }
-
-    @Override
-    public void setKeyOptimised(String key, boolean enabled) {
-        KEYS_ENABLED.put(key, enabled);
-    }
-
-    @Override
-    public void optimise(int sliderValue) {
-        OPTIMISATION_FUNCTIONS.forEach((key, function) -> {
-            if (isKeyOptimised(key)) {
-                this.set(key, String.valueOf(function.apply(sliderValue)));
-            }
-        });
+    protected String optimise(int sliderValue, ConfigProperty property) {
+        return switch (property.key) {
+            case "world-settings/default/view-distance" ->
+                    String.valueOf(ServerPropertiesManager.VIEW_DISTANCE_OPTIMISATION.apply(sliderValue));
+            case "world-settings/default/simulation-distance" ->
+                    String.valueOf(ServerPropertiesManager.SIMULATION_DISTANCE_OPTIMISATION.apply(sliderValue));
+            case "world-settings/default/merge-radius/exp", "world-settings/default/merge-radius/item" ->
+                    String.valueOf((int) Math.round(5 - 0.04 * sliderValue));
+            case "world-settings/default/item-despawn-rate" ->
+                    String.valueOf((int) Math.min(Math.round(6100 - 5000 * Math.pow(Math.E, -0.05 * sliderValue)), 6000));
+            default -> property.value;
+        };
     }
 }

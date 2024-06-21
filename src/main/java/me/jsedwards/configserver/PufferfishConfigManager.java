@@ -1,11 +1,11 @@
 package me.jsedwards.configserver;
 
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.modloader.ModLoader;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.MatchResult;
@@ -34,23 +34,13 @@ public class PufferfishConfigManager extends YamlConfigManager {
         }
     }
 
-    public PufferfishConfigManager(Server server) {
-        super(server, s -> s.serverLocation + File.separator + "pufferfish.yml");
+    public PufferfishConfigManager() {
+        super("pufferfish.yml", s -> s.modLoader == ModLoader.PUFFERFISH);
     }
 
     @Override
-    public Set<String> getKeysToOptimise() {
-        return new HashSet<>();
-    }
-
-    @Override
-    public boolean isKeyOptimised(String key) {
-        return false;
-    }
-
-    @Override
-    public void setKeyOptimised(String key, boolean enabled) {
-
+    protected String getPath(Server server) {
+        return server.serverLocation + "/" + name;
     }
 
     @Override
@@ -60,16 +50,16 @@ public class PufferfishConfigManager extends YamlConfigManager {
 
     @Override
     public String getDataType(String key) {
-        return "Not found";
+        return null;
     }
 
     @Override
     public String getDefaultValue(String key) {
-        return "Not found";
+        return null;
     }
 
     @Override
-    public void optimise(int sliderValue) {
-
+    protected String optimise(int sliderValue, ConfigProperty property) {
+        return property.value;
     }
 }

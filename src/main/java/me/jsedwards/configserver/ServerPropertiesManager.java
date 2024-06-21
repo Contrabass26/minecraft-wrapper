@@ -14,40 +14,15 @@ import java.util.function.Function;
 
 public class ServerPropertiesManager extends AdvancedPanel {
 
-    private static final Function<Integer, Integer> VIEW_DISTANCE_OPTIMISATION = slider -> (int) Math.round(MathUtils.quadraticFunction(slider, 0.0022, 0.07, 3));
-    private static final Function<Integer, Integer> SIMULATION_DISTANCE_OPTIMISATION = slider -> (int) Math.round(MathUtils.quadraticFunction(slider, 0.0014, 0.13, 5));
-    private static final Function<Integer, Integer> ENTITY_DISTANCE_OPTIMISATION = slider -> (int) Math.round(MathUtils.exponentialFunction(slider, 10, 0.0460517));
-
-    private static final HashMap<String, String> PROPERTY_DESCRIPTIONS = new HashMap<>();
-    private static final HashMap<String, String> PROPERTY_DATA_TYPES = new HashMap<>();
-    private static final HashMap<String, String> PROPERTY_DEFAULTS = new HashMap<>();
-
-    static {
-        try {
-            Document document = Jsoup.connect("https://minecraft.wiki/w/Server.properties").userAgent("Mozilla").get();
-            Element table = document.select("table[data-description=Server properties]").getFirst();
-            Elements rows = table.select("tr");
-            for (int i = 1; i < rows.size(); i++) {
-                Element row = rows.get(i);
-                Elements cells = row.select("td");
-                String key = cells.get(0).text();
-                String description = cells.get(3).html();
-                String datatype = cells.get(1).text();
-                String defaultValue = cells.get(2).text();
-                PROPERTY_DESCRIPTIONS.put(key, description);
-                PROPERTY_DATA_TYPES.put(key, datatype);
-                PROPERTY_DEFAULTS.put(key, defaultValue);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    public static final Function<Integer, Integer> VIEW_DISTANCE_OPTIMISATION = slider -> (int) Math.round(MathUtils.quadraticFunction(slider, 0.0022, 0.07, 3));
+    public static final Function<Integer, Integer> SIMULATION_DISTANCE_OPTIMISATION = slider -> (int) Math.round(MathUtils.quadraticFunction(slider, 0.0014, 0.13, 5));
+    public static final Function<Integer, Integer> ENTITY_DISTANCE_OPTIMISATION = slider -> (int) Math.round(MathUtils.exponentialFunction(slider, 10, 0.0460517));
 
     private Properties properties = new Properties();
     private File propertiesFile = null;
 
     public ServerPropertiesManager() {
-        super("server.properties", s -> true);
+        super(ConfigManager.VANILLA);
     }
 
     @Override

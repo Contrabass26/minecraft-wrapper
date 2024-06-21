@@ -2,7 +2,6 @@ package me.jsedwards.configserver;
 
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
-import me.jsedwards.modloader.ModLoader;
 import me.jsedwards.util.UnifiedListenerTextField;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,22 +11,19 @@ import javax.swing.text.DefaultStyledDocument;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.function.Predicate;
 
 public abstract class AdvancedPanel extends JPanel {
 
     protected static final Logger LOGGER = LogManager.getLogger();
 
     private final SidePanel sidePanel;
-    private final Predicate<Server> enabled;
     private final JList<ConfigProperty> propertiesList;
     private final List<ConfigProperty> allProperties = new ArrayList<>();
     private final Vector<ConfigProperty> filteredProperties = new Vector<>();
-    public final String name;
+    public final ConfigManager configManager;
 
-    protected AdvancedPanel(String name, Predicate<Server> enabled) {
-        this.name = name;
-        this.enabled = enabled;
+    protected AdvancedPanel(ConfigManager configManager) {
+        this.configManager = configManager;
         this.setLayout(new GridBagLayout());
         // Search label
         this.add(new JLabel("Search properties:"), new GridBagConstraints(1, 1, 1, 1, 0, 0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
@@ -58,7 +54,7 @@ public abstract class AdvancedPanel extends JPanel {
     }
 
     public boolean isEnabled(Server server) {
-        return enabled.test(server);
+        return configManager.enabled.test(server);
     }
 
     public void setServer(Server server) {

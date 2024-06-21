@@ -35,15 +35,21 @@ public abstract class YamlConfigManager extends AdvancedPanel {
 
     protected abstract String getPath(Server server);
 
+    protected abstract String getDescription(String key);
+
+    protected abstract String getDefaultValue(String key);
+
+    protected abstract String getDataType(String key);
+
     @Override
     protected void save() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(yamlFile))) {
-            Yaml yaml = new Yaml();
-            String dump = yaml.dumpAsMap(map);
-            writer.write(dump);
-            LOGGER.info("Saved config to %s".formatted(yamlFile.getAbsolutePath()));
-        } catch (IOException e) {
-            LOGGER.error("Failed to save config to %s".formatted(yamlFile.getAbsolutePath()), e);
-        }
+//        try (BufferedWriter writer = new BufferedWriter(new FileWriter(yamlFile))) {
+//            Yaml yaml = new Yaml();
+//            String dump = yaml.dumpAsMap(map);
+//            writer.write(dump);
+//            LOGGER.info("Saved config to %s".formatted(yamlFile.getAbsolutePath()));
+//        } catch (IOException e) {
+//            LOGGER.error("Failed to save config to %s".formatted(yamlFile.getAbsolutePath()), e);
+//        }
     }
 }

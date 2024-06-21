@@ -1,6 +1,7 @@
 package me.jsedwards.configserver;
 
 import me.jsedwards.dashboard.Server;
+import me.jsedwards.modloader.ModLoader;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,7 +24,6 @@ public class BukkitConfigManager extends YamlConfigManager {
     private static final HashMap<String, String> PROPERTY_DESCRIPTIONS = new HashMap<>();
     private static final HashMap<String, String> PROPERTY_DATA_TYPES = new HashMap<>();
     private static final HashMap<String, String> PROPERTY_DEFAULTS = new HashMap<>();
-    private static final Map<String, Function<Integer, Integer>> OPTIMISATION_FUNCTIONS = new HashMap<>();
     private static final Map<String, Boolean> KEYS_ENABLED = new HashMap<>();
 
     static {
@@ -57,67 +57,17 @@ public class BukkitConfigManager extends YamlConfigManager {
         }
     }
 
-    public BukkitConfigManager(Server server) {
-        super(server, s -> s.serverLocation + File.separator + "bukkit.yml");
+    public BukkitConfigManager() {
+        super("bukkit.yml", s -> s.modLoader == ModLoader.PUFFERFISH);
     }
 
     @Override
-    public String getDescription(String key) {
-        String[] splits = key.split("/");
-        for (int i = splits.length - 1; i >= 0; i--) {
-            String split = splits[i];
-            if (PROPERTY_DESCRIPTIONS.containsKey(split)) {
-                return PROPERTY_DESCRIPTIONS.get(split);
-            }
-        }
-        return "Not found";
+    protected String optimise(int sliderValue, ConfigProperty property) {
+        return property.value;
     }
 
     @Override
-    public String getDataType(String key) {
-        String[] splits = key.split("/");
-        for (int i = splits.length - 1; i >= 0; i--) {
-            String split = splits[i];
-            if (PROPERTY_DATA_TYPES.containsKey(split)) {
-                return PROPERTY_DATA_TYPES.get(split);
-            }
-        }
-        return "Not found";
-    }
-
-    @Override
-    public String getDefaultValue(String key) {
-        String[] splits = key.split("/");
-        for (int i = splits.length - 1; i >= 0; i--) {
-            String split = splits[i];
-            if (PROPERTY_DEFAULTS.containsKey(split)) {
-                return PROPERTY_DEFAULTS.get(split);
-            }
-        }
-        return "Not found";
-    }
-
-    @Override
-    public Set<String> getKeysToOptimise() {
-        return OPTIMISATION_FUNCTIONS.keySet();
-    }
-
-    @Override
-    public boolean isKeyOptimised(String key) {
-        return KEYS_ENABLED.getOrDefault(key, true);
-    }
-
-    @Override
-    public void setKeyOptimised(String key, boolean enabled) {
-        KEYS_ENABLED.put(key, enabled);
-    }
-
-    @Override
-    public void optimise(int sliderValue) {
-        OPTIMISATION_FUNCTIONS.forEach((key, function) -> {
-            if (isKeyOptimised(key)) {
-                this.set(key, String.valueOf(function.apply(sliderValue)));
-            }
-        });
+    protected String getPath(Server server) {
+        return server.serverLocation + "/" + name;
     }
 }

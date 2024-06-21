@@ -20,7 +20,6 @@ public class AdvancedPanel extends JPanel {
     private final JList<ConfigProperty> propertiesList;
     private final List<ConfigProperty> allProperties = new ArrayList<>();
     private final DefaultListModel<ConfigProperty> filteredProperties = new DefaultListModel<>();
-    private final Map<ConfigProperty, Boolean> keysToOptimise = new HashMap<>();
     public final ConfigManager configManager;
     private Server server = null;
 
@@ -59,18 +58,6 @@ public class AdvancedPanel extends JPanel {
         return allProperties.stream().filter(ConfigProperty::canOptimise).toList();
     }
 
-    public void setKeyOptimised(ConfigProperty key, boolean optimised) {
-        if (key.configManager != this.configManager)
-            throw new IllegalArgumentException("Supplied key has the wrong ConfigManager - expected %s, found %s".formatted(this.configManager, key.configManager));
-        keysToOptimise.put(key, optimised);
-    }
-
-    public boolean isKeyOptimised(ConfigProperty key) {
-        if (key.configManager != this.configManager)
-            throw new IllegalArgumentException("Supplied key has the wrong ConfigManager - expected %s, found %s".formatted(this.configManager, key.configManager));
-        return keysToOptimise.getOrDefault(key, true);
-    }
-
     public boolean isEnabled(Server server) {
         return configManager.isEnabled(server);
     }
@@ -91,7 +78,9 @@ public class AdvancedPanel extends JPanel {
 
     public final void optimise(int sliderValue) {
         for (ConfigProperty property : allProperties) {
-            property.value = configManager.optimise(sliderValue, property);
+            if (server.keysToOptimise.getOrDefault(property, true)) {
+                property.value = configManager.optimise(sliderValue, property);
+            }
         }
     }
 

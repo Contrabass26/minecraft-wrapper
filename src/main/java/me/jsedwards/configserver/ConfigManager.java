@@ -29,6 +29,7 @@ public enum ConfigManager {
         private static final HashMap<String, String> PROPERTY_DESCRIPTIONS = new HashMap<>();
         private static final HashMap<String, String> PROPERTY_DATA_TYPES = new HashMap<>();
         private static final HashMap<String, String> PROPERTY_DEFAULTS = new HashMap<>();
+        private static final List<String> OPTIMISABLE_KEYS = List.of("view-distance", "simulation-distance", "entity-broadcast-range-percentage");
 
         static {
             try {
@@ -116,6 +117,11 @@ public enum ConfigManager {
                         String.valueOf((int) Math.round(MathUtils.exponentialFunction(sliderValue, 10, 0.0460517)));
                 default -> super.optimise(sliderValue, property);
             };
+        }
+
+        @Override
+        public boolean canOptimise(ConfigProperty key) {
+            return OPTIMISABLE_KEYS.contains(key.key);
         }
     },
     BUKKIT("bukkit.yml", s -> s.modLoader == ModLoader.PUFFERFISH) {

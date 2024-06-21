@@ -150,14 +150,6 @@ public class ServerConfigPanel extends JPanel implements Card {
         return advancedPanels.stream().map(AdvancedPanel::getOptimisable).collect(ArrayList::new, List::addAll, List::addAll);
     }
 
-    public void setKeyOptimised(ConfigProperty property, boolean optimised) {
-        advancedPanels.get(property.configManager.getIndex()).setKeyOptimised(property, optimised);
-    }
-
-    public boolean isKeyOptimised(ConfigProperty property) {
-        return advancedPanels.get(property.configManager.getIndex()).isKeyOptimised(property);
-    }
-
     public void optimiseConfigs(int sliderValue) {
         for (AdvancedPanel panel : advancedPanels) {
             panel.optimise(sliderValue);

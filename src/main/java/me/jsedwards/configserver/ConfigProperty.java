@@ -2,6 +2,8 @@ package me.jsedwards.configserver;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Objects;
+
 public class ConfigProperty implements Comparable<ConfigProperty> {
 
     public final String key;
@@ -56,6 +58,18 @@ public class ConfigProperty implements Comparable<ConfigProperty> {
     @Override
     public String toString() {
         return "%s = %s".formatted(key, value);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ConfigProperty property)) return false;
+        return Objects.equals(key, property.key) && configManager == property.configManager;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key, configManager);
     }
 
     public String getDescription() {

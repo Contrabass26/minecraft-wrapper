@@ -40,9 +40,7 @@ public class ServerDeserialiser extends StdDeserializer<Server> {
         int optimisationLevel = root.get("optimisationLevel").intValue();
         Map<ConfigProperty, Boolean> keysToOptimise = new HashMap<>();
         root.get("keysToOptimise").fields().forEachRemaining(entry -> {
-            String fullKey = entry.getKey();
-            String[] splits = fullKey.split(":");
-            ConfigProperty property = new ConfigProperty(splits[0], ConfigManager.valueOf(splits[1]));
+            ConfigProperty property = new ConfigProperty(entry.getKey());
             boolean value = entry.getValue().booleanValue();
             keysToOptimise.put(property, value);
         });

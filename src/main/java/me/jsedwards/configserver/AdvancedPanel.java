@@ -19,7 +19,7 @@ public class AdvancedPanel extends JPanel {
     private final SidePanel sidePanel;
     private final JList<ConfigProperty> propertiesList;
     private final List<ConfigProperty> allProperties = new ArrayList<>();
-    private final Vector<ConfigProperty> filteredProperties = new Vector<>();
+    private final DefaultListModel<ConfigProperty> filteredProperties = new DefaultListModel<>();
     private final Map<ConfigProperty, Boolean> keysToOptimise = new HashMap<>();
     public final ConfigManager configManager;
     private Server server = null;
@@ -37,7 +37,7 @@ public class AdvancedPanel extends JPanel {
                 String text = this.getText();
                 for (ConfigProperty property : allProperties) {
                     if (property.key.contains(text)) {
-                        filteredProperties.add(property);
+                        filteredProperties.add(filteredProperties.size(), property);
                     }
                 }
                 AdvancedPanel.this.updateList();
@@ -56,13 +56,19 @@ public class AdvancedPanel extends JPanel {
     }
 
     public List<ConfigProperty> getOptimisable() {
-        return allProperties.stream().filter(configManager::canOptimise).toList();
+        return allProperties.stream().filter(ConfigProperty::canOptimise).toList();
     }
 
     public void setKeyOptimised(ConfigProperty key, boolean optimised) {
         if (key.configManager != this.configManager)
             throw new IllegalArgumentException("Supplied key has the wrong ConfigManager - expected %s, found %s".formatted(this.configManager, key.configManager));
         keysToOptimise.put(key, optimised);
+    }
+
+    public boolean isKeyOptimised(ConfigProperty key) {
+        if (key.configManager != this.configManager)
+            throw new IllegalArgumentException("Supplied key has the wrong ConfigManager - expected %s, found %s".formatted(this.configManager, key.configManager));
+        return keysToOptimise.getOrDefault(key, true);
     }
 
     public boolean isEnabled(Server server) {

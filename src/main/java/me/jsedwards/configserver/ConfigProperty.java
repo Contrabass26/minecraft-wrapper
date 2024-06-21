@@ -1,5 +1,7 @@
 package me.jsedwards.configserver;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class ConfigProperty implements Comparable<ConfigProperty> {
 
     public final String key;
@@ -9,11 +11,11 @@ public class ConfigProperty implements Comparable<ConfigProperty> {
     private final String description;
     private final String defaultValue;
 
-    public ConfigProperty(String key, String defaultValue, String description, String type, ConfigManager configManager) {
+    public ConfigProperty(String key, String value, String defaultValue, String description, String type, ConfigManager configManager) {
         this.key = key;
+        this.value = value;
         this.defaultValue = defaultValue;
         this.description = description;
-        this.value = defaultValue;
         this.type = PropertyType.get(type, defaultValue);
         this.configManager = configManager;
     }
@@ -21,9 +23,21 @@ public class ConfigProperty implements Comparable<ConfigProperty> {
     public ConfigProperty(String key, ConfigManager configManager) {
         this(key,
                 configManager.getDefaultValue(key),
+                configManager.getDefaultValue(key),
                 configManager.getDescription(key),
                 configManager.getDataType(key),
                 configManager);
+    }
+
+    public ConfigProperty(String s) {
+        this(
+                StringUtils.substringAfter(s, ':'),
+                ConfigManager.valueOf(StringUtils.substringBefore(s, ':'))
+        );
+    }
+
+    public boolean canOptimise() {
+        return configManager.canOptimise(this);
     }
 
     public void edit() {

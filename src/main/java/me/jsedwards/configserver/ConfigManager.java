@@ -77,6 +77,7 @@ public enum ConfigManager {
                     for (Object o : properties.keySet()) {
                         String key = (String) o;
                         list.add(new ConfigProperty(key,
+                                String.valueOf(properties.get(key)),
                                 PROPERTY_DEFAULTS.get(key),
                                 PROPERTY_DESCRIPTIONS.get(key),
                                 PROPERTY_DATA_TYPES.get(key),

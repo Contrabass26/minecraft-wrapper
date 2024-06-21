@@ -151,7 +151,11 @@ public class ServerConfigPanel extends JPanel implements Card {
     }
 
     public void setKeyOptimised(ConfigProperty property, boolean optimised) {
-        advancedPanels.get(property.configManager.getIndex())
+        advancedPanels.get(property.configManager.getIndex()).setKeyOptimised(property, optimised);
+    }
+
+    public boolean isKeyOptimised(ConfigProperty property) {
+        return advancedPanels.get(property.configManager.getIndex()).isKeyOptimised(property);
     }
 
     public void optimiseConfigs(int sliderValue) {

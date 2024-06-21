@@ -12,6 +12,17 @@ public enum PropertyType {
         protected boolean isApplicable(String type, String defaultValue) {
             return type != null && type.toLowerCase().contains("bool") || defaultValue != null && (defaultValue.equalsIgnoreCase("true") || defaultValue.equalsIgnoreCase("false"));
         }
+
+        @Override
+        public String inputValue(ConfigProperty property) {
+            JCheckBox checkBox = new JCheckBox(property.key);
+            checkBox.setSelected(property.value.equalsIgnoreCase("true"));
+            int response = JOptionPane.showConfirmDialog(Main.WINDOW, checkBox, "Edit value", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null);
+            if (response == JOptionPane.OK_OPTION) {
+                return String.valueOf(checkBox.isSelected());
+            }
+            return property.value;
+        }
     },
     INTEGER {
         @Override
@@ -29,7 +40,7 @@ public enum PropertyType {
             return defaultValue != null && defaultValue.matches("[0-9.]+");
         }
     },
-    DEFAULT;
+    STRING;
 
     public String inputValue(ConfigProperty property) {
         return (String) JOptionPane.showInputDialog(Main.WINDOW, "Enter new value for %s:".formatted(property.key), "Edit value", JOptionPane.QUESTION_MESSAGE, null, null, property.value);
@@ -46,5 +57,10 @@ public enum PropertyType {
             }
         }
         throw new IllegalStateException("No property type found");
+    }
+
+    @Override
+    public String toString() {
+        return StringUtils.capitalize(super.toString().toLowerCase());
     }
 }

@@ -254,9 +254,9 @@ class BasicPanel extends JPanel {
         optimiseSlider.setValue(server.optimisationLevel);
         applicationModifyingOptimisation = false;
         for (JCheckBox checkBox : checkBoxes) {
-            Identifier key = new Identifier(checkBox.getText());
-            checkBox.setSelected(serverConfigPanel.isKeyOptimised(key));
-            checkBox.setEnabled(serverConfigPanel.isNamespaceEnabled(key.namespace));
+            ConfigProperty property = new ConfigProperty(checkBox.getText());
+            checkBox.setSelected(serverConfigPanel.isKeyOptimised(property));
+            checkBox.setEnabled(property.configManager.isEnabled(server));
         }
         jsonConfigPanel.setServer(server);
     }

@@ -342,20 +342,31 @@ public enum ConfigManager {
         return property.value;
     }
 
-    public void addYamlKeys(List<ConfigProperty> list, Server server) {
-//        File yamlFile = new File(getPath(server));
-//        Yaml yaml = new Yaml();
-//        if (Files.exists(yamlFile.toPath())) {
-//            try (InputStream stream = new FileInputStream(yamlFile)) {
-//                Map<?, ?> map = yaml.load(stream);
-//                LOGGER.info("Loaded config from %s".formatted(yamlFile.getAbsolutePath()));
-//            } catch (IOException e) {
-//                LOGGER.error("Failed to load config from %s".formatted(yamlFile.getAbsolutePath()), e);
-//            }
-//        }
+    protected void addYamlKeys(List<ConfigProperty> list, Server server) {
+        File yamlFile = new File(getPath(server));
+        Yaml yaml = new Yaml();
+        if (Files.exists(yamlFile.toPath())) {
+            try (InputStream stream = new FileInputStream(yamlFile)) {
+                Map<?, ?> map = yaml.load(stream);
+                explore(list, map);
+                LOGGER.info("Loaded config from %s".formatted(yamlFile.getAbsolutePath()));
+            } catch (IOException e) {
+                LOGGER.error("Failed to load config from %s".formatted(yamlFile.getAbsolutePath()), e);
+            }
+        }
     }
 
-    public void saveYaml(List<ConfigProperty> properties, Server server) {
+    private void explore(List<ConfigProperty> list, Map<?, ?> map) {
+        map.forEach((key, value) -> {
+            if (value instanceof Map<?, ?>) {
+                explore(list, (Map<?, ?>) value);
+            } else {
+                list.add(new ConfigProperty((String) key, (String) value, this));
+            }
+        });
+    }
+
+    protected void saveYaml(List<ConfigProperty> properties, Server server) {
 //        File yamlFile = new File(getPath(server));
 //        try (BufferedWriter writer = new BufferedWriter(new FileWriter(yamlFile))) {
 //            Yaml yaml = new Yaml();

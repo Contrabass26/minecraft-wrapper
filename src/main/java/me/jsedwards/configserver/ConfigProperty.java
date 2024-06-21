@@ -20,6 +20,14 @@ public class ConfigProperty implements Comparable<ConfigProperty> {
         this.configManager = configManager;
     }
 
+    public ConfigProperty(String key, String value, ConfigManager configManager) {
+        this(key, value,
+                configManager.getDefaultValue(key),
+                configManager.getDescription(key),
+                configManager.getDataType(key),
+                configManager);
+    }
+
     public ConfigProperty(String key, ConfigManager configManager) {
         this(key,
                 configManager.getDefaultValue(key),

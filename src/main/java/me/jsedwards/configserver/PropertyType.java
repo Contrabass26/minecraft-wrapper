@@ -4,6 +4,7 @@ import me.jsedwards.Main;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -87,7 +88,9 @@ public enum PropertyType {
 
         @Override
         public Object convert(String s) {
-            return Arrays.stream(s.substring(1, s.length() - 1).split(", ")).toList();
+            String inner = s.substring(1, s.length() - 1);
+            if (inner.isEmpty()) return new ArrayList<>();
+            return Arrays.stream(inner.split(", ")).toList();
         }
     },
     STRING;

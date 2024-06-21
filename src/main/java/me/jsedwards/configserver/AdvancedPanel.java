@@ -2,45 +2,49 @@ package me.jsedwards.configserver;
 
 import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
-import me.jsedwards.util.Identifier;
 import me.jsedwards.util.UnifiedListenerTextField;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import javax.swing.text.DefaultStyledDocument;
 import java.awt.*;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import java.util.*;
+import java.util.List;
 
 public class AdvancedPanel extends JPanel {
 
-    private final SidePanel sidePanel;
-    private final Function<Server, ConfigManager> configManagerCreator;
-    private final Predicate<Server> enabled;
-    private ConfigManager properties;
-    private final JList<String> propertiesList;
-    public final String name;
+    protected static final Logger LOGGER = LogManager.getLogger();
 
-    public AdvancedPanel(Function<Server, ConfigManager> configManagerCreator, String name, Predicate<Server> enabled) {
-        this.name = name;
-        this.configManagerCreator = configManagerCreator;
-        this.enabled = enabled;
+    private final SidePanel sidePanel;
+    private final JList<ConfigProperty> propertiesList;
+    private final List<ConfigProperty> allProperties = new ArrayList<>();
+    private final DefaultListModel<ConfigProperty> filteredProperties = new DefaultListModel<>();
+    public final ConfigManager configManager;
+    private Server server = null;
+
+    protected AdvancedPanel(ConfigManager configManager) {
+        this.configManager = configManager;
         this.setLayout(new GridBagLayout());
-        properties = configManagerCreator.apply(null);
         // Search label
         this.add(new JLabel("Search properties:"), new GridBagConstraints(1, 1, 1, 1, 0, 0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
         // Search box
         JTextField searchBox = new UnifiedListenerTextField() {
             @Override
             protected void update() {
-                properties.updateSearch(this.getText());
+                filteredProperties.clear();
+                String text = this.getText();
+                for (ConfigProperty property : allProperties) {
+                    if (property.key.contains(text)) {
+                        filteredProperties.add(filteredProperties.size(), property);
+                    }
+                }
                 AdvancedPanel.this.updateList();
             }
         };
         this.add(searchBox, new GridBagConstraints(2, 1, 1, 1, 1, 0, GridBagConstraints.EAST, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
         // List box
-        propertiesList = new JList<>(properties);
+        propertiesList = new JList<>(filteredProperties);
         JScrollPane scrollPane = new JScrollPane(propertiesList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         this.add(scrollPane, new GridBagConstraints(1, 2, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
         // Side panel
@@ -50,14 +54,20 @@ public class AdvancedPanel extends JPanel {
         propertiesList.addListSelectionListener(e -> sidePanel.update());
     }
 
+    public List<ConfigProperty> getOptimisable() {
+        return allProperties.stream().filter(ConfigProperty::canOptimise).toList();
+    }
+
     public boolean isEnabled(Server server) {
-        return enabled.test(server);
+        return configManager.isEnabled(server);
     }
 
     public void setServer(Server server) {
-        this.properties = configManagerCreator.apply(server);
-        this.propertiesList.setModel(this.properties);
-        server.keysToOptimise.forEach((key, optimise) -> properties.setKeyOptimised(key.path, optimise));
+        this.server = server;
+        allProperties.clear();
+        filteredProperties.clear();
+        configManager.addKeys(allProperties, server);
+        Collections.sort(allProperties);
     }
 
     private void updateList() {
@@ -66,24 +76,16 @@ public class AdvancedPanel extends JPanel {
         sidePanel.update();
     }
 
-    public Set<Identifier> getPropertiesToOptimise() {
-        return properties.getKeysToOptimise().stream().map(s -> new Identifier(name, s)).collect(Collectors.toSet());
+    public final void optimise(int sliderValue) {
+        for (ConfigProperty property : allProperties) {
+            if (server.keysToOptimise.getOrDefault(property, true)) {
+                property.value = configManager.optimise(sliderValue, property);
+            }
+        }
     }
 
-    public void setKeyOptimised(Identifier key, boolean selected) {
-        properties.setKeyOptimised(key.path, selected);
-    }
-
-    public boolean isKeyOptimised(Identifier key) {
-        return properties.isKeyOptimised(key.path);
-    }
-
-    public void saveProperties() {
-        properties.save();
-    }
-
-    public void optimise(int sliderValue) {
-        properties.optimise(sliderValue);
+    public void save() {
+        configManager.save(allProperties, server);
     }
 
     private class SidePanel extends JPanel {
@@ -126,24 +128,20 @@ public class AdvancedPanel extends JPanel {
         private JButton createEditButton() {
             JButton editBtn = new JButton("Edit");
             editBtn.addActionListener(e -> {
-                String selected = AdvancedPanel.this.propertiesList.getSelectedValue();
-                int splitIndex = selected.indexOf(':');
-                String key = selected.substring(0, splitIndex);
-                String value = JOptionPane.showInputDialog(editBtn, "Enter new value for %s:".formatted(key), "Edit value", JOptionPane.QUESTION_MESSAGE);
-                AdvancedPanel.this.properties.set(key, value);
+                ConfigProperty selected = AdvancedPanel.this.propertiesList.getSelectedValue();
+                selected.edit();
                 AdvancedPanel.this.updateList();
             });
             return editBtn;
         }
 
         private void update() {
-            String selectedItem = AdvancedPanel.this.propertiesList.getSelectedValue();
+            ConfigProperty selectedItem = AdvancedPanel.this.propertiesList.getSelectedValue();
             if (selectedItem != null) {
-                String key = selectedItem.substring(0, selectedItem.indexOf(':'));
-                this.nameLbl.setText(key);
-                this.descriptionLbl.setText("<html>" + AdvancedPanel.this.properties.getDescription(key) + "</html>");
-                this.dataTypeLbl.setText("Data type: " + AdvancedPanel.this.properties.getDataType(key));
-                this.defaultValueLbl.setText("Default value: " + AdvancedPanel.this.properties.getDefaultValue(key));
+                this.nameLbl.setText(selectedItem.key);
+                this.descriptionLbl.setText("<html>" + selectedItem.getDescription() + "</html>");
+                this.dataTypeLbl.setText("Data type: " + selectedItem.type);
+                this.defaultValueLbl.setText("Default value: " + selectedItem.getDefaultValue());
             }
         }
     }

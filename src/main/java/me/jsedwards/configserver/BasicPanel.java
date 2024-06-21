@@ -6,7 +6,6 @@ import me.jsedwards.Main;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.data.OperatorPlayer;
 import me.jsedwards.data.WhitelistedPlayer;
-import me.jsedwards.util.Identifier;
 import me.jsedwards.util.MathUtils;
 import me.jsedwards.util.OSUtils;
 import org.apache.logging.log4j.LogManager;
@@ -28,7 +27,8 @@ class BasicPanel extends JPanel {
     private final ServerConfigPanel serverConfigPanel;
     private final JSlider memorySlider;
     private final JSlider optimiseSlider;
-    private final List<JCheckBox> checkBoxes;
+    private final CheckBoxMatrixPanel optimisationPanel;
+    private final List<JCheckBox> checkBoxes = new ArrayList<>();
     private final JsonConfigPanel jsonConfigPanel;
     private Server server = null;
     private boolean applicationModifyingOptimisation = true;
@@ -93,16 +93,7 @@ class BasicPanel extends JPanel {
         JLabel optimisationOptionsLbl = new JLabel("General optimisation options:");
         optimisationOptionsLbl.setFont(Main.MAIN_FONT.deriveFont(18f));
         this.add(optimisationOptionsLbl, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
-        List<Identifier> keysToOptimise = new ArrayList<>(serverConfigPanel.getKeysToOptimise());
-        Collections.sort(keysToOptimise);
-        checkBoxes = new ArrayList<>();
-        CheckBoxMatrixPanel optimisationPanel = new CheckBoxMatrixPanel();
-        for (Identifier key : keysToOptimise) {
-            JCheckBox checkBox = new JCheckBox(key.toString());
-            checkBoxes.add(checkBox);
-            checkBox.addActionListener(e -> serverConfigPanel.setKeyOptimised(key, checkBox.isSelected()));
-            optimisationPanel.addOption(checkBox);
-        }
+        optimisationPanel = new CheckBoxMatrixPanel();
         this.add(optimisationPanel, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
         // Padding
         this.add(new JPanel(), new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
@@ -246,6 +237,11 @@ class BasicPanel extends JPanel {
                     Math.floorDiv(count, COLUMNS),
                     1, 1, 1, 0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
         }
+
+        public void reset() {
+            count = -1;
+            this.removeAll();
+        }
     }
 
     public void setServer(Server server) {
@@ -254,12 +250,20 @@ class BasicPanel extends JPanel {
         applicationModifyingOptimisation = true;
         optimiseSlider.setValue(server.optimisationLevel);
         applicationModifyingOptimisation = false;
-        for (JCheckBox checkBox : checkBoxes) {
-            Identifier key = new Identifier(checkBox.getText());
-            checkBox.setSelected(serverConfigPanel.isKeyOptimised(key));
-            checkBox.setEnabled(serverConfigPanel.isNamespaceEnabled(key.namespace));
-        }
         jsonConfigPanel.setServer(server);
+        // Optimisation options
+        List<ConfigProperty> keysToOptimise = new ArrayList<>(serverConfigPanel.getOptimisable());
+        Collections.sort(keysToOptimise);
+        checkBoxes.clear();
+        optimisationPanel.reset();
+        for (ConfigProperty property : keysToOptimise) {
+            JCheckBox checkBox = new JCheckBox(property.key);
+            checkBox.setSelected(server.keysToOptimise.getOrDefault(property, true));
+            checkBox.setEnabled(property.configManager.isEnabled(server));
+            checkBoxes.add(checkBox);
+            checkBox.addActionListener(e -> server.keysToOptimise.put(property, checkBox.isSelected()));
+            optimisationPanel.addOption(checkBox);
+        }
     }
 
     private JSlider createSlider() {

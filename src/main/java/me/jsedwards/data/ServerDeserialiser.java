@@ -5,10 +5,11 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import me.jsedwards.configserver.ConfigManager;
+import me.jsedwards.configserver.ConfigProperty;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.mod.Project;
 import me.jsedwards.modloader.ModLoader;
-import me.jsedwards.util.Identifier;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,11 +38,11 @@ public class ServerDeserialiser extends StdDeserializer<Server> {
         int mbMemory = root.get("mbMemory").intValue();
         String javaVersion = root.get("javaVersion").textValue();
         int optimisationLevel = root.get("optimisationLevel").intValue();
-        Map<Identifier, Boolean> keysToOptimise = new HashMap<>();
+        Map<ConfigProperty, Boolean> keysToOptimise = new HashMap<>();
         root.get("keysToOptimise").fields().forEachRemaining(entry -> {
-            Identifier key = new Identifier(entry.getKey());
+            ConfigProperty property = new ConfigProperty(entry.getKey());
             boolean value = entry.getValue().booleanValue();
-            keysToOptimise.put(key, value);
+            keysToOptimise.put(property, value);
         });
         ObjectMapper mapper = new ObjectMapper();
         List<Project.ModFile> mods = new ArrayList<>();

@@ -5,8 +5,6 @@ import me.jsedwards.Main;
 import me.jsedwards.createserver.McVersionStagePanel;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.mod.Project;
-import me.jsedwards.modloader.ModLoader;
-import me.jsedwards.util.Identifier;
 import me.jsedwards.util.ColouredCellRenderer;
 import me.jsedwards.util.MinecraftUtils;
 import me.jsedwards.util.OSUtils;
@@ -17,9 +15,8 @@ import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 public class ServerConfigPanel extends JPanel implements Card {
 
@@ -30,14 +27,10 @@ public class ServerConfigPanel extends JPanel implements Card {
     private final JTabbedPane tabbedPane = new JTabbedPane();
     private final BasicPanel basicPanel;
     private final ModsPanel modsPanel;
-    private final AdvancedPanel[] advancedPanels = {
-            new AdvancedPanel(ServerPropertiesManager::new, "Vanilla", s -> true),
-            new AdvancedPanel(SpigotConfigManager::new, "Spigot", s -> s.modLoader == ModLoader.PUFFERFISH),
-            new AdvancedPanel(BukkitConfigManager::new, "Bukkit", s -> s.modLoader == ModLoader.PUFFERFISH),
-            new AdvancedPanel(PufferfishConfigManager::new, "Pufferfish", s -> s.modLoader == ModLoader.PUFFERFISH)
-    };
+    private final List<AdvancedPanel> advancedPanels = new ArrayList<>();
 
     public ServerConfigPanel() {
+        Arrays.stream(ConfigManager.values()).map(AdvancedPanel::new).forEachOrdered(advancedPanels::add);
         this.setLayout(new GridBagLayout());
         // Back button
         JButton backBtn = new JButton("Back");
@@ -130,7 +123,7 @@ public class ServerConfigPanel extends JPanel implements Card {
         basicPanel = new BasicPanel(this);
         tabbedPane.add("General", basicPanel);
         for (AdvancedPanel panel : advancedPanels) {
-            tabbedPane.add(panel.name, panel);
+            tabbedPane.add(panel.configManager.path, panel);
         }
         modsPanel = new ModsPanel();
         tabbedPane.add("Mods", modsPanel);
@@ -152,49 +145,28 @@ public class ServerConfigPanel extends JPanel implements Card {
         return deleteBtn;
     }
 
+    public List<ConfigProperty> getOptimisable() {
+        // Combine responses from all AdvancedPanels into one list
+        return advancedPanels.stream().map(AdvancedPanel::getOptimisable).collect(ArrayList::new, List::addAll, List::addAll);
+    }
+
     public void optimiseConfigs(int sliderValue) {
         for (AdvancedPanel panel : advancedPanels) {
             panel.optimise(sliderValue);
         }
     }
 
-    public Set<Identifier> getKeysToOptimise() {
-        Set<Identifier> keys = new HashSet<>();
-        for (AdvancedPanel panel : advancedPanels) {
-            keys.addAll(panel.getPropertiesToOptimise());
-        }
-        return keys;
-    }
-
-    public boolean isNamespaceEnabled(String namespace) {
-        for (AdvancedPanel panel : advancedPanels) {
-            if (panel.name.equals(namespace)) {
-                return panel.isEnabled(Server.get(server));
-            }
-        }
-        return false;
-    }
-
-    public boolean isKeyOptimised(Identifier key) {
-        for (AdvancedPanel panel : advancedPanels) {
-            if (key.namespace.equals(panel.name)) {
-                return panel.isKeyOptimised(key);
-            }
-        }
-        throw new IllegalArgumentException("No panel with name " + key.namespace);
-    }
-
     public void setServer(String serverName) {
         Server server = Server.get(serverName);
         if (server == null) {
-            LOGGER.error("Trying to configure non-existent server \"" + serverName + "\"");
+            LOGGER.error("Trying to configure non-existent server \"%s\"".formatted(serverName));
             return;
         }
         this.server = serverName;
         this.serverNameLbl.setText(serverName + " - " + server.modLoader);
         // Load server properties
-        for (int i = 0; i < advancedPanels.length; i++) {
-            AdvancedPanel panel = advancedPanels[i];
+        for (int i = 0; i < advancedPanels.size(); i++) {
+            AdvancedPanel panel = advancedPanels.get(i);
             boolean enabled = panel.isEnabled(server);
             if (enabled) {
                 panel.setServer(server);
@@ -204,14 +176,14 @@ public class ServerConfigPanel extends JPanel implements Card {
         // Set sliders on basic panel
         basicPanel.setServer(server);
         // Mods panel
-        tabbedPane.setEnabledAt(advancedPanels.length + 1, server.modLoader.supportsMods());
+        tabbedPane.setEnabledAt(advancedPanels.size() + 1, server.modLoader.supportsMods());
         modsPanel.setServer(server);
     }
 
     @Override
     public void exit() {
         for (AdvancedPanel panel : advancedPanels) {
-            panel.saveProperties();
+            panel.save();
         }
         basicPanel.save();
     }
@@ -219,18 +191,5 @@ public class ServerConfigPanel extends JPanel implements Card {
     @Override
     public void onShowCard() {
 
-    }
-
-    public void setKeyOptimised(Identifier key, boolean selected) {
-        for (AdvancedPanel panel : advancedPanels) {
-            if (panel.name.equals(key.namespace)) {
-                panel.setKeyOptimised(key, selected);
-                break;
-            }
-        }
-        Server server = Server.get(this.server);
-        if (server != null) {
-            server.keysToOptimise.put(key, selected);
-        }
     }
 }

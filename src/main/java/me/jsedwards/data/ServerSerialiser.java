@@ -3,9 +3,9 @@ package me.jsedwards.data;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import me.jsedwards.configserver.ConfigProperty;
 import me.jsedwards.dashboard.Server;
 import me.jsedwards.mod.Project;
-import me.jsedwards.util.Identifier;
 
 import java.io.IOException;
 import java.util.Map;
@@ -32,8 +32,8 @@ public class ServerSerialiser extends StdSerializer<Server> {
         generator.writeStringField("javaVersion", server.javaVersion);
         generator.writeNumberField("optimisationLevel", server.optimisationLevel);
         generator.writeObjectFieldStart("keysToOptimise");
-        for (Map.Entry<Identifier, Boolean> entry : server.keysToOptimise.entrySet()) {
-            generator.writeBooleanField(entry.getKey().toString(), entry.getValue());
+        for (Map.Entry<ConfigProperty, Boolean> entry : server.keysToOptimise.entrySet()) {
+            generator.writeBooleanField(entry.getKey().serialise(), entry.getValue());
         }
         generator.writeEndObject();
         // Mods

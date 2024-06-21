@@ -5,17 +5,25 @@ public class ConfigProperty implements Comparable<ConfigProperty> {
     public final String key;
     public String value;
     public final PropertyType type;
-    public final String configFile;
+    public final ConfigManager configManager;
     private final String description;
     private final String defaultValue;
 
-    public ConfigProperty(String key, String defaultValue, String description, String type, String configFile) {
+    public ConfigProperty(String key, String defaultValue, String description, String type, ConfigManager configManager) {
         this.key = key;
         this.defaultValue = defaultValue;
         this.description = description;
         this.value = defaultValue;
         this.type = PropertyType.get(type, defaultValue);
-        this.configFile = configFile;
+        this.configManager = configManager;
+    }
+
+    public ConfigProperty(String key, ConfigManager configManager) {
+        this(key,
+                configManager.getDefaultValue(key),
+                configManager.getDescription(key),
+                configManager.getDataType(key),
+                configManager);
     }
 
     public void edit() {
@@ -36,7 +44,7 @@ public class ConfigProperty implements Comparable<ConfigProperty> {
     }
 
     public String serialise() {
-        return "%s:%s".formatted(configFile, key);
+        return "%s:%s".formatted(configManager, key);
     }
 
     @Override

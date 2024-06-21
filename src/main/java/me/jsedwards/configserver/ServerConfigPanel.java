@@ -15,6 +15,7 @@ import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ServerConfigPanel extends JPanel implements Card {
@@ -26,14 +27,10 @@ public class ServerConfigPanel extends JPanel implements Card {
     private final JTabbedPane tabbedPane = new JTabbedPane();
     private final BasicPanel basicPanel;
     private final ModsPanel modsPanel;
-    private final AdvancedPanel[] advancedPanels = {
-            new ServerPropertiesManager(),
-            new SpigotConfigManager(),
-            new BukkitConfigManager(),
-            new PufferfishConfigManager()
-    };
+    private final List<AdvancedPanel> advancedPanels = new ArrayList<>();
 
     public ServerConfigPanel() {
+        Arrays.stream(ConfigManager.values()).map(AdvancedPanel::new).forEachOrdered(advancedPanels::add);
         this.setLayout(new GridBagLayout());
         // Back button
         JButton backBtn = new JButton("Back");
@@ -126,7 +123,7 @@ public class ServerConfigPanel extends JPanel implements Card {
         basicPanel = new BasicPanel(this);
         tabbedPane.add("General", basicPanel);
         for (AdvancedPanel panel : advancedPanels) {
-            tabbedPane.add(panel.name, panel);
+            tabbedPane.add(panel.configManager.path, panel);
         }
         modsPanel = new ModsPanel();
         tabbedPane.add("Mods", modsPanel);
@@ -148,19 +145,19 @@ public class ServerConfigPanel extends JPanel implements Card {
         return deleteBtn;
     }
 
+    public List<ConfigProperty> getOptimisable() {
+        // Combine responses from all AdvancedPanels into one list
+        return advancedPanels.stream().map(AdvancedPanel::getOptimisable).collect(ArrayList::new, List::addAll, List::addAll);
+    }
+
+    public void setKeyOptimised(ConfigProperty property, boolean optimised) {
+        advancedPanels.get(property.configManager.getIndex())
+    }
+
     public void optimiseConfigs(int sliderValue) {
         for (AdvancedPanel panel : advancedPanels) {
             panel.optimise(sliderValue);
         }
-    }
-
-    public boolean isNamespaceEnabled(String namespace) {
-        for (AdvancedPanel panel : advancedPanels) {
-            if (panel.name.equals(namespace)) {
-                return panel.isEnabled(Server.get(server));
-            }
-        }
-        return false;
     }
 
     public void setServer(String serverName) {
@@ -172,8 +169,8 @@ public class ServerConfigPanel extends JPanel implements Card {
         this.server = serverName;
         this.serverNameLbl.setText(serverName + " - " + server.modLoader);
         // Load server properties
-        for (int i = 0; i < advancedPanels.length; i++) {
-            AdvancedPanel panel = advancedPanels[i];
+        for (int i = 0; i < advancedPanels.size(); i++) {
+            AdvancedPanel panel = advancedPanels.get(i);
             boolean enabled = panel.isEnabled(server);
             if (enabled) {
                 panel.setServer(server);
@@ -183,7 +180,7 @@ public class ServerConfigPanel extends JPanel implements Card {
         // Set sliders on basic panel
         basicPanel.setServer(server);
         // Mods panel
-        tabbedPane.setEnabledAt(advancedPanels.length + 1, server.modLoader.supportsMods());
+        tabbedPane.setEnabledAt(advancedPanels.size() + 1, server.modLoader.supportsMods());
         modsPanel.setServer(server);
     }
 

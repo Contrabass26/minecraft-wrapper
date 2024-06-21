@@ -12,7 +12,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public abstract class AdvancedPanel extends JPanel {
+public class AdvancedPanel extends JPanel {
 
     protected static final Logger LOGGER = LogManager.getLogger();
 
@@ -20,7 +20,9 @@ public abstract class AdvancedPanel extends JPanel {
     private final JList<ConfigProperty> propertiesList;
     private final List<ConfigProperty> allProperties = new ArrayList<>();
     private final Vector<ConfigProperty> filteredProperties = new Vector<>();
+    private final Map<ConfigProperty, Boolean> keysToOptimise = new HashMap<>();
     public final ConfigManager configManager;
+    private Server server = null;
 
     protected AdvancedPanel(ConfigManager configManager) {
         this.configManager = configManager;
@@ -53,18 +55,27 @@ public abstract class AdvancedPanel extends JPanel {
         propertiesList.addListSelectionListener(e -> sidePanel.update());
     }
 
+    public List<ConfigProperty> getOptimisable() {
+        return allProperties.stream().filter(configManager::canOptimise).toList();
+    }
+
+    public void setKeyOptimised(ConfigProperty key, boolean optimised) {
+        if (key.configManager != this.configManager)
+            throw new IllegalArgumentException("Supplied key has the wrong ConfigManager - expected %s, found %s".formatted(this.configManager, key.configManager));
+        keysToOptimise.put(key, optimised);
+    }
+
     public boolean isEnabled(Server server) {
-        return configManager.enabled.test(server);
+        return configManager.isEnabled(server);
     }
 
     public void setServer(Server server) {
+        this.server = server;
         allProperties.clear();
         filteredProperties.clear();
-        addKeys(allProperties, server);
+        configManager.addKeys(allProperties, server);
         Collections.sort(allProperties);
     }
-
-    protected abstract void addKeys(List<ConfigProperty> list, Server server);
 
     private void updateList() {
         propertiesList.invalidate();
@@ -72,15 +83,15 @@ public abstract class AdvancedPanel extends JPanel {
         sidePanel.update();
     }
 
-    protected abstract void save();
-
     public final void optimise(int sliderValue) {
         for (ConfigProperty property : allProperties) {
-            property.value = optimise(sliderValue, property);
+            property.value = configManager.optimise(sliderValue, property);
         }
     }
 
-    protected abstract String optimise(int sliderValue, ConfigProperty property);
+    public void save() {
+        configManager.save(allProperties, server);
+    }
 
     private class SidePanel extends JPanel {
 

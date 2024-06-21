@@ -92,11 +92,11 @@ class BasicPanel extends JPanel {
         JLabel optimisationOptionsLbl = new JLabel("General optimisation options:");
         optimisationOptionsLbl.setFont(Main.MAIN_FONT.deriveFont(18f));
         this.add(optimisationOptionsLbl, new GridBagConstraints(1, GridBagConstraints.RELATIVE, 2, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
-        List<Identifier> keysToOptimise = new ArrayList<>(serverConfigPanel.getKeysToOptimise());
+        List<ConfigProperty> keysToOptimise = new ArrayList<>(serverConfigPanel.getOptimisable());
         Collections.sort(keysToOptimise);
         checkBoxes = new ArrayList<>();
         CheckBoxMatrixPanel optimisationPanel = new CheckBoxMatrixPanel();
-        for (Identifier key : keysToOptimise) {
+        for (ConfigProperty key : keysToOptimise) {
             JCheckBox checkBox = new JCheckBox(key.toString());
             checkBoxes.add(checkBox);
             checkBox.addActionListener(e -> serverConfigPanel.setKeyOptimised(key, checkBox.isSelected()));

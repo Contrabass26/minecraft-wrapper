@@ -44,27 +44,28 @@ public class WorldPanel extends JPanel {
     private int[] numChunks;
     private Chunk[] chunks;
     private final int[] centre = {0, 0};
-    private int[] dragStart = null;
+    private int[] lastDrag = null;
 
     public WorldPanel() {
         super();
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                dragStart = new int[]{e.getX(), e.getY()};
+                lastDrag = new int[]{e.getX(), e.getY()};
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                dragStart = null;
+                lastDrag = null;
             }
         });
         this.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                if (dragStart != null) {
-                    centre[0] -= e.getX() - dragStart[0];
-                    centre[1] -= e.getY() - dragStart[1];
+                if (lastDrag != null) {
+                    centre[0] -= e.getX() - lastDrag[0];
+                    centre[1] -= e.getY() - lastDrag[1];
+                    lastDrag = new int[]{e.getX(), e.getY()};
                     updateLoadedChunks();
                     repaint();
                 }
@@ -76,7 +77,7 @@ public class WorldPanel extends JPanel {
     public void paint(Graphics g) {
         for (Chunk chunk : chunks) {
             int[] offset = chunk.getOffset();
-            g.drawImage(chunk.image, offset[0], offset[1], null);
+            g.drawImage(chunk.image, getWidth() / 2 + offset[0], getHeight() / 2 + offset[1], null);
         }
     }
 
@@ -104,7 +105,7 @@ public class WorldPanel extends JPanel {
 
     public void setServer(Server server) {
         this.server = server;
-        numChunks = new int[]{Math.ceilDiv(getWidth(), 256), Math.ceilDiv(getHeight(), 256)};
+        numChunks = new int[]{Math.ceilDiv(getWidth(), 256) + 1, Math.ceilDiv(getHeight(), 256) + 1};
         LOGGER.info("Going for {} chunks", numChunks);
         chunks = new Chunk[numChunks[0] * numChunks[1]];
         int halfX = Math.ceilDiv(numChunks[0], 2);
@@ -112,7 +113,7 @@ public class WorldPanel extends JPanel {
         for (int x = 0; x < numChunks[0]; x++) {
             for (int z = 0; z < numChunks[1]; z++) {
                 try {
-                    chunks[x + z] = new Chunk(x - halfX, z - halfZ);
+                    chunks[x * numChunks[1] + z] = new Chunk(x - halfX, z - halfZ);
                 } catch (AnvilException | IOException e) {
                     LOGGER.error("Failed to load chunk at (%s, %s)".formatted(x, z), e);
                 }
@@ -127,8 +128,10 @@ public class WorldPanel extends JPanel {
             short issue = chunk.findIssue();
             try {
                 if (Math.abs(issue) == 1) {
+                    LOGGER.info("Chunk unloaded off the x-axis");
                     chunks[i] = new Chunk(chunk.actualX - issue * numChunks[0], chunk.actualZ);
                 } else if (Math.abs(issue) == 2) {
+                    LOGGER.info("Chunk unloaded off the y-axis");
                     chunks[i] = new Chunk(chunk.actualX, chunk.actualZ - issue * numChunks[1] / 2);
                 }
             } catch (AnvilException | IOException e) {
@@ -181,13 +184,16 @@ public class WorldPanel extends JPanel {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     int y = heightMap.get(x, z) - 65;
-                    String block = StringUtils.substringAfter(chunk.getBlockState(x, y, z).getName(), ':');
-                    block = blockTransformers.getOrDefault(block, block);
-                    BufferedImage texture = getTexture(server.mcVersion, block);
-                    g.drawImage(texture, x * 16, z * 16, null);
+                    if (y >= -64) {
+                        String block = StringUtils.substringAfter(chunk.getBlockState(x, y, z).getName(), ':');
+                        block = blockTransformers.getOrDefault(block, block);
+                        BufferedImage texture = getTexture(server.mcVersion, block);
+                        g.drawImage(texture, x * 16, z * 16, null);
+                    }
                 }
             }
-            LOGGER.info("Loaded chunk at (%s, %s)".formatted(actualX, actualZ));
+            g.setColor(Color.RED);
+            g.drawRect(0, 0, 256, 256);
         }
 
         public short findIssue() { // 0 = no issue, 1 = x, 2 = y, sign = which direction
@@ -195,7 +201,7 @@ public class WorldPanel extends JPanel {
             if (offset[0] > getWidth() / 2) return 1;
             if (offset[0] < -256 - getWidth() / 2) return -1;
             if (offset[1] > getHeight() / 2) return 2;
-            if (offset[1] < -256 - getWidth() / 2) return -2;
+            if (offset[1] < -256 - getHeight() / 2) return -2;
             return 0;
         }
 

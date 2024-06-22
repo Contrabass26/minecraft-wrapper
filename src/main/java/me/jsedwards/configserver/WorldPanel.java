@@ -10,9 +10,8 @@ import org.jglrxavpok.hephaistos.mca.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
+import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -53,8 +52,9 @@ public class WorldPanel extends JPanel {
     private Server server = null;
     private int[] numChunks;
     private Chunk[] chunks;
-    private final int[] centre = {0, 0};
+    private double[] centre = {0, 0};
     private int[] lastDrag = null;
+    private int scale = 256; // The size of one chunk in pixels
 
     public WorldPanel() {
         super();
@@ -81,13 +81,20 @@ public class WorldPanel extends JPanel {
                 }
             }
         });
+        this.addMouseWheelListener(e -> {
+            double[] scaledCentre = new double[]{centre[0] / scale, centre[1] / scale};
+            int proposed = scale + e.getWheelRotation() * 10;
+            scale = Math.max(1, proposed);
+            refreshScale();
+            centre = new double[]{scaledCentre[0] * scale, scaledCentre[0] * scale};
+        });
     }
 
     @Override
     public void paint(Graphics g) {
         for (Chunk chunk : chunks) {
-            int[] offset = chunk.getOffset();
-            g.drawImage(chunk.image, getWidth() / 2 + offset[0], getHeight() / 2 + offset[1], null);
+            double[] offset = chunk.getOffset();
+            g.drawImage(chunk.image, (int) (getWidth() / 2 + offset[0]), (int) (getHeight() / 2 + offset[1]), null);
         }
     }
 
@@ -116,7 +123,11 @@ public class WorldPanel extends JPanel {
     public void setServer(Server server) {
         this.server = server;
         Chunk.regionCache.clear();
-        numChunks = new int[]{Math.ceilDiv(getWidth(), 256) + 1, Math.ceilDiv(getHeight(), 256) + 1};
+        refreshScale();
+    }
+
+    private void refreshScale() {
+        numChunks = new int[]{Math.ceilDiv(getWidth(), scale) + 1, Math.ceilDiv(getHeight(), scale) + 1};
         LOGGER.info("Going for {} chunks", numChunks);
         chunks = new Chunk[numChunks[0] * numChunks[1]];
         int halfX = Math.ceilDiv(numChunks[0], 2);
@@ -190,8 +201,9 @@ public class WorldPanel extends JPanel {
             ChunkColumn chunk = region.getChunk(chunkX, chunkZ);
             if (chunk == null)
                 throw new IllegalArgumentException("No chunk exists at %s, %s".formatted(chunkX, chunkZ));
-            this.image = new BufferedImage(256, 256, BufferedImage.TYPE_INT_RGB);
-            Graphics g = image.getGraphics();
+            this.image = new BufferedImage(scale, scale, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = (Graphics2D) image.getGraphics();
+            g.setTransform(AffineTransform.getScaleInstance(scale / 256d, scale / 256d));
             Heightmap heightMap = chunk.getMotionBlockingHeightMap();
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
@@ -220,16 +232,16 @@ public class WorldPanel extends JPanel {
         }
 
         public short findIssue() { // 0 = no issue, 1 = x, 2 = y, sign = which direction
-            int[] offset = getOffset();
-            if (offset[0] > getWidth() / 2) return 1;
-            if (offset[0] < -256 - getWidth() / 2) return -1;
-            if (offset[1] > getHeight() / 2) return 2;
-            if (offset[1] < -256 - getHeight() / 2) return -2;
+            double[] offset = getOffset();
+            if (offset[0] > getWidth() / 2d) return 1;
+            if (offset[0] < -scale - getWidth() / 2d) return -1;
+            if (offset[1] > getHeight() / 2d) return 2;
+            if (offset[1] < -scale - getHeight() / 2d) return -2;
             return 0;
         }
 
-        private int[] getOffset() {
-            return new int[]{actualX * 256 - centre[0], actualZ * 256 - centre[1]};
+        private double[] getOffset() {
+            return new double[]{actualX * scale - centre[0], actualZ * scale - centre[1]};
         }
     }
 }

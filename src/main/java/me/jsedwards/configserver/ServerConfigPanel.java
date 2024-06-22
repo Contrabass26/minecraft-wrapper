@@ -183,7 +183,8 @@ public class ServerConfigPanel extends JPanel implements Card {
     @Override
     public void exit() {
         for (AdvancedPanel panel : advancedPanels) {
-            panel.save();
+            if (panel.isEnabled(Server.get(server)))
+                panel.save();
         }
         basicPanel.save();
     }

@@ -34,10 +34,20 @@ public class WorldPanel extends JPanel {
         imageTransformers.put("grass_block_top", getTintTransformer(0x7cbd6b));
         imageTransformers.put("birch_leaves", getTintTransformer(0x80a755));
         imageTransformers.put("oak_leaves", getTintTransformer(0x48b518));
+        imageTransformers.put("water", bufferedImage -> {
+            BufferedImage newImage = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
+            Graphics g = newImage.getGraphics();
+            g.setColor(new Color(0x3d57d6));
+            g.fillRect(0, 0, 16, 16);
+            return newImage;
+        });
         // Block name transformers
         blockTransformers = new HashMap<>();
         blockTransformers.put("grass_block", "grass_block_top");
         blockTransformers.put("snow_block", "snow");
+        blockTransformers.put("pumpkin", "pumpkin_top");
+        blockTransformers.put("pointed_dripstone", "dripstone");
+        blockTransformers.put("tall_seagrass", "seagrass");
     }
 
     private Server server = null;
@@ -105,6 +115,7 @@ public class WorldPanel extends JPanel {
 
     public void setServer(Server server) {
         this.server = server;
+        Chunk.regionCache.clear();
         numChunks = new int[]{Math.ceilDiv(getWidth(), 256) + 1, Math.ceilDiv(getHeight(), 256) + 1};
         LOGGER.info("Going for {} chunks", numChunks);
         chunks = new Chunk[numChunks[0] * numChunks[1]];
@@ -128,10 +139,10 @@ public class WorldPanel extends JPanel {
             short issue = chunk.findIssue();
             try {
                 if (Math.abs(issue) == 1) {
-                    LOGGER.info("Chunk unloaded off the x-axis");
+//                    LOGGER.info("Chunk unloaded off the x-axis");
                     chunks[i] = new Chunk(chunk.actualX - issue * numChunks[0], chunk.actualZ);
                 } else if (Math.abs(issue) == 2) {
-                    LOGGER.info("Chunk unloaded off the y-axis");
+//                    LOGGER.info("Chunk unloaded off the y-axis");
                     chunks[i] = new Chunk(chunk.actualX, chunk.actualZ - issue * numChunks[1] / 2);
                 }
             } catch (AnvilException | IOException e) {
@@ -144,23 +155,25 @@ public class WorldPanel extends JPanel {
         int hash = Objects.hash(mcVersion, block);
         if (!textureCache.containsKey(hash)) {
             String url = "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/%s/assets/minecraft/textures/block/%s.png".formatted(mcVersion, block);
+            BufferedImage texture;
             try {
-                BufferedImage texture = ImageIO.read(new URL(url));
-                UnaryOperator<BufferedImage> transformer = imageTransformers.get(block);
-                if (transformer != null) {
-                    texture = transformer.apply(texture);
-                }
-                textureCache.put(hash, texture);
+                texture = ImageIO.read(new URL(url));
             } catch (IOException e) {
                 LOGGER.warn("Failed to get texture from %s".formatted(url));
-                BufferedImage texture = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
-                textureCache.put(hash, texture);
+                texture = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
             }
+            UnaryOperator<BufferedImage> transformer = imageTransformers.get(block);
+            if (transformer != null) {
+                texture = transformer.apply(texture);
+            }
+            textureCache.put(hash, texture);
         }
         return textureCache.get(hash);
     }
 
     private class Chunk {
+
+        private static final Map<Integer, RegionFile> regionCache = new HashMap<>();
 
         public final Image image;
         private final int actualX;
@@ -171,8 +184,7 @@ public class WorldPanel extends JPanel {
             int regionZ = Math.floorDiv(actualZ, 32);
             int chunkX = actualX % 32;
             int chunkZ = actualZ % 32;
-            String path = "%s/world/region/r.%s.%s.mca".formatted(server.serverLocation, regionX, regionZ);
-            RegionFile region = new RegionFile(new RandomAccessFileSource(new RandomAccessFile(path, "r")), regionX, regionZ);
+            RegionFile region = getRegion(regionX, regionZ);
             this.actualX = actualX;
             this.actualZ = actualZ;
             ChunkColumn chunk = region.getChunk(chunkX, chunkZ);
@@ -194,6 +206,17 @@ public class WorldPanel extends JPanel {
             }
             g.setColor(Color.RED);
             g.drawRect(0, 0, 256, 256);
+        }
+
+        private RegionFile getRegion(int regionX, int regionZ) throws IOException, AnvilException {
+            int hash = Objects.hash(regionX, regionZ);
+            if (!regionCache.containsKey(hash)) {
+                String path = "%s/world/region/r.%s.%s.mca".formatted(server.serverLocation, regionX, regionZ);
+                RegionFile region = new RegionFile(new RandomAccessFileSource(new RandomAccessFile(path, "r")), regionX, regionZ);
+                regionCache.put(hash, region);
+                return region;
+            }
+            return regionCache.get(hash);
         }
 
         public short findIssue() { // 0 = no issue, 1 = x, 2 = y, sign = which direction

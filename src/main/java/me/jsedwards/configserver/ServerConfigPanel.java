@@ -27,6 +27,7 @@ public class ServerConfigPanel extends JPanel implements Card {
     private final JTabbedPane tabbedPane = new JTabbedPane();
     private final BasicPanel basicPanel;
     private final ModsPanel modsPanel;
+    private final WorldPanel worldPanel;
     private final List<AdvancedPanel> advancedPanels = new ArrayList<>();
 
     public ServerConfigPanel() {
@@ -126,7 +127,9 @@ public class ServerConfigPanel extends JPanel implements Card {
             tabbedPane.add(panel.configManager.path, panel);
         }
         modsPanel = new ModsPanel();
+        worldPanel = new WorldPanel();
         tabbedPane.add("Mods", modsPanel);
+        tabbedPane.add("World", worldPanel);
         this.add(tabbedPane, new GridBagConstraints(1, 2, 4, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, new Insets(10, 10, 10, 10), 0, 0));
     }
 
@@ -178,6 +181,8 @@ public class ServerConfigPanel extends JPanel implements Card {
         // Mods panel
         tabbedPane.setEnabledAt(advancedPanels.size() + 1, server.modLoader.supportsMods());
         modsPanel.setServer(server);
+        // World panel
+        worldPanel.setServer(server);
     }
 
     @Override

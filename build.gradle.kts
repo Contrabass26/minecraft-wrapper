@@ -88,6 +88,9 @@ dependencies {
     runtimeOnly("org.lwjgl", "lwjgl", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-tinyfd", classifier = lwjglNatives)
+
+    // NBT and Anvil parsing
+    implementation("io.github.jglrxavpok.hephaistos:common:2.6.1")
 }
 
 tasks.test {
